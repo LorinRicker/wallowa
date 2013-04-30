@@ -1,0 +1,15 @@
+Ruby Haiku:
+
+require 'a_gem'
+  the_joy.in the_beautiful
+"Ruby.new" breathed Matz
+
+Even "old geeks" find wonder in this language. I'd like to contribute!
+
+Nay! don't choose the snake!  (... do Python!)
+  That parrot is dead and gone.
+Beauty's in the gems.
+
+Agile develops.
+  Ruby delights programmers.
+Thus great tools are born.

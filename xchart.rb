@@ -1,0 +1,142 @@
+#!/usr/bin/env ruby
+# -*- encoding: utf-8 -*-
+
+# xchart.rb
+#
+# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Version info: see PROGID below...
+#
+# This program is free software, under the terms and conditions of the
+# GNU General Public License published by the Free Software Foundation.
+# See the file 'gpl' distributed within this project directory tree.
+
+PROGNAME = File.basename $0
+  PROGID = "#{PROGNAME} v1.03 (11/26/2012)"
+  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+
+# === For command-line arguments & options parsing: ===
+require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'pp'
+require_relative 'ANSIseq'
+require_relative 'TermChar'
+
+# ==========
+
+def display( extext, clr = :black, termwidth = 80 )
+  print ''.clearscreen
+  puts '-' * termwidth
+  print extext.bold.color(clr)
+  puts '-' * termwidth
+end  # display
+
+# ==========
+
+ExceptionChart = <<EOD
+Object
+  •---Exception
+        • fatal (used internally by Ruby)
+        •---NoMemoryError
+        •---ScriptError
+              •---LoadError
+              •---NotImplementedError
+              •---SyntaxError
+        •---SecurityError ¹
+        •---SignalException
+              •---Interrupt
+        •---StandardError
+              •---ArgumentError
+              •---FiberError ²
+              •---IndexError
+                    •---KeyError ²
+                    •---StopIteration ²
+              •---IOError
+                    •---EOFError
+              •---LocalJumpError
+              •---NameError
+                    •---NoMethodError
+              •---RangeError
+                    •---FloatDomainError
+              •---RegexpError
+              •---RuntimeError
+              •---SystemCallError ³
+              •---ThreadError
+              •---TypeError             Notes: ¹ Was a StandardError in Ruby 1.8
+              •---ZeroDivisionError            ² New in Ruby 1.9
+        •---SystemExit                         ³ System-dependent exceptions
+        •---SystemStackError ¹                   (Errno::xxx)
+EOD
+
+ExceptionExamples = <<EOD
+  ...
+  begin                                      def method_name( args, ... )
+    # statement(s)...                          # statement(s)...
+  rescue [ exception➀ ][ => e ]              rescue [ exception➀ ][ => e ]
+    # Code to handle exception➀...             # Code to handle exception➀...
+    pp e                                       pp e
+    print e.backtrace.join( "\\n" )             print e.backtrace.join( "\\n" )
+  rescue [ exception➁ ][ => e ]              rescue [ exception➁ ][ => e ]
+    # Code to handle exception➁...             # Code to handle exception➁...
+  else                                       else
+    # If no exception occurs in the            # If no exception occurs in the
+    # begin/end block, then this               # method block, then this code
+    # code block is executed...                # block is executed...
+  ensure                                     ensure
+    # Code to be executed no matter            # Code to be executed no matter
+    # what happens in the begin/end            # what happens in the method
+    # block: run if the block runs             # block: run if the block runs
+    # to completion, or if it throws           # to completion, or if it throws
+    # an exception...                          # an exception, or if the method
+  end                                          # executes a return statement...
+                                           end
+EOD
+
+# ==========
+
+options = {}  # hash for all com-line options;
+  # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
+  # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
+  # also see "Pickaxe v1.9", p. 776
+
+optparse = OptionParser.new do |opts|
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+  opts.on( "-c", "--color", "=String",
+           /black|white|red|green|blue|purple|brown|cyan|yellow/i,
+           "Output text in this color" ) do |val|
+    options[:color] = val.downcase
+  end  # -c --color
+  opts.on( "-e", "--ech", "--hierarchy", "--chart",
+           "Display Ruby Exception Class Hierarchy" ) do |val|
+    options[:ech] = true
+  end  # -e --ech
+  opts.on( "-x", "--examples", "Display Ruby Exception (rescue) examples" ) do |val|
+    options[:examples] = true
+  end  # -e --examples
+  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
+end  #OptionParser.new
+optparse.parse!  # leave residue-args in ARGV
+
+color = options[:color] ? options[:color].to_sym : :black
+
+# Set-up for terminal dimensions:
+termheight = TermChar.terminal_height
+termwidth  = TermChar.terminal_width
+
+# ===========
+
+display( ExceptionChart, color, termwidth ) if options[:ech]
+
+display( ExceptionExamples, color, termwidth ) if options[:examples]
