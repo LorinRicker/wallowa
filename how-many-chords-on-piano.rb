@@ -3,8 +3,8 @@
 
 # how-many-chords-on-piano.rb
 #
-# Copyright (C) 2012 Lorin Ricker <lorin@rickernet.us>
-# Version: 0.3, 06/19/2012
+# Copyright (C) 2012-2013 Lorin Ricker <lorin@rickernet.us>
+# Version: 0.3, 06/10/2013
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -51,6 +51,7 @@
 #   C(88,0)  = 88!/(0!(88-0)!)   = 88!/88! =  1 (by definition, 0! is 1)
 #   C(88,1)  = 88!/(1!(88-1)!)   = 88!/87! = 88
 #   ...
+#   C(88,87) = 88!/(87!(88-87)!) = 88!/87! = 88
 #   C(88,88) = 88!/(88!(88-88)!) = 88!/88! =  1
 #
 # As calculations such as "What is the theoretical total number of
@@ -64,7 +65,7 @@
 
 require 'pp'
 require_relative 'factorial'
-require_relative 'StringEnhancements'
+require_relative 'lib/StringEnhancements'
 
   PIANO_KEYS  = 88
   FACTORIAL88 = n!(PIANO_KEYS)  # value used many times, also doing this
