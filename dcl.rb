@@ -3,7 +3,7 @@
 
 # dcl.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-13 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -107,7 +107,7 @@
  DCLNAME = File.join( PATH, "dcl" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v1.04 (10/23/2012)"
+  PROGID = "#{PROGNAME} v1.05 (06/10/2013)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -127,7 +127,7 @@ def dclsymlink( syms )
       if File.readlink( slnk ) == DCLNAME
         $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})"
       else
-        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not#{DN})"
+        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})"
       end  # if File.identical?( DCLNAME, slnk )
     else
       if ! File.file?( slnk )  # no ordinary file collision?
@@ -267,32 +267,32 @@ else
     ## >> How to default width to terminal-width, and how to specify padchr? Syntax?
     width  = ARGV.shift.to_i
     # padchr = ARGV.shift
-    args   = getargs( options )
-    result  = args.center( width )
+    args = getargs( options )
+    result = args.center( width )
 
   when "ljust"
     # $ ljust width "String to center-justify..."
     width  = ARGV.shift.to_i
     # padchr = ARGV.shift
-    args   = getargs( options )
-    result  = args.ljust( width )
+    args = getargs( options )
+    result = args.ljust( width )
 
   when "rjust"
     # $ rjust width "String to center-justify..."
     width  = ARGV.shift.to_i
     # padchr = ARGV.shift
-    args   = getargs( options )
-    result  = args.rjust( width )
+    args = getargs( options )
+    result = args.rjust( width )
 
   when "edit"
     # $ edit "func1,func2[,...]" "String to filter"
     #   where "func1,funct2[,...]" -- the editlist -- is required
     editlist = ARGV.shift            # assign and remove arg [0]
     args = getargs( options )
-    result = args.edit( editlist )
+    result = args.edit( editlist, '#' )  # assume bash-style comments
 
   when "element"
-    # $ element 2 [";"] "String;to;extract;an;element;from"
+    # $ element 2 [","] "String,to,extract,an,element,from"
     #   where first arg is the element-number (zero-based) to extract,
     #   and second arg is (optional) element separator (default ",");
     #   note that if length of second arg is > 1, it defaults, and

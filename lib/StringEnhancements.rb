@@ -3,8 +3,8 @@
 
 # StringEnhancements.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.6, 10/16/2012
+# Copyright © 2011-2013 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.7, 06/10/2013
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -153,8 +153,14 @@ class String
   end  # element
 
   # Separate groups of characters with a separator
-  def groupsep( grp = 3, sep = "," )
+  def groupsep( grp = 3, sep = ",", dec = '.' )
     num  = self.to_s.strip
+    pat  = Regexp.compile( '\#{dec}(\d*)' )
+    if num.include?(dec)
+      nums = num.split( /\.(\d*)/ )
+      nums.delete_if { |n| n == "" }
+      num = nums[0]
+    end
     thou = []
     while num != ""
       ln  = num.length < grp ? num.length : grp
@@ -162,7 +168,12 @@ class String
       num[-ln,grp] = ""
       thou << tpl
     end  # while
-    thou.reverse.join(sep)
+    thou = thou.reverse.join(sep)
+    if nums
+      nums[0] = thou
+      thou = nums.join(dec)
+    end
+    return thou
   end  # groupsep
 
   # Separate a string (usually digits) into thousands --
