@@ -3,7 +3,7 @@
 
 # adoptDirTree.rb  -- called by adopt[.sh] in order to wrap with sudo
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-13 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = "adopt"  # File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (10/22/2012)"
+  PROGID = "#{PROGNAME} v1.2 (06/10/2013)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -59,7 +59,7 @@ optparse = OptionParser.new do |opts|
 end  #OptionParser.new
 optparse.parse!  # leave residue-args in ARGV
 
-ARGV << "." if !ARGV[0]  # default is current-dir if none specified
+ARGV << "./*" if !ARGV[0]  # default is current-dir if none specified
 
 fmode      = options[:mode] || '0644'
 fprot      = fmode.to_i(8)
@@ -68,7 +68,7 @@ testindent = ' ' * testprefix.length
 
 ARGV.each do | td |
 
-  tdir = File.expand_path( td )
+  tdir = File.dirname( File.expand_path( td ) )
   if ! File.directory?( tdir )
     puts "%#{PROGNAME}-E-NODIR, directory #{tdir} does not exist"
     exit false
@@ -79,7 +79,7 @@ ARGV.each do | td |
   tduid = fstat.uid
   tdgid = fstat.gid
   prcug = File.translate_uid_gid( tduid, tdgid )
-  puts "#{testindent}   parent directory ownership '#{prcug}'" if options[:debug]
+  puts "#{testindent} parent directory ownership '#{prcug}'" if options[:debug]
 
   Find.find( tdir ) do | sf |
 
@@ -89,7 +89,7 @@ ARGV.each do | td |
 
     # Parse the source file's basename and source directory:
     tfile = File.expand_path( sf )
-    puts "%#{PROGNAME}-I-DEBUG, sf: #{sf}" if options[:debug]
+    puts "%#{PROGNAME}-I-DEBUG, sf: #{tfile}" if options[:debug]
 
     # chmod and chown for eXecutable and proper file ownership:
     if options[:test]
