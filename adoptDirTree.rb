@@ -81,7 +81,7 @@ ARGV.each do | td |
   prcug = File.translate_uid_gid( tduid, tdgid )
   puts "#{testindent} parent directory ownership '#{prcug}'" if options[:debug]
 
-  Find.find( tdir ) do | sf |
+  Find.find( td ) do | sf |
 
     next if ( sf == '.' ) || ( sf == '..' )
 
