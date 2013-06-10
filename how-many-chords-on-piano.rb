@@ -4,7 +4,7 @@
 # how-many-chords-on-piano.rb
 #
 # Copyright (C) 2012-2013 Lorin Ricker <lorin@rickernet.us>
-# Version: 0.3, 06/10/2013
+# Version: 0.5, 06/10/2013
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -80,6 +80,12 @@ require_relative 'lib/StringEnhancements'
     FACTORIAL88 / ( n!(nk) * n!(PIANO_KEYS - nk) )
   end  # chordCombos
 
+  def numKeyChords( cbk, nk )
+    totchords = 0
+    cbk.each { |k,tc| totchords += tc if k <= nk }
+    return totchords
+  end  # numKeyChords
+
 
 chordsByKeys = Hash.new  # chordCombos by #-of-keys
 
@@ -89,23 +95,19 @@ chordsByKeys = Hash.new  # chordCombos by #-of-keys
 pp chordsByKeys if ARGV[0]
 
 # Total up the grand-total number of possible chords:
-totalChords = 0
-chordsByKeys.each { |k,tc| totalChords += tc }
+totalChords = numKeyChords( chordsByKeys, PIANO_KEYS )
 
 # Total up the number of possible chords playable by
 # ten fingers on two human hands:
-tenKeyChords = 0
-chordsByKeys.each { |k,tc| tenKeyChords += tc if k <= 10 }
+tenKeyChords = numKeyChords( chordsByKeys, 10 )
 
 # Total up the number of possible chords playable by
 # five fingers on one human hand (e.g., "for the left-hand alone"):
-fiveKeyChords = 0
-chordsByKeys.each { |k,tc| fiveKeyChords += tc if k <= 5 }
+fiveKeyChords = numKeyChords( chordsByKeys, 5 )
 
 # Total up the number of possible chords playable by
 # twenty fingers on four human hands (either one or two pianos):
-twentyKeyChords = 0
-chordsByKeys.each { |k,tc| twentyKeyChords += tc if k <= 20 }
+twentyKeyChords = numKeyChords( chordsByKeys, 20 )
 
 puts "\nGrand total number of possible chords on an #{PIANO_KEYS}-key piano:",
    totalChords.thousands,
