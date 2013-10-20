@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.10 (10/19/2013)"
+  PROGID = "#{PROGNAME} v1.11 (10/20/2013)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
@@ -238,9 +238,9 @@ ARGV.each do | f |    # Each remaining file in ARGV is an input filespec...
     Dir.glob( f ).each { |x| argfiles << x }
     #infiles << File.default_extension( Dir.glob( f ), fext )
   end  # if m
-  # Careful -- globs with 2 or more wildcards (e.g., "*-{01..32}-*") can
-  #            yield duplicate filespecs, so impose uniqueness, and sort:
-  argfiles.sort.uniq.each { |x| infiles << x }
+  # Careful -- globs with 2 or more wildcards (e.g., "*-{01..32}-*")
+  #            can yield duplicate filespecs, so impose uniqueness:
+  argfiles.uniq.each { |x| infiles << x }
 end  # ARGV.each
 
 insize  = infiles.size
