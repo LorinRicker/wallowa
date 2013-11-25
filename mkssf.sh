@@ -13,14 +13,13 @@
 #       See file .../projects/login/aliases for the definition of alias "mkssf".
 
 shF=$( basename $0 )
-Ident="${shF}  # (LMR version 1.01 of 12/16/2012)"
+Ident="${shF}  # (LMR version 1.02 of 11/24/2013)"
 
 if [ -z "$1" ]; then
   workingdir="$( pwd )"
 else
   workingdir="$1"
 fi
-
 
 # Ruby-script mkssfpath.rb does all the heavy-lifting
 host=$( echo $HOSTNAME )

@@ -11,8 +11,8 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.01 (12/16/2012)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.02 (11/24/2013)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
@@ -55,15 +55,7 @@ localpath = ARGV[0]
 srchost   = ARGV[1].chomp
 logname   = ARGV[2] != "" ? ARGV[2] : "rd"  # the remote directory...
 
-if srchost == "music"
-  tarhost = getprompted( "Remote node", "honeybee" )
-else
-  tarhost = case srchost
-              when "burro"    then "music"
-              when "honeybee" then "music"
-              when "captain"  then "music"
-            end  # case srchost
-end  # if srchost == "music"
+tarhost = srchost == "music" ? getprompted( "Remote node", "honeybee" ) : "music"
 
 $stderr.puts ">>> '#{srchost}'   '#{tarhost}'" if options[:verbose]
 
