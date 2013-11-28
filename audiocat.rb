@@ -38,15 +38,15 @@
 
 # ===========
 # Command Line --
-#   $ audiocat [options] in1 in2 [...] out
+#   $ audiocat [options] out in1 in2 [...]
 #
 #   Default input/output file type is .ogg (can omit the ".ogg" file extension);
 #   use --type mp3 (or specify file extensions as ".mp3") to copy-cat MP3s.
 #
 #   Patterned input files can be specified as a range:
-#     $ audiocat [options] track{1..4} "Sonata Op 31"
+#     $ audiocat "Sonata Op 31" [options] track{1..4}
 #   expands into:
-#     $ audiocat [options] track1 track2 track3 track4 "Sonata Op 31"
+#     $ audiocat [options] "Sonata Op 31" track1 track2 track3 track4
 
 # ===========
 # Reference & research --
@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.12 (11/24/2013)"
+  PROGID = "#{PROGNAME} v1.14 (11/27/2013)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
@@ -150,7 +150,7 @@ options = {  # hash for all com-line options:
   :debug  => false
   }
 
-optparse = OptionParser.new do |opts|
+optparse = OptionParser.new { |opts|
   # Set the banner:
   opts.banner = "Usage: #{PROGNAME} [options] output-audio-file input-audio-file(s)" +
               "\n Note: Output file is first, then two or more input files"
@@ -184,8 +184,7 @@ optparse = OptionParser.new do |opts|
   opts.on( "-d", "--debug", "Debug mode (more output than verbose)" ) do |val|
     options[:debug] = true
   end  # -d --debug
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+}.parse!  # leave residue-args in ARGV
 
 checkdir( CONFIGDIR )
 # Propagate a couple of implications --
