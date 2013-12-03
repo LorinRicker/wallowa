@@ -41,7 +41,7 @@
 #      where Д: 10 and ξ: 11
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.03 (12/02/2013)"
+  PROGID = "#{PROGNAME} v1.04 (12/02/2013)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -132,7 +132,7 @@ class ToneRow < Array
               :inverse, :invretro, :rowmatrix
 
   def initialize( rawrow, options )
-    STDERR.puts "  raw row: '#{rawrow}'" if options[:verbose]
+    $stderr.puts "  raw row: '#{rawrow}'" if options[:verbose]
     if options[:rowsize]
       if options[:rowsize] != rawrow.size
         raise RowSizeError
@@ -140,22 +140,22 @@ class ToneRow < Array
     end
     @prime = rawrow.split( '' ).collect { |d|
       d.upcase == 'D' ? 10 : d.upcase == 'E' ? 11 : d.to_i }
-    STDERR.puts "    prime: #{@prime.to_s}" if options[:verbose]
+    $stderr.puts "    prime: #{@prime.to_s}" if options[:verbose]
     @rsize      = @prime.size
     @retrograde = @prime.reverse
     @interval   = ToneRow.interval( @prime, @rsize )
-    STDERR.puts " interval: #{@interval.to_s}" if options[:verbose]
+    $stderr.puts " interval: #{@interval.to_s}" if options[:verbose]
     @inverse    = ToneRow.inverse( @prime, @interval, @rsize )
-    STDERR.puts "  inverse: #{@inverse.to_s}" if options[:verbose]
+    $stderr.puts "  inverse: #{@inverse.to_s}" if options[:verbose]
     @invretro   = @inverse.reverse
-    STDERR.puts " invretro: #{@invretro.to_s}" if options[:verbose]
+    $stderr.puts " invretro: #{@invretro.to_s}" if options[:verbose]
     @rowmatrix  = ToneRow.rowmatrix( @prime, @inverse,
                                      @interval, @rsize )
     raise DiagonalError if options[:diagonal] &&
                           !ToneRow.diagonalcheck( @rowmatrix )
     if options[:verbose]
-      STDERR.puts "rowmatrix ===== "
-      @rowmatrix.each { | r | STDERR.puts "  #{r.inspect}" }
+      $stderr.puts "rowmatrix ===== "
+      @rowmatrix.each { | r | $stderr.puts "  #{r.inspect}" }
     end
     return @rowmatrix
   end
@@ -171,11 +171,11 @@ class ToneRow < Array
   def self.report( rmat, prime, retrograde,
                    inverse, invretro, options )
     ind = SPC * INDENT
-    STDOUT.print "\n #{options[:title]} --\n\n" if options[:title]
-    rmat.each { | r | STDOUT.puts to_pitchrow( r ) }
-    STDOUT.puts "\n#{ind}     Prime:#{to_pitchrow(prime,1)}" +
+    $stdout.print "\n #{options[:title]} --\n\n" if options[:title]
+    rmat.each { | r | $stdout.puts to_pitchrow( r ) }
+    $stdout.puts "\n#{ind}     Prime:#{to_pitchrow(prime,1)}" +
                 "\n#{ind}Retrograde:#{to_pitchrow(retrograde,1)}"
-    STDOUT.puts "#{ind}   Inverse:#{to_pitchrow(inverse,1)}" +
+    $stdout.puts "#{ind}   Inverse:#{to_pitchrow(inverse,1)}" +
                 "\n#{ind}  InvRetro:#{to_pitchrow(invretro,1)}"
   end
 
