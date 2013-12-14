@@ -1,5 +1,11 @@
-Ruby Haiku --
+Ruby Haiku (5,7,5) --
 Even "old geeks" find wonder in this language. I'd like to contribute!
+
+-----
+
+No Walls; no Fences.
+  Ruby...
+No Windows; no Gates!
 
 -----
 

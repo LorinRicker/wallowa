@@ -3,8 +3,8 @@
 
 # FileEnhancements.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.10, 12/04/2012
+# Copyright © 2012-2013 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.11, 06/21/2013
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -215,7 +215,7 @@ end  # open( "/etc/passwd" )
   end  # msgdigest
 
   # Verify & report the "Unix magic number" file identification signature
-  def self.verify_magicnumber( fname, fext = nil )
+  def self.verify_magicnumber( fname, fext = nil, echo = nil )
     ext = fext || extname( fname )
     lext = ext.length
     ext = ext[0] == "." ? ext[1..lext] : ext
@@ -230,8 +230,8 @@ end  # open( "/etc/passwd" )
         siglen = 4
       when "ogg", "oga", "ogv", "ogx"     # "OggS"
         filsig = "\x4F\x67\x67\x53"
-        begsig =  0
-        siglen = 13
+        begsig = 0
+        siglen = 4
       when "pdf"    # "%PDF"
         filsig = "\x25\x50\x44\x46"
         begsig = 0
@@ -266,6 +266,11 @@ end  # open( "/etc/passwd" )
       # Return the signature string if the file's verified, else return nil:
       File.open( fname, "rb" ) do |f|
         sig = f.read( 64 )  # ...a big enough hunk
+        if echo
+          afs = ""
+          sig[begsig,siglen].bytes.each { |b| afs << "#{sprintf("\\x%2X",b)}" }
+          puts "Actual File Signature: #{afs}"
+        end  # if echo
         return filsig if sig[begsig,siglen] == filsig
       end  # File.open( fname, ... )
     rescue NoMethodError
