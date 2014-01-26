@@ -20,7 +20,7 @@ require_relative 'GetPrompted'
 require_relative 'ANSIseq'
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (10/24/2012)"
+  PROGID = "#{PROGNAME} v1.5 (01/25/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
   LA = '>'.color(:red)
@@ -43,13 +43,14 @@ def showregex( sstr, rstr, options )
   pat = Regexp.new( rstr, reopt )
   m = pat.match( sstr )
   if m
-    puts SEP
-    printf( "#{IND1}" + "#{SQ}%s#{SQ} %s #{SL}%s#{SL}\n",
+    puts SEP   # display the exemplars:
+    printf( "#{IND1}" + "#{SL}%s#{SL} %s #{SQ}%s#{SQ}\n",
                         rstr.bold, "=~".bold.color(:red), sstr.bold )
     printf( "#{IND1}" + "#{SL}%s#{SL}.%s(#{SQ}%s#{SQ})\n\n",
-                        sstr.bold, "match".bold.color(:red), rstr.bold )
+                        rstr.bold, "match".bold.color(:red), sstr.bold )
+    # display the match results:
     printf( "#{IND1}" + "Result".underline + ": %s\n\n",     \
-            "#{m.pre_match}".bold.color(:blue)                       \
+            "#{m.pre_match}".bold.color(:blue)               \
             + "#{LA}" + "#{m[0]}".bold.color(:red) + "#{RA}" \
             + "#{m.post_match}".bold.color(:blue) )
     # display the match metadata:
@@ -59,7 +60,7 @@ def showregex( sstr, rstr, options )
     printf( "#{IND1}         m.names => %s\n", m.names.to_s.bold.color(:red) )
     m.to_a.each_index do |i|
       printf( "#{IND3}$#{i} => %s%s%s\n", \
-              "\"#{m[i]}\"".bold.color(:red),     \
+              "\"#{m[i]}\"".bold.color(:red), \
               ( i==0 ? "  # same as m[0] and $&" : "  # same as m[#{i}]" ), \
               ( (i >= 1) && (m.names.length > 0) ? " and m[:#{m.names[i-1]}]" : "" ) )
       printf( "#{IND3}offset: %s, length: %d\n", \
