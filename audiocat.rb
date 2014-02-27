@@ -3,7 +3,7 @@
 
 # audiocat.rb
 #
-# Copyright © 2012-2013 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.14 (11/27/2013)"
+  PROGID = "#{PROGNAME} v1.15 (02/27/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
@@ -113,7 +113,7 @@ def copycat( infiles, outfile, options )
         end  # unless options[:dryrun]
       end  # infiles.each_with_index
     end  # File.open( outfile, ... )
-  rescue Exception => e
+  rescue StandardError => e
     $stderr.puts "%#{PROGNAME}-E-COPYCAT, error in copying: '#{ifl}'"
     pp e
     print e.backtrace.join( "\n" )     # Catch-all, display the unexpected...
@@ -130,7 +130,7 @@ def delfiles( infiles, options )
       $stderr.puts "%#{PROGNAME}-I-RM, delete \"#{ifl}\"" if options[:verbose]
       FileUtils.rm [ infile ] unless options[:dryrun]
     end  # infiles.each
-  rescue Exception => e
+  rescue StandardError => e
     $stderr.puts "%#{PROGNAME}-E-DELFILES, error in deleting: '#{ifl}'"
     pp e
     print e.backtrace.join( "\n" )     # Catch-all, display the unexpected...

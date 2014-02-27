@@ -3,7 +3,7 @@
 
 # xchart.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.03 (11/26/2012)"
+  PROGID = "#{PROGNAME} v1.04 (02/27/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -33,7 +33,8 @@ end  # display
 
 ExceptionChart = <<EOD
 Object
-  •---Exception
+  •---Exception  # Never "rescue Exception"! (surprising results)
+        •        # If a general/generic is needed, "rescue => e"
         • fatal (used internally by Ruby)
         •---NoMemoryError
         •---ScriptError
@@ -136,6 +137,8 @@ termheight = TermChar.terminal_height
 termwidth  = TermChar.terminal_width
 
 # ===========
+
+options[:ech] = true if !options[:examples]
 
 display( ExceptionChart, color, termwidth ) if options[:ech]
 
