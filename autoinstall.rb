@@ -1,3 +1,6 @@
+#!/home/lorin/.rvm/rubies/ruby-2.1.1/bin/ruby
+# -*- encoding: utf-8 -*-
+
 #!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
@@ -10,12 +13,12 @@
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 
-# ===========
-#  Description: «+»
-#
+# =================================================
+# Program Description is at end-of-file (this one).
+# =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.00 04/24/2014"
+  PROGID = "#{PROGNAME} v1.01 04/25/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -93,7 +96,7 @@ defpif = Dir.glob("./Package Installation*.list").first ||
 options = {  # hash for all com-line options:
   :pif      => "#{defpif}",
   :logf     => "",
-  :resetlog => nil,
+  :rollover => nil,
   :yes      => nil,
   :testonly => nil,
   :echoonly => nil,
@@ -117,12 +120,12 @@ optparse = OptionParser.new { |opts|
                  "  defaults to PIF path and filename with '.log'" ) do |val|
     options[:logf] = val
   end  # -l --logfile
-  opts.on( "-r", "--resetlog",
+  opts.on( "-r", "--rollover", "--resetlog",
                  "Resets (rolls-over) the current log file;",
                  "  renames any current log file to '*.{001..999}.log'",
                  "  and reopens a new, start-over log file" ) do |val|
-    options[:resetlog] = true
-  end  # -r --resetlog
+    options[:rollover] = true
+  end  # -r --rollover
   opts.on( "-y", "--yes", "--forceyes",
                  "Forces a 'Yes' response to any PIF 'ask'-prompts" ) do |val|
     options[:yes] = true
@@ -191,9 +194,9 @@ begin
   exit true
 end unless options[:dryrun] || ( Process.uid == 0 && Process.gid == 0 )
 
-# If options[:resetlog] then rename existing log file to *.{001..999}.log
+# If options[:rollover] then rename existing log file to *.{001..999}.log
 # and allow File.open( logf, "a" ) to create a new/fresh log file
-roll_log( logf, options ) if options[:resetlog]
+roll_log( logf, options ) if options[:rollover]
 
 # If options[:yes] then do not askprompt (of user) for "ask"-installs,
 #   just do (force) them...
@@ -239,9 +242,10 @@ File.open( logf, "a" ) do | logoutf |
       is_installed = %x{ #{cmd} }
       # Is this package not-yet-installed? If so, install it,
       # otherwise, report it as previously installed:
-      ## puts "is_installed: '#{is_installed}'" if options[:debug]
-      if is_installed =~ / ^No\ packages\ found\ matching\ #{package}.$ |
-                           ^#{package}\ .*?ok\ not-installed$ /x
+      puts "is_installed: '#{is_installed}' (statuscode: #{$?})" if options[:debug]
+      if $?.to_i > 0  # package not installed
+      # if is_installed =~ / ^.*?no\ packages\ found\ matching\ #{package}.+$ |
+      #                      ^#{package}\ .*?ok\ not-installed$ /ix
 
         install_start = Time.now
         logoutf.puts "\n#{INSTALL_SEP}  ...installing #{package}\n  install-start timestamp: #{install_start}\n"
@@ -273,3 +277,149 @@ File.open( logf, "a" ) do | logoutf |
   logoutf.puts "#{' '*11}elapsed time: #{ elapsed( session_start, session_end ) }"
 
 end  # File.open logoutf
+
+# =============
+#  Description: Package installation on most Linux systems, certainly on Debian-
+#  derived like Ubuntu and Mint, is a one-at-a-time affair, like this:
+#
+#      $ sudo apt-get install foobar
+#      $ sudo apt-get install barfoom
+#      $ ... # etc...
+#
+#  Also, contrary to the normally sane "succeed quietly" convention of *nix,
+#  package installation is a verbosely noisy thing, with lots of (mostly very
+#  unhelpful) messaging.
+#
+#  Finally, it's an ad-hoc affair, which encourages package exploration (the
+#  cost/effort to "try out" yet another software gizmo is low, just an apt-get
+#  install command away), but this is at the expense of:
+#
+#    a) Good record keeping (now what exactly is installed on this system?)...
+#    b) Repeatability, such as if/when you're faced with a(nother) from-scratch,
+#       bare-metal re-installation of a Linux box (e.g., from an Ubuntu non-LTS
+#       version jumping up to an LTS version)...
+#    c) Duplicatability, such as making my new laptop's package configuration
+#       be (nearly) the same as my desktop's...
+#
+#  Without a log-book (external) record of what packages are currently installed,
+#  or a lot of digging through (again verbose) dpkg-query --list output, there's
+#  no repeatable (and idempotent) way to reinstall "essential packages" without
+#  a lot of tedium and manual effort.
+#
+#  (And wouldn't it be nice if dpkg-query could distinguish and sort based
+#   on "things that I've installed" versus "core", "library dependencies"
+#   and "installed at system/base installation"?)
+#
+#  This utility script, autoinstall, brings order and a solution to this problem.
+#
+#  Autoinstall:
+#
+#       i) Relies on a master Package Installation File (or "PIF", a simple,
+#          field-oriented text file) to keep track of my (your) "essential
+#          packages".  It is expected (recommended) that, as you add (and
+#          decide to keep) new software packages to your desktop or laptop
+#          system, you maintain a PIF for that system in anticipation of its
+#          future/next Linux bare-metal re-installation.
+#
+#      ii) Will use (read) that a PIF file to re-install all software packages
+#          listed within it, or will report that particular packages are already
+#          installed (the idempotent part; you can re-autoinstall without causing
+#          problems).
+#
+#     iii) Expects to run as sudo (root/admin privileges), so a typical usage
+#          would be:
+#
+#          $ sudo /home/lorin/bin/autoinstall --pif=/path/to/PIF.list [options]
+#
+#          See autoinstall --help for all options.
+#
+#      iv) Creates a Log File containing the verbose/noisy output from apt-get
+#          install, together with start/end timestamps and elapsed times for
+#          each package installation plus the overall run/session.  The log file
+#          is cumulative (opened in append mode for each run), but can be rolled
+#          over, saving the old log file and creating a new one (see --rollover).
+#
+#  A Package Installation File (PIF) is simply a text file, a manifest, which
+#  follows a few simple rules of formatting:
+#
+#       i) Each package appears by distro-name on its own line, followed by
+#          an optional flags field and/or an optional PPA (personal package
+#          archive) URI.  The optional fields are separated from the first
+#          package name field with semicolons ";" -- for example:
+#
+#          agrep
+#          sshfs
+#          gimp                    ; ask
+#          sublime-text-installer  ; ask ; ppa:webupd8team/sublime-text-3
+#
+#      ii) Currently, the only implemented flag is "ask", which enables a prompt
+#          for that package: "Install <packagename> (y/n) [No]? " ... Packages
+#          which do not "ask" are installed without prompting.
+#
+#     iii) Comments begin with a pound-sign "#" and can either be a whole line
+#          or can be the trailing element on a line.  Comments are ignored.
+#
+#      iv) Spacing is free-format throughout; you can document your PIF with
+#          comments, blank/empty lines are permitted, and spacing between fields
+#          is ignored (so you can line-up your "asks" and PPAs if you want).
+#
+#  Final note: Obviously, this Ruby script/program depends on Ruby (MRI, Matz's
+#  Ruby Interpreter) being installed and available. Autoinstall.rb is written
+#  to be as Ruby-version agnostic as possible, and it's been tested with MRI
+#  versions 1.9.x and 2.x (but not with 1.8; it may work).
+#
+#  And although it's perfectly possible and allowed to use autoinstall to install
+#  any Ruby package available in your distro, I don't recommend doing this; instead,
+#  install Ruby using Wayne Seguin's great Ruby Version Manager (RVM, http://rvm.io),
+#  and do this *before* using autoinstall to install your other packages:
+#
+#  Install Ruby Version Manager (rvm) first (http://rvm.io/rvm/install for help):
+#
+#    $ curl -L https://get.rvm.io | bash -s -- --ignore-dotfiles
+#
+#  Be sure that .bashrc -> ~bin/login/bashrc contains this line at its end, or
+#  execute this command interactively:
+#
+#    source $HOME/.rvm/scripts/rvm
+#
+#  Logout and then login to activate rvm commands, then install Ruby version(s):
+#
+#    $ rvm install 1.9.3     # Note! Ruby installs this way
+#    $ rvm install 2.0.0     #       take a long time!
+#
+#  Finally, set your desired Ruby version for use:
+#
+#   $ rvm use --default 2.0.0
+#
+#  Now... after installing Ruby/RVM, you're ready to restore (re-install) your
+#  own favorite software packages, typically like this:
+#
+#    $ sudo /home/pathto/autoinstall.rb --pif=/home/pathto/YourPIF.lis
+#
+#  If you're super-cautious, you can "dry-run" it first with --dryrun (-n).
+#
+#  To test for package installation (whether or not your packages are
+#  already installed), use --testonly (-t).
+#
+#  To watch the parade go by -- see the packages announced as installed --
+#  use --verbose (-v); for lots of debugging noise, use --debug (-d).
+#
+#  For unattended use, which forces/answers "Y" to any "asks", use --yes
+#  (-y or --forceyes).
+#
+#  To override the default log file name (which is "Package Installation.log"),
+#  use --logfile="LogFileName".
+#
+#  To "rollover" the log file (saving any previous log file and opening
+#  a new one), use --rollover (-r or --resetlog).
+#
+#  TO-DO list:
+#    0. Make PPA installs work...
+#    1. Is there a pre-existing (and possibly better) utility program out there
+#       in the Linux Open Source Community for autoinstalls? (No, I don't mean
+#       a power-tool like Kickstarter).
+#    2. Currently, autoinstall can only do "apt-get install"... possibly add
+#       "apt-get remove | purge"?
+#    3. Better way(s) of detecting "package is already installed" than parsing
+#       output-text from "dpkg-query --show"?
+#
