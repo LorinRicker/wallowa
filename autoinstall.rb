@@ -1,7 +1,4 @@
-#!/home/lorin/.rvm/rubies/ruby-2.1.1/bin/ruby
-# -*- encoding: utf-8 -*-
-
-#!/usr/bin/env ruby
+#!/usr/bin/ruby
 # -*- encoding: utf-8 -*-
 
 # autoinstall.rb
@@ -13,21 +10,32 @@
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 
+# ========================================================================
+# Single dependency: That there be a system-wide installation of a Ruby,
+#                    e.g., /usr/bin/ruby1.9.1
+#
+#  $ sudo apt-get install ruby[1.9.1]
+#
+# Because the typical full-installation use case is
+#  $ sudo /.../autoinstall ...
+# a developer's private RVM installation does not work well.
+# ========================================================================
+
 # =================================================
 # Program Description is at end-of-file (this one).
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.01 04/25/2014"
+  PROGID = "#{PROGNAME} v1.03 04/28/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
-require 'yaml'
 require_relative 'ANSIseq'
 require_relative 'StringEnhancements'
+require_relative 'TimeEnhancements'
 require_relative 'AskPrompted'
 
 # Meta-characters in the Package Installation File (PIF):
@@ -66,26 +74,35 @@ def roll_log( logf, options )
   end
 end  # roll_log
 
-def shell( cmd, package, ask, options )
-  shelloutput = ""
-  affirmative = ask ? askprompted( "Install #{package.underline}", "No" ) : true
-  if options[:dryrun]
-    STDOUT.puts "#{PROGNAME}] $ #{cmd.bold} ... # dry-run" if affirmative
+def aptgetinstall( logoutf, package, ask, ppa, inq, options )
+  cmd = "apt-get install --yes #{package}"
+  if ask
+    prompt = "Install #{package.bold}"
+    prompt = prompt + " (#{inq.to_s.bold})" if inq != ""
+    do_it  = askprompted( prompt, "No" )
   else
-    STDOUT.puts "  ...installing #{package.underline}" if options[:verbose]
-    shelloutput = %x{ #{cmd} } if affirmative  # executed only as sudo/root
+    do_it = true
   end
-  return shelloutput  # array of lines...
-end  # shell
-
-def elapsed( started, ended = Time.now )
-  delta = (ended - started).truncate
-     hr = delta / 3600
-  delta = delta % 3600
-     mi = delta / 60
-     se = delta % 60
-  return sprintf( "%02d:%02d:%02d", hr, mi, se )
-end  # elapsed
+  if do_it
+    install_start = Time.now
+    logoutf.puts "\n#{INSTALL_SEP}  ...installing #{package}\n  package-start timestamp: #{install_start}\n"
+    STDOUT.puts "  ...installing #{package.underline}" if options[:verbose]
+    if options[:dryrun]
+      STDOUT.puts  "  #{PROGNAME}] $ #{cmd.bold}"
+      logoutf.puts "  #{PROGNAME}] $ #{cmd}"
+      instout = "#{' '*17}... # dry-run"
+    else
+      instout = %x{ #{cmd} }         # executed only as sudo/root
+    end
+    install_end  = Time.now
+    instout.each_line do | ln |
+      STDOUT.puts ln if options[:debug]
+      logoutf.puts ln   # echo all install-output lines to log file
+    end  # this_install.each_line
+    logoutf.puts "  package-end timestamp: #{install_end}"
+    logoutf.puts "#{' '*11}elapsed time: #{ install_start.elapsed( install_end ) }"
+  end
+end  # aptgetinstall
 
 # ==========
 
@@ -138,8 +155,7 @@ optparse = OptionParser.new { |opts|
                  "Echo the parsed-PIF data only (no other actions)" ) do |val|
     options[:echoonly] = true
   end  # -e --echoonly
-  # --- Set the banner & Help option ---
-  opts.banner = "\nUsage: #{PROGNAME} [options]"
+  # --- Set the banner & Help options ---
   opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
     puts opts
     exit true
@@ -163,10 +179,13 @@ optparse = OptionParser.new { |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  opts.banner = "\n  Usage: #{PROGNAME} [options] ['package' ['package']...]" +
+                "\n\n   where each 'package' is a PIF-line: 'package [;flags] [;ppa] [;inquiry-comment]'" +
+                "\n   (usually single-quoted to avoid globbing, use special characters, etc.)\n "
 }.parse!  # leave residue-args in ARGV
 
 # Propagate a couple of implications --
-options[:debug]   ||= options[:dryrun]  # ...and also debug...
+options[:verbose] ||= options[:dryrun]  # ...and also debug...
 options[:verbose] ||= options[:debug]   # ...and debug implies verbose
 ## pp options if options[:debug]
 
@@ -214,67 +233,77 @@ roll_log( logf, options ) if options[:rollover]
 #       if "ppa" is specified, test and apt-get add it
 #       apt-get install "package", with "ask" or options[:yes] if specified
 
-# At this point (only), force options[:debug] if options[:echoonly] --
-options[:debug] ||= options[:echoonly]
-
 # Always "a"ppend the log-file:
 File.open( logf, "a" ) do | logoutf |
   # Session-header (useful for multi-session appends):
   session_start = Time.now
-  logoutf.puts "#{SESSION_SEP}  #{PROGID}\n  session-start timestamp: #{session_start}\n"
+  logoutf.puts "#{SESSION_SEP}  #{PROGID}\n  session-start timestamp: #{session_start}\n#{SESSION_SEP}"
 
-  File.open( pif, "r" ) do | inf |
-    inf.each_line do | ln |
-      # Compress whitespace, trim off (ignore) comment:
-      data = ln.compress.split(COMMENTSYM)
-      data = data.empty? ? "" : data[0]
-      next if data.empty?
+  if ! ARGV[0]   # No command-line parameters? Then use the PIF...
 
-      STDOUT.puts ">>   data: '#{data}'" if options[:debug]
-      package, flags, ppa = data.split(FIELDSYM).each { |fld| fld.strip! }
-      # Does "ask" appear in flags, and does options[:yes] override it?
-      ask = ( flags =~ /ask/i ) || options[:yes] ? true : false    # want a real Boolean here!
-      ## STDOUT.puts "  package: '#{package}'\n    flags: '#{flags}'\n      ppa: '#{ppa}'" if options[:debug]
-      break if package == '[EXIT]'    # An early-out, mostly for testing
-      next if options[:echoonly]      # Just output the parsed PIF-data
+    File.open( pif, "r" ) do | inf |
+      inf.each_line do | ln |
 
-      cmd = "dpkg-query --show --showformat='${Package} [${Version}] ${Status}' #{package}"
-      is_installed = %x{ #{cmd} }
-      # Is this package not-yet-installed? If so, install it,
-      # otherwise, report it as previously installed:
-      puts "is_installed: '#{is_installed}' (statuscode: #{$?})" if options[:debug]
-      if $?.to_i > 0  # package not installed
-      # if is_installed =~ / ^.*?no\ packages\ found\ matching\ #{package}.+$ |
-      #                      ^#{package}\ .*?ok\ not-installed$ /ix
+        package, flags, ppa, inqcomment = Array.new( 4, "" )  # start sane each interation
 
-        install_start = Time.now
-        logoutf.puts "\n#{INSTALL_SEP}  ...installing #{package}\n  install-start timestamp: #{install_start}\n"
+        # Compress whitespace, trim off (ignore) comment:
+        pifline = ln.compress.split(COMMENTSYM)
+        pifline = pifline.empty? ? "" : pifline[0]
+        next if pifline.empty?
 
-        this_install = shell( "apt-get install --yes #{package}", package, ask, options )
-        install_end  = Time.now
+        STDOUT.puts ">>   pifline: '#{pifline}'" if options[:debug]
+        package, flags, ppa, inqcomment = pifline.split(FIELDSYM).each { |fld| fld.strip! }
+        break if package == '[EXIT]'    # An early-out, mostly for testing
+        # Does "ask" appear in flags, and does options[:yes] override it?
+        ask = ( flags =~ /ask/i ) || options[:yes] ? true : false    # want a real Boolean here!
 
-        this_install.each_line do | ln |
-          STDOUT.puts ln if options[:debug]
-          logoutf.puts ln   # echo all install-output lines to log file
-        end  # this_install.each_line
+        if options[:echoonly]
+          STDOUT.puts "  package: '#{package}'"
+          STDOUT.puts "    flags: '#{flags}'"
+          STDOUT.puts "      ppa: '#{ppa}'"
+          STDOUT.puts "      inq: '#{inqcomment}'"
+          next   # Echoing, so just output the parsed PIFline-data... next line...
+        end
 
-        logoutf.puts "#{INSTALL_SEP}  install-end timestamp: #{install_end}"
-        logoutf.puts "#{' '*11}elapsed time: #{ elapsed( install_start, install_end ) }"
+        # dpkg-query outputs on both stdout and stderr, so redirect stderr>stdout:
+        cmd = "dpkg-query --show --showformat='${Package} [${Version}] ${Status}' #{package} 2>&1"
+        is_installed = %x{ #{cmd} }
+        # dpkg-query returns (as Process::Status $? or English::$CHILD_STATUS)
+        #   exit status == 0 if package is installed (success),
+        #               == 1 if package is *not* found/installed (fail):
+        install_it = ( $?.success? ) ? false : true
 
-      else
-        msg = "#{package} is installed --> '#{is_installed}'"
-        STDOUT.puts msg if options[:verbose]
-        logoutf.puts msg
-      end
+        # Is this package not-yet-installed? If so, install it,
+        # otherwise, report it as previously installed:
+        puts "is_installed: '#{is_installed}' (Process::Status: #{$?})" if options[:debug]
 
-    end  # inf.each_line
+        if install_it               # package not installed, so crank it in...
+          aptgetinstall( logoutf, package, ask, ppa, inqcomment, options )
+        else
+          msg = "Installed --> '#{is_installed}'"
+          STDOUT.puts msg if options[:verbose]
+          logoutf.puts msg
+        end
 
-  end  # File.open inf
+      end  # inf.each_line
+
+    end  # File.open inf
+
+  else  # got command-line parameters...
+
+    begin
+      package, flags, ppa, inqcomment = Array.new( 4, "" )  # start sane each interation
+      param = ARGV.shift
+      package, flags, ppa, inqcomment = param.split(FIELDSYM).each { |fld| fld.strip! }
+      aptgetinstall( logoutf, package, false, ppa, inqcomment, options )
+    end while ARGV[0]
+
+  end  # ! ARGV[0] ...No command-line parameters?
 
   # Session-footer:
   session_end = Time.now
   logoutf.puts "\n#{SESSION_SEP}  session-end timestamp: #{session_end}"
-  logoutf.puts "#{' '*11}elapsed time: #{ elapsed( session_start, session_end ) }"
+  logoutf.puts "#{' '*11}elapsed time: #{ session_start.elapsed( session_end ) }\n#{SESSION_SEP}"
 
 end  # File.open logoutf
 
@@ -314,12 +343,15 @@ end  # File.open logoutf
 #
 #  Autoinstall:
 #
-#       i) Relies on a master Package Installation File (or "PIF", a simple,
+#       i) a) Accepts a master Package Installation File (or "PIF", a simple,
 #          field-oriented text file) to keep track of my (your) "essential
 #          packages".  It is expected (recommended) that, as you add (and
 #          decide to keep) new software packages to your desktop or laptop
 #          system, you maintain a PIF for that system in anticipation of its
 #          future/next Linux bare-metal re-installation.
+#
+#          b) Accepts one or more parameters on the command line which are
+#          'install this package now' PIF data lines.
 #
 #      ii) Will use (read) that a PIF file to re-install all software packages
 #          listed within it, or will report that particular packages are already
@@ -342,15 +374,30 @@ end  # File.open logoutf
 #  A Package Installation File (PIF) is simply a text file, a manifest, which
 #  follows a few simple rules of formatting:
 #
-#       i) Each package appears by distro-name on its own line, followed by
-#          an optional flags field and/or an optional PPA (personal package
-#          archive) URI.  The optional fields are separated from the first
-#          package name field with semicolons ";" -- for example:
+#       i) a) Each package appears by distro-name on its own line, followed by
+#          an optional flags field, an optional PPA (personal package archive)
+#          URI, and/or an optional inquiry-comment (if present, displayed as
+#          part of the ask-inquiry prompt.  The optional fields are separated
+#          from each other with semicolons ";" -- for example:
 #
 #          agrep
-#          sshfs
+#          sshfs                   ;     ; ; optional remote/SSH file-system
 #          gimp                    ; ask
+#          lyx                     ; ask ; ; takes A Long Time to install!
 #          sublime-text-installer  ; ask ; ppa:webupd8team/sublime-text-3
+#
+#          b) Each (optional) command line parameter can contain the same data
+#          elements as a PIF line: 'package [;flags] [;ppa] [;inquiry-comment]'
+#          Each parameter is usually single-quoted to guard against unintended
+#          command line (bash) globbing, misinterpretation of special characters,
+#          etc. Like a PIF line, only the package name (first) field is required;
+#          the flags, ppa and inquiry-comment are optional, but if present, must
+#          be separated by semicolons ";" -- for example:
+#
+#            $ autoinstall [-options] agrep 'gimp;ask' \
+#                 'sshfs;;;optional remote/SSH file-system' \
+#                 'lyx;ask;;takes A Long Time to install!' \
+#                 'sublime-text-editor;ask;ppa:webupd8team/sublime-text-3'
 #
 #      ii) Currently, the only implemented flag is "ask", which enables a prompt
 #          for that package: "Install <packagename> (y/n) [No]? " ... Packages
@@ -368,31 +415,45 @@ end  # File.open logoutf
 #  to be as Ruby-version agnostic as possible, and it's been tested with MRI
 #  versions 1.9.x and 2.x (but not with 1.8; it may work).
 #
-#  And although it's perfectly possible and allowed to use autoinstall to install
-#  any Ruby package available in your distro, I don't recommend doing this; instead,
-#  install Ruby using Wayne Seguin's great Ruby Version Manager (RVM, http://rvm.io),
-#  and do this *before* using autoinstall to install your other packages:
+#  Since this program requires Ruby, and is intended to be (will be) run as a
+#  sudo'd script, a freshly-installed Linux will likely need to do a manual Ruby
+#  install:
 #
-#  Install Ruby Version Manager (rvm) first (http://rvm.io/rvm/install for help):
+#    $ sudo apt-get install ruby[1.9.1]
 #
-#    $ curl -L https://get.rvm.io | bash -s -- --ignore-dotfiles
+#  as a bootstrap... This puts a well-tested Ruby (well, it's in your distro's
+#  repository, right?) into your system-wide toolkit (just like Python).
 #
-#  Be sure that .bashrc -> ~bin/login/bashrc contains this line at its end, or
-#  execute this command interactively:
+#  == RVM ===
+#    Note: For Ruby development work, install Ruby using the great
+#          Ruby enVironment Manager (RVM, http://rvm.io -- and see
+#          http://rvm.io/rvm/install for help):
 #
-#    source $HOME/.rvm/scripts/rvm
+#          $ \curl -L https://get.rvm.io | bash -s stable
 #
-#  Logout and then login to activate rvm commands, then install Ruby version(s):
+#          Be sure that .bashrc -> ~bin/login/bashrc contains this
+#          line at its end, or execute this command interactively:
 #
-#    $ rvm install 1.9.3     # Note! Ruby installs this way
-#    $ rvm install 2.0.0     #       take a long time!
+#            source $HOME/.rvm/scripts/rvm
 #
-#  Finally, set your desired Ruby version for use:
+#          Logout and then login to activate rvm commands, then
+#          install Ruby version(s) of your choice:
 #
-#   $ rvm use --default 2.0.0
+#          $ rvm install 1.9.3     # Note! These Ruby installs may
+#          $ rvm install 2.1       #       take 'a long time'!
 #
-#  Now... after installing Ruby/RVM, you're ready to restore (re-install) your
-#  own favorite software packages, typically like this:
+#          Don't forget Ruby online documentation:
+#
+#          $ rvm docs generate-ri
+#
+#          Finally, set your desired Ruby version for use:
+#
+#          $ rvm use --default 2.1
+#          $ rvm current   # to see/confirm
+#  == end RVM ===
+#
+#  Now... after installing a system-wide Ruby, you're ready to restore (re-install)
+#  software packages, typically like this:
 #
 #    $ sudo /home/pathto/autoinstall.rb --pif=/home/pathto/YourPIF.lis
 #
