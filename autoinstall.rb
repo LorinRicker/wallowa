@@ -75,7 +75,7 @@ def roll_log( logf, options )
 end  # roll_log
 
 def aptgetinstall( logoutf, package, ask, ppa, inq, options )
-  cmd = "apt-get install --yes #{package}"
+  cmd = "apt-get install --yes #{package} 2>&1"
   if ask
     prompt = "Install #{package.bold}"
     prompt = prompt + " (#{inq.to_s.bold})" if inq != ""
