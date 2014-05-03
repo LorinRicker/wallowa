@@ -1,0 +1,105 @@
+# PIF.list (Package Installation (LMR).list)  -- 04/24/2014
+
+# package-name          ; [flags] ; [ppa-repository] ; [inquiry-comment]
+
+# tree                    ; ask
+# eject                   ; ask
+# puddletag               ; ask ; ppa:webupd8team/puddletag
+# [EXIT]
+
+# Core stuff --
+gksu
+synaptic
+curl
+sshfs
+acl
+eiciel
+eject
+
+# Networking --
+openssh-client
+openssl
+cifs-utils
+
+# File and disk support --
+gparted
+dar
+unison
+unison-gtk
+filezilla
+qbittorrent
+grsync
+
+# Tools and Utilities --
+putty
+glipper
+k3b
+shutter
+autokey-gtk             ; ask
+qalculate-gtk           ; ask
+
+# Best web browser --
+chromium-browser        ; ask
+openjdk-7-jre-headless  ; ask
+icedtea-7-plugin        ; ask
+
+# Software Development Tools --
+kompare
+komparator
+kdiff3-qt
+krename
+kruler
+tree
+meld                    ; ask
+agrep                   ; ask
+m4                      ; ask
+john                    ; ask
+
+# Other Text Editors, IDEs --
+emacs                   ; ask
+jedit                   ; ask
+geany                   ; ask
+geany-plugin-common     ; ask ; ; ...only if Geany is installed
+geany-plugin-prettyprint; ask ; ; ...only if Geany is installed
+geany-plugin-insertnum  ; ask ; ; ...only if Geany is installed
+
+# TeX/LaTeX IDEs --
+latxila                 ; ask
+texmaker                ; ask
+lyx                     ; ask ; ; takes A Long Time to install!
+
+# TrueCrypt is still outside of Debian/Ubuntu package management   --
+# http://www.truecrypt.org/downloads for *.tar.gz and instructions --
+#   truecrypt               ; ask ; ???ppa:«+»???
+
+virtualbox-qt           ; ask
+virtualbox              ; ask
+
+git                     ; ask
+sublime-text-installer  ; ask ; ppa:webupd8team/sublime-text-3
+# (someday:) lighttable   ; ask ; [ppa:«+»]
+
+# GUI Tweakers --
+gnome-session-flashback       ; ask
+compizconfig-settings-manager ; ask
+unity-tweak-tool              ; ask
+
+# Music Workstation and Tools --
+# (K3b can rip CD tracks; alternative CD-rippers: asunder, ripperx, sound-juicer)
+vorbis-tools
+ruby-ogginfo
+vlc
+audacity
+ardour                  ; ask
+puddletag               ; ask ; ppa:webupd8team/puddletag
+easytag                 ; ask
+musescore               ; ask
+frescobaldi             ; ask
+lilypond                ; ask
+beets                   ; ask
+digikam                 ; ask
+darktable               ; ask
+gimp                    ; ask
+
+# In-Development (experimental) stuff --
+# clicompanion            ; ask ; ppa:clicompanion-devs/clicompanion-nightlies
