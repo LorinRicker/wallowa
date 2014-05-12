@@ -3,8 +3,8 @@ Even "old geeks" find wonder in this language. I'd like to contribute!
 
 -----
 
-No Walls; no Fences.
-  Ruby...
+No Fences; no Walls.
+  Ruby makes coders happy!
 No Windows; no Gates!
 
 -----
@@ -50,3 +50,15 @@ declared Ruby's dad...
 "You cannot fool me!
   It's Objects all the way down..."
 she quipped with a grin.
+
+-----
+A not-so-haiku, with deepest respect to Stan Kelly-Bootle (1929-2014, RIP):
+
+v1.0
+recursive  adj.  See Recursive.
+
+v2.0
+recursive  adj.  while (unclear) {
+                   unclear--;
+                   See Recursive
+                 }
