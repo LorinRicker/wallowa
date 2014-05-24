@@ -1,5 +1,8 @@
 Ruby Haiku (5,7,5) --
-Even "old geeks" find wonder in this language. I'd like to contribute!
+
+Even old geeks find
+  the wonder in this language.
+May I contribute?
 
 -----
 
@@ -52,6 +55,16 @@ declared Ruby's dad...
 she quipped with a grin.
 
 -----
+
+With deepest apologies to The Bard (paraphrasing
+"As You Like It", Act II Scene VII, Jaques' monologue):
+
+All the world's a String,
+  And all the men and women
+merely characters.
+
+-----
+
 A not-so-haiku, with deepest respect to Stan Kelly-Bootle (1929-2014, RIP):
 
 v1.0
