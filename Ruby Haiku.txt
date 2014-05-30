@@ -13,7 +13,7 @@ No Windows; no Gates!
 -----
 
 require 'a_gem'
-  the_joy.in the_beautiful
+  the_joy.in the_beauty
 "Ruby.new" breathed Matz
 
 -----
