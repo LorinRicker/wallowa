@@ -3,7 +3,7 @@
 
 # dir.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.1 (06/22/2012)"
+  PROGID = "#{PROGNAME} v4.0 (07/06/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -23,6 +23,7 @@ require 'pp'
 require_relative 'TermChar'
 require_relative 'DirectoryVMS'
 require_relative 'DateCalc'
+require_relative 'Diagnostics'
 
 # === Main ===
 options = {}  # hash for all com-line options;
@@ -49,12 +50,18 @@ optparse = OptionParser.new do |opts|
     val = "today" if ! val
     options[:before] = DateCalc.thisday( val )
   end  # -B --before
+  opts.on( "-d", "--debug", "Display debug information" ) do |val|
+    options[:debug] = true
+  end  # -d --debug
   opts.on( "-f", "--full", "Display full listing (include times and ownership)" ) do |val|
     options[:full] = options[:owner] = options[:times] = true
   end  # -f --full
   opts.on( "-g", "--grand", "Display grand totals (summarize files and sizes)" ) do |val|
     options[:grand] = true
   end  # -g --grand
+  opts.on( "-H", "--hidden", "Display hidden files (filenames beginning with '.')" ) do |val|
+    options[:hidden] = true
+  end  # -H --hidden
   opts.on( "-l", "--larger SIZE", "List files larger than size",
            Integer ) do |val|
     options[:larger] = val
@@ -73,9 +80,6 @@ optparse = OptionParser.new do |opts|
   opts.on( "-r", "--reverse", "Display listing in reverse-sorted order" ) do |val|
     options[:reverse] = true
   end  # -r --reverse
-  opts.on( "-R", "--recurse", "Display subdirectories recursively" ) do |val|
-    options[:recurse] = true
-  end  # -R --recurse
   opts.on( "-t", "--times", "List file access and create times (atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
@@ -85,18 +89,17 @@ optparse = OptionParser.new do |opts|
 end  #OptionParser.new
 optparse.parse!  # leave residue-args in ARGV
 
-pp options if options[:verbose]
-pp ARGV    if options[:verbose]
+pp options if options[:debug]
+pp ARGV    if options[:debug]
 
 exit true if options[:about] or options[:help]
 
 # Set-up for terminal dimensions, especially varying width:
 termwidth = TermChar.terminal_width
-puts "width: #{termwidth}" if options[:verbose]
+puts "width: #{termwidth}" if options[:debug]
 
 # Completely empty args will be nil here, so ensure first entry is "" instead:
 ARGV[0] ||= ""
-
-DirectoryVMS.listing( ARGV, termwidth, options[:recurse], options )
+DirectoryVMS.listing( ARGV, termwidth, options )
 
 # exit

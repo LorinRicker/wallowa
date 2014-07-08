@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.03 04/28/2014"
+  PROGID = "#{PROGNAME} v1.04 06/03/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -107,8 +107,8 @@ end  # aptgetinstall
 # ==========
 
 # Default PIF is whatever's found in current working directory:
-defpif = Dir.glob("./Package Installation*.list").first ||
-         "./Package Installation.list"
+defpif = Dir.glob("./PackageInstallation_*.list").first ||
+         "./PackageInstallation.list"
 
 options = {  # hash for all com-line options:
   :pif      => "#{defpif}",

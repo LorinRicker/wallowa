@@ -3,13 +3,12 @@
 
 # RandomWordGenerator.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <lorin@rickernet.us>
-# Version 0.3, 04/14/2012
+# Copyright © 2011-2014 Lorin Ricker <lorin@rickernet.us>
+# Version 0.3, 06/04/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
-#
 
 # Generate a random word (password) based on the pattern "pat" parameter
 

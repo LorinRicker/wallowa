@@ -3,8 +3,8 @@
 
 # fibonacci.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 0.4, 04/14/2012
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 0.4, 06/04/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -12,7 +12,8 @@
 
 require 'pp'
 
-# This recursive algorithm works in exponential time:
+# This recursive algorithm works in exponential time, with O(N**m)
+# costs beginning to be noticeable on fast processors at ~ Fib(32):
 def fibonacci_slow( n )
   return n if (0..1).include? n
   fibonacci_slow( n-2 ) + fibonacci_slow( n-1 )
@@ -22,7 +23,7 @@ end  # fibonacci
 # remembering all previous results for subsequent look-up,
 # even though the actual algorithm remains recursive, trading
 # (re)computation for memory...  Thanks to:
-#  Gregorg Brown, "Ruby Best Practices", "Memoization" pp. 138ff
+#  Gregory Brown, "Ruby Best Practices", "Memoization" pp. 138ff
 #
 # Initialize the series:
 @fib_series = [ 0, 1 ]

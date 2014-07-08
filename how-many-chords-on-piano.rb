@@ -4,7 +4,7 @@
 # how-many-chords-on-piano.rb
 #
 # Copyright (C) 2012-2013 Lorin Ricker <lorin@rickernet.us>
-# Version: 0.5, 06/10/2013
+# Version: 0.5, 06/24/2013
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -70,8 +70,8 @@ require_relative 'lib/StringEnhancements'
   PIANO_KEYS  = 88
   FACTORIAL88 = n!(PIANO_KEYS)  # value used many times, also doing this
                                 # calculation initializes the memoized
-                                # array-variable @fact_series, which now
-                                # holds [0!,1!,2!,3!,...88!].
+                                # array-variable @factorial_series,
+                                # which now holds [0!,1!,2!,3!,...88!].
                                 # All subsequent "calculations" of any
                                 # n! are now simply array-lookups.
   puts "\n88! = ", FACTORIAL88.thousands if ARGV[0]
