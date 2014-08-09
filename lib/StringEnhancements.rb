@@ -3,8 +3,8 @@
 
 # StringEnhancements.rb
 #
-# Copyright © 2011-2013 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.7, 06/10/2013
+# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.8, 07/23/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -153,11 +153,10 @@ class String
   end  # element
 
   # Separate groups of characters with a separator
-  def groupsep( grp = 3, sep = ",", dec = '.' )
-    num  = self.to_s.strip
-    pat  = Regexp.compile( '\#{dec}(\d*)' )
-    if num.include?(dec)
-      nums = num.split( /\.(\d*)/ )
+  def groupsep( grp = 3, sep = ",", decpt = '.' )
+    num = self.to_s.strip
+    if num.include?(decpt)
+      nums = num.split(decpt)
       nums.delete_if { |n| n == "" }
       num = nums[0]
     end
@@ -171,7 +170,7 @@ class String
     thou = thou.reverse.join(sep)
     if nums
       nums[0] = thou
-      thou = nums.join(dec)
+      thou = nums.join(decpt)
     end
     return thou
   end  # groupsep
