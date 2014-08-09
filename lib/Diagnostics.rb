@@ -4,7 +4,7 @@
 # Diagnostics.rb
 #
 # Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 07/04/2014
+# Version 1.1, 08/08/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -14,8 +14,10 @@ require 'pp'
 
 module Diagnostics
 
-  def Diagnostics.diagnose( obj )
-    selfname = "#{'='*8} #{self.name} #{'='*8}"
+  def Diagnostics.diagnose( obj, label = nil, lineno = nil )
+    here = label ? " #{label}" : ''
+    here = "#{here} at line:#{lineno}" if lineno
+    selfname = "#{'='*8} #{self.name}#{here} #{'='*8}"
     puts selfname
     printf( "\n<%s, len:%d - %x>\n", obj.class, obj.size, obj.object_id )
     puts "\nobject is a member of the #{obj.class} class"

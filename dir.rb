@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.0 (07/06/2014)"
+  PROGID = "#{PROGNAME} v4.1 (08/08/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -100,6 +100,7 @@ puts "width: #{termwidth}" if options[:debug]
 
 # Completely empty args will be nil here, so ensure first entry is "" instead:
 ARGV[0] ||= ""
-DirectoryVMS.listing( ARGV, termwidth, options )
+vmsdir = DirectoryVMS.new( termwidth, options )
+DirectoryVMS.listing( ARGV )
 
 # exit
