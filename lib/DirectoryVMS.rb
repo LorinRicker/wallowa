@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.1, 08/08/2014
+# Version 4.1, 08/11/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -23,27 +23,29 @@ class DirectoryVMS
   def initialize( termwidth, options )
     @termwidth = termwidth
     @options = options
-    # Collect each directory for recursive-descent listing:
-    @dirs = []
     # 24-chars total date/time-field:
     @datetimeformat = "%a %d-%b-%Y %H:%M:%S"
-    # Initialize grand nfiles/total:
+    # Initialize per-subdir and grand nfiles/total:
+    @numberfiles = 0
+    @totalsize   = 0
     @grandtotalnfiles = 0
     @grandtotalsize   = 0
+    # And the current working directory:
+    @curdir = ""
   end  # initialize
 
   # ------------------------------------------
-  def self.finishdir( d )
-    dir = File.expand_path( d )
-    dir = dir + "/" if dir[-1] != "/"
-    return dir
-  end  # finishdir
+  def canonical_path( p )
+    cpath = File.expand_path( p )
+    cpath = cpath + "/" if cpath[-1] != "/"
+    return cpath
+  end  # canonical_path
 
-  def self.printheader( dir )
+  def printheader( dir )
     printf( "\nDirectory %s\n\n", dir.bold.underline )
   end  # printheader
 
-  def self.printentry( fname, fsize, mtime, prot )
+  def printentry( fname, fsize, mtime, prot )
     if @options[:bytesize]
       size = fsize.to_s
       szwidth = 9
@@ -56,7 +58,7 @@ class DirectoryVMS
      owidth  = 20
     sdpwidth = szwidth + dtwidth + prwidth + 6  # 6 = "  "*3 between fields
     fnwidth  = @termwidth / 2
-    fnwidth  = @termwidth - sdpwidth if termwidth < fnwidth + sdpwidth
+    fnwidth  = @termwidth - sdpwidth if @termwidth < fnwidth + sdpwidth
     if fname[-1] == "/"  # embellish directories
       format = "%-#{fnwidth}s".bold + "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     else
@@ -76,20 +78,52 @@ class DirectoryVMS
     end  # if @options[:times]
   end  # printentry
 
-  def self.printtrailer( nfiles, tsize, grand = "" )
+  def reportentry( dir, fspec )
+    # Use File.lstat (not File.stat), so actual links are processed too:
+    fstat  = File.lstat( File.join( dir, fspec ) )
+    # Collect the file's size in bytes, and accumulate total size
+    fsize  = fstat.size
+    @totalsize += fsize
+    @grandtotalsize += fsize
+    # Get the file's modification date/time, and optionally
+    # the last-access and creation date/times
+    mtime  = fstat.mtime.strftime( @datetimeformat )
+    if @options[:times]
+      # ...stash in the hash:
+      @options[:atime] = fstat.atime.strftime( @datetimeformat )
+      @options[:ctime] = fstat.ctime.strftime( @datetimeformat )
+    end  # if @options[:times]
+    # Get the file's protection mask (mode) as human-readable (not integer)
+    prot = File.mode_human_readable_VMS( fstat )
+    # Collect subdirectories for recursive display
+    if fstat.directory?
+      d = canonical_path( fspec )
+      fspec = fspec + "/" if fspec[-1] != "/"
+    end  # if fstat.directory?
+    @numberfiles += 1
+    @grandtotalnfiles += 1
+    # Get the file's ownership "user:group (uid:gid)" ...stash in the hash:
+    @options[:fowner] = File.owner_human_readable( fstat ) if @options[:owner]
+    # Print the entry for this file:
+    printentry( fspec, fsize, mtime, prot )
+  end  # reportentry
+
+
+  def printtrailer( nfiles, tsize, grand = "" )
     files = nfiles == 1 ? "file" : "files"
     bytes = tsize == 1 ? "byte" : "bytes"
     tsize = @options[:bytesize] ?
             tsize.to_s.thousands : File.size_human_readable( tsize )
-    printf( "\n%sTotal of %d %s, %s %s\n", grand, nfiles, files, tsize, bytes )
+    newline = ( nfiles == 0 && tsize == 0 ) ? "" : "\n"
+    printf( "%s%sTotal of %d %s, %s %s\n", newline, grand, nfiles, files, tsize, bytes )
   end  # printtrailer
 
-  def self.printgrand
+  def printgrand
     printtrailer( @grandtotalnfiles, @grandtotalsize, "Grand " )
   end  # printgrand
 
   # ------------------------------------------
-  def self.filterBefore( fspecs, fdate )
+  def filterBefore( fspecs, fdate )
     nspecs = []
     fspecs.each do |f|
       nspecs << f if File.directory?(f) || File.lstat(f).mtime <= fdate
@@ -97,7 +131,7 @@ class DirectoryVMS
     nspecs
   end  # filterBefore
 
-  def self.filterSince( fspecs, fdate )
+  def filterSince( fspecs, fdate )
     nspecs = []
     fspecs.each do |f|
       nspecs << f if File.directory?(f) || File.lstat(f).mtime >= fdate
@@ -105,7 +139,7 @@ class DirectoryVMS
     nspecs
   end  # filterSince
 
-  def self.filterLarger( fspecs, fsize )
+  def filterLarger( fspecs, fsize )
     nspecs = []
     fspecs.each do |f|
       nspecs << f if File.directory?(f) || File.lstat(f).size >= fsize
@@ -113,7 +147,7 @@ class DirectoryVMS
     nspecs
   end  # filterLarger
 
-  def self.filterSmaller( fspecs, fsize )
+  def filterSmaller( fspecs, fsize )
     nspecs = []
     fspecs.each do |f|
       nspecs << f if File.directory?(f) || File.lstat(f).size <= fsize
@@ -122,97 +156,59 @@ class DirectoryVMS
   end  # filterSmaller
 
   # ------------------------------------------
-  def self.listing( args )
-    # Remember transitions between distinct directories:
-    curDir = ''
-    # Establish scope of nfiles & tsize as "global" to enum-blocks below:
-    nfiles = tsize = 0
+  def listing( args )
+    # Accumulate number of files and their size for this directory:
+    @numberfiles = @totalsize = 0
+
+    dir = args.pop    # start with the last-most argument
+    dirstack = args   # ...save the rest for later (recurse)
+    dir = "." if dir == ""
+    dir = canonical_path( File.absolute_path( dir, @curdir ) )
+    puts "\ncd --> #{dir} (pwd: #{Dir.pwd}, @curdir: #{@curdir})" if @options[:debug]
+    if Dir.pwd != File.basename( dir )
+      Dir.chdir( dir )
+      @curdir = dir
+    end
+    direntries = Dir.entries( dir )
+    direntries.delete( "." )    # remove the back- and self-links
+    direntries.delete( ".." )
 
     # Filter for user-specified dates &/or sizes...
-    # args is smaller (or same) after each filter:
-    args = filterBefore(  args, @options[:before]  ) if @options[:before]
-    args = filterSince(   args, @options[:since]   ) if @options[:since]
-    args = filterLarger(  args, @options[:larger]  ) if @options[:larger]
-    args = filterSmaller( args, @options[:smaller] ) if @options[:smaller]
+    # direntries is same or smaller after each filter:
+    direntries = filterBefore(  direntries, @options[:before]  ) if @options[:before]
+    direntries = filterSince(   direntries, @options[:since]   ) if @options[:since]
+    direntries = filterLarger(  direntries, @options[:larger]  ) if @options[:larger]
+    direntries = filterSmaller( direntries, @options[:smaller] ) if @options[:smaller]
+    direntries.sort_caseblind!( @options[:reverse] )
 
-    args.sort_caseblind!( @options[:reverse] )
-
-    Diagnostics.diagnose( args, "in listing (top)", __LINE__ ) if @options[:debug]
-
-    args.each do | fspec |
-      # Default is for the current directory only:
-      fspec = "." if fspec == ""
-
-      if File.directory?( fspec )
-        fname  = ""
-        dir    = fspec
-        @dirs << fspec
-        #next  # args.each
-      else
-        fname = File.basename( fspec )
-        dir   = File.dirname( fspec )
-      end  # if File.directory?
-      dir = finishdir( dir )
-
-      next if fspec == '.' or fspec == '..'  # skip directory back- and self-links
-      puts ">>> fspec: '#{fspec}'  dirs: #{@dirs}"  if @options[:debug]
-      puts "      dir: '#{dir}'  fname: '#{fname}'" if @options[:debug]
-
-      if dir != curDir
-        printtrailer( nfiles, tsize, @options ) if curDir != ""
-        nfiles = tsize = 0  # reset
-        printheader( dir )
-        curDir = dir
-      end
-
-      # Use File.lstat (not File.stat), so actual links are processed too:
-      fstat  = File.lstat( fspec )
-      # Collect the file's size in bytes, and accumulate total size
-      fsize  = fstat.size
-      tsize += fsize
-      @grandtotalsize += fsize
-      # Get the file's modification date/time, and optionally
-      # the last-access and creation date/times
-      mtime  = fstat.mtime.strftime( @datetimeformat )
-      if @options[:times]
-        # ...stash in the hash:
-        @options[:atime] = fstat.atime.strftime( @datetimeformat )
-        @options[:ctime] = fstat.ctime.strftime( @datetimeformat )
-      end  # if @options[:times]
-      # Get the file's protection mask (mode) as human-readable (not integer)
-      prot = File.mode_human_readable_VMS( fstat )
-      # Collect subdirectories for recursive display
-      if fstat.directory?
-        d = finishdir( fspec )
-        fspec = fspec + "/" if fspec[-1] != "/"
-      end  # if fstat.directory?
-      nfiles += 1
-      @grandtotalnfiles += 1
-      # Get the file's ownership "user:group (uid:gid)" ...stash in the hash:
-      @options[:fowner] = File.owner_human_readable( fstat ) if @options[:owner]
-
-      # Print the entry for this file:
-      printentry( fspec, fsize, mtime, prot )
-
-    end  # args.each
-
-    # Finish-up the per-directory output:
-    printtrailer( nfiles, tsize )
-    exit true if !askprompted( '>>> Continue', 'No' ) if @options[:debug]
-
-    # Recurse: Each subdirectory is listed after all files...
-    # dgflags = File::FNM_CASEFOLD
-    # dgflags = dgflags | File::FNM_DOTMATCH if @options[:hidden]
-    if !@dirs.empty?
-      Diagnostics.diagnose( args, "in listing (recursing)", __LINE__ ) if @options[:debug]
-      @dirs.each do | d |
-        dir = Dir.entries( d )
-        listing( dir, termwidth )
-      end
+    if @options[:debug]
+      puts ">>> #{dir}"
+      Diagnostics.diagnose( direntries, "in listing (top)", __LINE__ )
     end
 
-    printgrand if @options[:grand]
-    return true
+    printheader( dir )
+    if !direntries.empty?
+      direntries.each do | fspec |
+        # Push subdir onto the beginning (not the end) of the to-do (recursion) pile:
+        dirstack << fspec if File.directory?( File.absolute_path( fspec, @curdir ) )
+        puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'  dirstack: #{dirstack}  dir: '#{dir}'"  if @options[:debug]
+        reportentry( dir, fspec )
+      end  # direntries.each
+      # Finish-up the per-directory output:
+      printtrailer( @numberfiles, @totalsize )
+      exit true if !askprompted( '>>> Continue', 'No' ) if @options[:debug]
+    else
+      printtrailer( 0, 0 )  # ...for an empty directory
+    end  # if !direntries.empty?
+
+    # Recurse: Each subdirectory is listed after all files...
+    if @options[:recurse] && !dirstack.empty?
+      Diagnostics.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug]
+      dirstack.each { | nextdir | listing( [ nextdir ] ) }
+    else
+      printgrand if @options[:grand]
+    end
+
   end  # listing
 
 end  # class DirectoryVMS

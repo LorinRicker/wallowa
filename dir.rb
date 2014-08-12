@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.1 (08/08/2014)"
+  PROGID = "#{PROGNAME} v4.1 (08/11/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -26,7 +26,22 @@ require_relative 'DateCalc'
 require_relative 'Diagnostics'
 
 # === Main ===
-options = {}  # hash for all com-line options;
+options = { :about    => false,
+            :bytesize => false,
+            :before   => false,
+            :debug    => false,
+            :full     => false,
+            :grand    => false,
+            :hidden   => false,
+            :larger   => false,
+            :owner    => false,
+            :smaller  => false,
+            :since    => false,
+            :recurse  => false,
+            :reverse  => false,
+            :times    => false,
+            :verbose  => false
+          }  # hash for all com-line options;
   # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
@@ -80,6 +95,9 @@ optparse = OptionParser.new do |opts|
   opts.on( "-r", "--reverse", "Display listing in reverse-sorted order" ) do |val|
     options[:reverse] = true
   end  # -r --reverse
+  opts.on( "-R", "--recurse", "Recurse the listing into subdirectories" ) do |val|
+    options[:recurse] = true
+  end  # -R --recurse
   opts.on( "-t", "--times", "List file access and create times (atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
@@ -100,7 +118,8 @@ puts "width: #{termwidth}" if options[:debug]
 
 # Completely empty args will be nil here, so ensure first entry is "" instead:
 ARGV[0] ||= ""
+args = ARGV.reverse  # gonna use pop/push discipline (right-end of array)
 vmsdir = DirectoryVMS.new( termwidth, options )
-DirectoryVMS.listing( ARGV )
+vmsdir.listing( args )
 
 # exit
