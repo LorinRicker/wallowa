@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.1, 08/11/2014
+# Version 4.3, 08/18/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -35,8 +35,9 @@ class DirectoryVMS
   end  # initialize
 
   # ------------------------------------------
-  def canonical_path( p )
-    cpath = File.expand_path( p )
+  def canonical_path( p, cp = @curdir )
+    cpath = File.absolute_path( p, cp )
+    cpath = File.dirname( cpath ) if !File.directory?( cpath )
     cpath = cpath + "/" if cpath[-1] != "/"
     return cpath
   end  # canonical_path
@@ -45,7 +46,7 @@ class DirectoryVMS
     printf( "\nDirectory %s\n\n", dir.bold.underline )
   end  # printheader
 
-  def printentry( fname, fsize, mtime, prot )
+  def printentry( fspec, fsize, mtime, prot )
     if @options[:bytesize]
       size = fsize.to_s
       szwidth = 9
@@ -59,13 +60,13 @@ class DirectoryVMS
     sdpwidth = szwidth + dtwidth + prwidth + 6  # 6 = "  "*3 between fields
     fnwidth  = @termwidth / 2
     fnwidth  = @termwidth - sdpwidth if @termwidth < fnwidth + sdpwidth
-    if fname[-1] == "/"  # embellish directories
+    if fspec[-1] == "/"  # embellish directories
       format = "%-#{fnwidth}s".bold + "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     else
       format = "%-#{fnwidth}s  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
-    end  # if fname[-1]
-    fname = fname[0,fnwidth-1] + '*' if fname.length > fnwidth
-    printf( format, fname, size, mtime, prot )
+    end  # if fspec[-1]
+    fspec = fspec[0,fnwidth-1] + '*' if fspec.length > fnwidth
+    printf( format, fspec, size, mtime, prot )
     if @options[:times]
       inwidth = fnwidth + szwidth + 4
       format = "%#{inwidth}s%#{dtwidth}s\n%#{inwidth}s%#{dtwidth}s\n"
@@ -95,17 +96,14 @@ class DirectoryVMS
     end  # if @options[:times]
     # Get the file's protection mask (mode) as human-readable (not integer)
     prot = File.mode_human_readable_VMS( fstat )
-    # Collect subdirectories for recursive display
-    if fstat.directory?
-      d = canonical_path( fspec )
-      fspec = fspec + "/" if fspec[-1] != "/"
-    end  # if fstat.directory?
-    @numberfiles += 1
-    @grandtotalnfiles += 1
+    # Mark the subdirectories as encountered:
+    fspec = fspec + "/" if fspec[-1] != "/" if fstat.directory?
     # Get the file's ownership "user:group (uid:gid)" ...stash in the hash:
     @options[:fowner] = File.owner_human_readable( fstat ) if @options[:owner]
     # Print the entry for this file:
     printentry( fspec, fsize, mtime, prot )
+    @numberfiles += 1
+    @grandtotalnfiles += 1
   end  # reportentry
 
 
@@ -157,14 +155,13 @@ class DirectoryVMS
 
   # ------------------------------------------
   def listing( args )
-    # Accumulate number of files and their size for this directory:
     @numberfiles = @totalsize = 0
 
     dir = args.pop    # start with the last-most argument
     dirstack = args   # ...save the rest for later (recurse)
     dir = "." if dir == ""
-    dir = canonical_path( File.absolute_path( dir, @curdir ) )
-    puts "\ncd --> #{dir} (pwd: #{Dir.pwd}, @curdir: #{@curdir})" if @options[:debug]
+    dir = canonical_path( dir, @curdir )
+    puts "\ncd --> #{dir}\n  pwd: #{Dir.pwd}".color(:blue) if @options[:debug] >= DBGLVL1
     if Dir.pwd != File.basename( dir )
       Dir.chdir( dir )
       @curdir = dir
@@ -181,29 +178,26 @@ class DirectoryVMS
     direntries = filterSmaller( direntries, @options[:smaller] ) if @options[:smaller]
     direntries.sort_caseblind!( @options[:reverse] )
 
-    if @options[:debug]
-      puts ">>> #{dir}"
-      Diagnostics.diagnose( direntries, "in listing (top)", __LINE__ )
-    end
+    Diagnostics.diagnose( direntries, "in listing (top)", __LINE__ ) if @options[:debug] >= DBGLVL2
 
     printheader( dir )
     if !direntries.empty?
       direntries.each do | fspec |
-        # Push subdir onto the beginning (not the end) of the to-do (recursion) pile:
-        dirstack << fspec if File.directory?( File.absolute_path( fspec, @curdir ) )
-        puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'  dirstack: #{dirstack}  dir: '#{dir}'"  if @options[:debug]
+        # Push subdir onto the to-do (recursion) stack:
+        nd = File.absolute_path( fspec, @curdir )
+        dirstack << nd if File.directory?( nd )
+        puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'\n dirstack: #{dirstack}  dir: '#{dir}'".color(:blue)  if @options[:debug] >= DBGLVL3
         reportentry( dir, fspec )
       end  # direntries.each
-      # Finish-up the per-directory output:
       printtrailer( @numberfiles, @totalsize )
-      exit true if !askprompted( '>>> Continue', 'No' ) if @options[:debug]
+      exit true if !askprompted( '>>> Continue', 'No' ) if @options[:debug] >= DBGLVL3
     else
       printtrailer( 0, 0 )  # ...for an empty directory
     end  # if !direntries.empty?
 
     # Recurse: Each subdirectory is listed after all files...
     if @options[:recurse] && !dirstack.empty?
-      Diagnostics.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug]
+      Diagnostics.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug] >= DBGLVL2
       dirstack.each { | nextdir | listing( [ nextdir ] ) }
     else
       printgrand if @options[:grand]

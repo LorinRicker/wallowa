@@ -11,8 +11,13 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.1 (08/11/2014)"
+  PROGID = "#{PROGNAME} v4.3 (08/18/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2
+DBGLVL3 = 3
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
@@ -29,7 +34,7 @@ require_relative 'Diagnostics'
 options = { :about    => false,
             :bytesize => false,
             :before   => false,
-            :debug    => false,
+            :debug    => DBGLVL0,
             :full     => false,
             :grand    => false,
             :hidden   => false,
@@ -65,8 +70,8 @@ optparse = OptionParser.new do |opts|
     val = "today" if ! val
     options[:before] = DateCalc.thisday( val )
   end  # -B --before
-  opts.on( "-d", "--debug", "Display debug information" ) do |val|
-    options[:debug] = true
+  opts.on( "-d", "--debug=INTEGER", "Show debug information (levels: 1, 2 or 3)" ) do |val|
+    options[:debug] = val.to_i
   end  # -d --debug
   opts.on( "-f", "--full", "Display full listing (include times and ownership)" ) do |val|
     options[:full] = options[:owner] = options[:times] = true
@@ -107,14 +112,14 @@ optparse = OptionParser.new do |opts|
 end  #OptionParser.new
 optparse.parse!  # leave residue-args in ARGV
 
-pp options if options[:debug]
-pp ARGV    if options[:debug]
+pp options if options[:debug] >= DBGLVL2
+pp ARGV    if options[:debug] >= DBGLVL1
 
 exit true if options[:about] or options[:help]
 
 # Set-up for terminal dimensions, especially varying width:
 termwidth = TermChar.terminal_width
-puts "width: #{termwidth}" if options[:debug]
+puts "width: #{termwidth}" if options[:debug] >= DBGLVL2
 
 # Completely empty args will be nil here, so ensure first entry is "" instead:
 ARGV[0] ||= ""
