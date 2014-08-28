@@ -4,7 +4,7 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.8, 07/23/2014
+# Version 1.9, 08/27/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -252,16 +252,141 @@ class String
     return s
   end  # edit
 
+# -----
+
+  def numbernames( setcase = :titlecase )
+    $ones  ||= %w{ one   two   three
+                   four  five  six
+                   seven eight nine }
+    $tys   ||= %w{ ten     twenty thirty
+                   forty   fifty  sixty
+                   seventy eighty ninety }
+    $teens ||= %w{ eleven    twelve   thirteen
+                   fourteen  fifteen  sixteen
+                   seventeen eighteen nineteen }
+    # Authority for number names:
+    # http://en.wikipedia.org/wiki/Names_of_large_numbers
+    $illions ||= [
+                   [ 123, 'quadragint' ],
+                   [ 120, 'noven'      ],        # 'trigint'
+                   [ 117, 'octo'       ],
+                   [ 114, 'septen'     ],
+                   [ 111, 'ses'        ],
+                   [ 108, 'quinqua'    ],
+                   [ 105, 'quattuor'   ],
+                   [ 102, 'tres'       ],
+                   [ 100, 'googol'     ],
+                   [  99, 'duo'        ],
+                   [  96, 'un'         ],
+                   [  93, ''           ],        # 'trigint'
+                   [  90, 'novem'      ],        # 'vigint'
+                   [  87, 'octo'       ],
+                   [  84, 'septem'     ],
+                   [  81, 'ses'        ],
+                   [  78, 'quinqua'    ],
+                   [  75, 'quatturo'   ],
+                   [  72, 'tres'       ],
+                   [  69, 'duo'        ],
+                   [  66, 'un'         ],
+                   [  63, ''           ],        # 'vigint'
+                   [  60, 'noven'      ],        # 'dec'
+                   [  57, 'octo'       ],
+                   [  54, 'septen'     ],
+                   [  51, 'se'         ],
+                   [  48, 'quinqua'    ],
+                   [  45, 'quattuor'   ],
+                   [  42, 'tre'        ],
+                   [  39, 'duo'        ],
+                   [  36, 'un'         ],
+                   [  33, ''           ],        # 'dec'
+                   [  30, 'non'        ],
+                   [  27, 'oct'        ],
+                   [  24, 'sept'       ],
+                   [  21, 'sext'       ],
+                   [  18, 'quint'      ],
+                   [  15, 'quadr'      ],
+                   [  12, 'tr'         ],
+                   [   9, 'b'          ],
+                   [   6, 'm'          ],
+                   [   3, 'thousand'   ],
+                   [   2, 'hundred'    ]
+                 ]
+    # Discard any fractional part, remove any separators:
+    nstr   = self.split('.')[0].gsub(',','').gsub('_','')
+    number = nstr.to_i
+    result = ''
+    minus  = number < 0 ? 'minus ' : ''
+    if number != 0
+      #  left: current residue of original value to process
+      # write: the current chunk in-process (writing out)
+      left = number.abs
+      $illions.each do | zillion |
+        zname = zillion[1]
+        zbase = zillion[0]
+        zpwr  = 10 ** zbase
+        write = left / zpwr          # how many zillions left?
+        left  = left - write * zpwr  # residue...
+        if write > 0
+          prefix = write.to_s.numbernames( setcase )  # recurse
+          # Aggregate prefix and common-suffixes:
+          result = result + prefix
+          zname = zname + 'trigint'  if (93..120).cover?(zbase) && zbase % 3 == 0
+          zname = zname + 'vigint'   if (63.. 90).cover?(zbase)
+          zname = zname + 'dec'      if (33.. 60).cover?(zbase)
+          zname = zname + 'illion,'  if ( 6..123).cover?(zbase) && zbase % 3 == 0
+          result = result + ' ' + zname
+          # Commas after "*illion"; special case, after "thousand" too:
+          result = result + ',' if zbase == 3
+          # Don't form something like 'two billionfifty-one'
+          result = result + ' ' if left > 0
+        end
+      end  # $illions.each
+      # Decades:
+      write = left / 10               # how many tens left?
+      left  = left - write * 10       # residue...
+      if write > 0
+        if write == 1 && left > 0
+          result = result + $teens[left-1]
+          left   = 0  # nothing left to write
+        else
+          result = result + $tys[write-1]
+        end
+        # Hyphenate "sixty-four"
+        result = result + '-' if left > 0
+      end
+      # Units:
+      write  = left                    # how many ones left?
+      left   = 0                       # no more residue...
+      result = result + $ones[write-1] if write > 0
+      # It's easier to check & remove a trailing-comma than it is to prevent it:
+      result = result[0..-2] if result[-1] == ','
+      result = minus + result
+    else
+      result = 'zero'
+    end  # if number != 0
+    case setcase.to_sym
+    # default: :lo(wer)case, :downcase is how it's built...
+    when :uppercase,:upcase   then result = result.upcase
+    when :capcase,:capitalize then result = result.capitalize  # first word only
+    when :titlecase           then result = result.titlecase   # all words cap'd
+    end
+    return result
+  end  # numbernames
+
 end  # class String
 
 
 class Numeric
 
-  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to
+  # These wrappers hand-off a Numeric (Integer, Bignum, etc. ) to
   # the same-named String method, handling the to_s conversion as a
   # convenience, thus avoiding calls like: 1234567890.to_s.thousands
   def thousands( sep = "," )
     self.to_s.thousands( sep )
   end  # thousands
+
+  def numbernames( setcase = :titlecase )
+    self.to_s.numbernames( setcase )
+  end  # numbernames
 
 end  # class Numeric
