@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.3, 08/18/2014
+# Version 4.4, 08/28/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -17,6 +17,7 @@ require_relative 'FileEnhancements'
 require_relative 'StringEnhancements'
 require_relative 'ANSIseq'
 require_relative 'AskPrompted'
+require_relative 'Diagnostics'
 
 class DirectoryVMS
 
@@ -155,6 +156,7 @@ class DirectoryVMS
 
   # ------------------------------------------
   def listing( args )
+    code = Diagnostics::Code.new( colorize = 'red' )
     @numberfiles = @totalsize = 0
 
     dir = args.pop    # start with the last-most argument
@@ -178,7 +180,7 @@ class DirectoryVMS
     direntries = filterSmaller( direntries, @options[:smaller] ) if @options[:smaller]
     direntries.sort_caseblind!( @options[:reverse] )
 
-    Diagnostics.diagnose( direntries, "in listing (top)", __LINE__ ) if @options[:debug] >= DBGLVL2
+    code.diagnose( direntries, "in listing (top)", __LINE__ ) if @options[:debug] >= DBGLVL2
 
     printheader( dir )
     if !direntries.empty?
@@ -186,7 +188,8 @@ class DirectoryVMS
         # Push subdir onto the to-do (recursion) stack:
         nd = File.absolute_path( fspec, @curdir )
         dirstack << nd if File.directory?( nd )
-        puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'\n dirstack: #{dirstack}  dir: '#{dir}'".color(:blue)  if @options[:debug] >= DBGLVL3
+        code.trace( fspec: fspec, dirstack: dirstack, dir: dir ) if @options[:debug] >= DBGLVL3
+        ## puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'\n dirstack: #{dirstack}  dir: '#{dir}'".color(:blue)  if @options[:debug] >= DBGLVL3
         reportentry( dir, fspec )
       end  # direntries.each
       printtrailer( @numberfiles, @totalsize )
@@ -197,7 +200,7 @@ class DirectoryVMS
 
     # Recurse: Each subdirectory is listed after all files...
     if @options[:recurse] && !dirstack.empty?
-      Diagnostics.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug] >= DBGLVL2
+      code.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug] >= DBGLVL2
       dirstack.each { | nextdir | listing( [ nextdir ] ) }
     else
       printgrand if @options[:grand]

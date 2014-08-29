@@ -3,8 +3,8 @@
 
 # ANSIseq.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.7, 11/26/2012
+# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.8, 08/28/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -85,7 +85,7 @@ end  # reverse
 # Render *any* of the available colors here;
 # common colors each have their own method:
 def color( colour )
-  rendition = case colour
+  rendition = case colour.to_sym
               when :black    then BLACK
               when :red      then RED
               when :green    then GREEN

@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.3 (08/18/2014)"
+  PROGID = "#{PROGNAME} v4.4 (08/28/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
 DBGLVL0 = 0
@@ -28,7 +28,6 @@ require 'pp'
 require_relative 'TermChar'
 require_relative 'DirectoryVMS'
 require_relative 'DateCalc'
-require_relative 'Diagnostics'
 
 # === Main ===
 options = { :about    => false,
@@ -119,7 +118,6 @@ exit true if options[:about] or options[:help]
 
 # Set-up for terminal dimensions, especially varying width:
 termwidth = TermChar.terminal_width
-puts "width: #{termwidth}" if options[:debug] >= DBGLVL2
 
 # Completely empty args will be nil here, so ensure first entry is "" instead:
 ARGV[0] ||= ""
