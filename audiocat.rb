@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.15 (02/27/2014)"
+  PROGID = "#{PROGNAME} v1.16 (08/28/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )

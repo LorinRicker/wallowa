@@ -4,7 +4,7 @@
 # regex.rb
 # (renamed from 'RegexRevealed.rb' to conform to rel2bin.rb conventions)
 #
-# Copyright © 2011-2012 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2011-2014 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -20,7 +20,7 @@ require_relative 'GetPrompted'
 require_relative 'ANSIseq'
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (01/25/2014)"
+  PROGID = "#{PROGNAME} v1.6 (08/28/2014)"
   AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
 
   LA = '>'.color(:red)
