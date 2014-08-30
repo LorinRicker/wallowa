@@ -4,7 +4,7 @@
 # Diagnostics.rb
 #
 # Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.3, 08/28/2014
+# Version 1.4, 08/29/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -29,10 +29,17 @@ module Diagnostics
     #   or: mycode.trace( var1: var1 [, var2: var2 ]... )
     def trace( var )
       var.each do | vkey, valu |
-        str = "·>>> #{vkey}: #{valu.inspect}"
+        kstr = "·>>> #{vkey}: "
+        vstr = "#{valu.inspect}"
+        if kstr.length + vstr.length < @termwidth
+          str = kstr + vstr
+        else
+          str = kstr    + vstr.split(',')[0].strip +
+                " ··· " + vstr.split(',')[-1].strip
+        end
         sln = str.length
         str = str.bold.color(@colorize) if @colorize
-        str = ' '*(@termwidth-sln) + str if @ralign
+        str = ' '*[@termwidth-sln,0].max + str if @ralign
         begin
           @outchan.puts str
         rescue IOError => e

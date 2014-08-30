@@ -4,7 +4,7 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.9, 08/27/2014
+# Version 2.0, 08/29/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -254,13 +254,29 @@ class String
 
 # -----
 
+  # This routine is based on Chris Pine's exercise/implementation in
+  # his great introductory book "Learn to Program" (see his solution
+  # in Appendix A), but improved for performance -- uses a static (not
+  # mutable) $illions array; and extended generality -- all the way up
+  # past one-googol and into the quadragintillions.
+  # Works for Integer, Fixnum and Bignum values, as well as for String
+  # numeric representations:  "123456", "123,456,789" and "987_654_321"
+  # (commas & underscores are stripped from the string representation).
+  # Any decimal (fractional) value is truncated (stripped) and thus
+  # ignored in resultant output.
+  # Also provides a parameter to control: "Title Cased Number Strings",
+  # "Capitalized number strings", "UPPER CASED NUMBER STRINGS" and
+  # "lower cased number strings" (which is how the string representation
+  # is initially generated).
   def numbernames( setcase = :titlecase )
-    $ones  ||= %w{ one   two   three
-                   four  five  six
-                   seven eight nine }
-    $tys   ||= %w{ ten     twenty thirty
-                   forty   fifty  sixty
-                   seventy eighty ninety }
+    ## require_relative 'Diagnostics'
+    ## code = Diagnostics::Code.new( colorize = :red )
+    $ones  ||= %w{ one       two      three
+                   four      five     six
+                   seven     eight    nine }
+    $tys   ||= %w{ ten       twenty   thirty
+                   forty     fifty    sixty
+                   seventy   eighty   ninety }
     $teens ||= %w{ eleven    twelve   thirteen
                    fourteen  fifteen  sixteen
                    seventeen eighteen nineteen }
@@ -327,6 +343,7 @@ class String
         write = left / zpwr          # how many zillions left?
         left  = left - write * zpwr  # residue...
         if write > 0
+          ## code.trace( recursion: "#{write}.to_s.numbernames(#{setcase})" )
           prefix = write.to_s.numbernames( setcase )  # recurse
           # Aggregate prefix and common-suffixes:
           result = result + prefix
