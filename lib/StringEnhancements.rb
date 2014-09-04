@@ -4,7 +4,7 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 08/29/2014
+# Version 2.1, 09/03/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -256,9 +256,9 @@ class String
 
   # This routine is based on Chris Pine's exercise/implementation in
   # his great introductory book "Learn to Program" (see his solution
-  # in Appendix A), but improved for performance -- uses a static (not
-  # mutable) $illions array; and extended generality -- all the way up
-  # past one-googol and into the quadragintillions.
+  # in Appendix A, pp. 144-147), but improved for performance -- he uses
+  # a static (not mutable) $illions array; and extended generality --
+  # all the way uppast one-googol and into the quadragintillions.
   # Works for Integer, Fixnum and Bignum values, as well as for String
   # numeric representations:  "123456", "123,456,789" and "987_654_321"
   # (commas & underscores are stripped from the string representation).

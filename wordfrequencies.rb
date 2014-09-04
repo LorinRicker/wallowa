@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.02 07/14/2014"
+  PROGID = "#{PROGNAME} v1.04 09/03/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 STDINFD  = 0
@@ -62,8 +62,8 @@ def prepare( outfile )
   else
     outf = File.new( STDOUTFD, 'w' )
   end
-rescue IOError => e
-  STDERR.puts "%#{PROGNAME}-e-fnf, error opening output file or stream"
+rescue Errno::ENOENT => e
+  STDERR.puts "%#{PROGNAME}-e-fnf, error opening output file '#{outfile}'"
   exit false
 end
 
@@ -81,8 +81,8 @@ def process( inputf, outf )
     end
   end
   wordfreq
-rescue IOError => e
-  STDERR.puts "%#{PROGNAME}-e-fnf, error opening input file or stream"
+rescue Errno::ENOENT => e
+  STDERR.puts "%#{PROGNAME}-e-fnf, error opening input file '#{inputf}'"
   exit false
 end
 
@@ -107,10 +107,13 @@ def report( wordfreq, options )
     wf.delete_if { |word| TRIM_COMMON_WORDS.index(word[0]) }
   end
   dump( wf ) if options[:debug]
-  (0..options[:limit]-1).each do |i|
+  printed = i = 0
+  while i < wf.length && printed < options[:limit]
     if wf[i][0].size > options[:size]
       printf( "  %16s : %6d\n", "'#{wf[i][0]}'", wf[i][1] )
+      printed += 1
     end
+    i += 1
   end
 end
 
