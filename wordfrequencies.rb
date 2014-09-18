@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 09/03/2014"
+  PROGID = "#{PROGNAME} v1.05 09/17/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 STDINFD  = 0
@@ -63,7 +63,10 @@ def prepare( outfile )
     outf = File.new( STDOUTFD, 'w' )
   end
 rescue Errno::ENOENT => e
-  STDERR.puts "%#{PROGNAME}-e-fnf, error opening output file '#{outfile}'"
+  STDERR.puts "%#{PROGNAME}-e-fnf, error opening output file (no such dir/path)"
+  exit false
+rescue IOError => e
+  STDERR.puts "%#{PROGNAME}-e-errout, error opening output file or stream"
   exit false
 end
 

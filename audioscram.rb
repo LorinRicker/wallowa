@@ -108,7 +108,7 @@
 
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.00 (06/02/2014)"
+  PROGID = "#{PROGNAME} v1.01 (09/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
@@ -119,6 +119,7 @@ require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
 require 'yaml'
+require_relative 'Scramble'
 require_relative 'ANSIseq'
 require_relative 'FileEnhancements'
 
@@ -196,50 +197,27 @@ source = Dir.pwd if source == '.'
 puts "source is '#{source}'" if options[:verbose]
 
 # Count music files in this source-path:
-MFSCALE = 10000
 mp3spec = File.join( source, "**", "*.mp3" )
 cnt = Dir.glob( mp3spec ).count
-uplim = cnt * MFSCALE
-puts "Music file count: #{cnt}, upper limit: #{uplim}" if options[:verbose]
 
 # Randomize -- pair each music file with a random number:
-randgen = Random.new( Random.new_seed )
-scramhash = Hash.new
-maxcolcnt = 0
-Dir.glob( mp3spec ).each do | mf |
-  # Search for an unpaired random number (usually hits the first time):
-  colcnt = 0
-  until ! scramhash[ rno = randgen.rand( 1..uplim ) ]
-    colcnt += 1  # Aha! A random key collision!...
-  end
-  scramhash[rno] = mf
-  maxcolcnt = colcnt if maxcolcnt < colcnt   # Track maximum # of random hash key collisions
-end  # Dir.glob
-## pp scramhash if options[:verbose]
-msg = "Maximum random hash key collisions: #{maxcolcnt}"
-puts msg if options[:verbose] && maxcolcnt > 0
+musicfile = Scramble.new
+Dir.glob( mp3spec ).each { | mf | musicfile.store( mf ) }
 
-# Randomized -- sort the music files by random# -- a hash sort
-#   produces a nested array: [[k1,v1],[k2,v2],[k3,v3]...]:
-scramarry = scramhash.sort
-scramarry.each { |e| puts "#{e[0]}: #{File.basename( e[1] )}" } if options[:verbose]
+# Randomized -- sort the music files by random# --
+musicfile.shuffle
+
+# Now fetch musicfiles in randomized order, copy them to player:
+# ... music.fetch
 
 # TO-DO:
 # (X) OptionParse
 # ( ) if !options[:keep], remove files from /media/player/path/
-# (X) SCALEFACTOR = 10000
 # (X) cnt = Dir.glob( "./RipLibrary/**/*.mp3" ).count
-# (X) uplim = cnt * SCALEFACTOR
-# (X) randgen = Random.new( Random.new_seed )
-# (X) scramhash = Hash.new
-# (X) Dir.glob( "./RipLibrary/**/*.mp3" ).each do |f|
-#      rno = randgen.rand( 1..uplim )
-#      scramhash[rno] = mf
-#      end
+# (X) Dir.glob( "./RipLibrary/**/*.mp3" ).each { |mf| store(mf) }
 #
-# (X) scramarry = scramhash.sort
-# ( ) scramarry.each do |pair|
+# ( ) fetch each musicfile in randomized order:
 # ( )   if options[:refresh], copy MP3 (overwrite existing),
 #       else copy MP3 only if it does not exist in Player
-#       copy pair[1] to /media/player/path/: cp( "src"... "dst" )
+#       copy musicfile to /media/player/path/: cp( "src"... "dst" )
 #       end
