@@ -125,12 +125,17 @@ require_relative 'FileEnhancements'
 
 # ==========
 
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2
+DBGLVL3 = 3
+
 options = {  # hash for all com-line options:
   :keep    => false,
   :help    => false,
   :about   => false,
   :dryrun  => false,
-  :debug   => false,
+  :debug   => DBGLVL0,
   :verbose => false
   }
 
@@ -159,8 +164,9 @@ optparse = OptionParser.new { |opts|
     options[:dryrun] = true
   end  # -n --dryrun
   # --- Debug option ---
-  opts.on( "-d", "--debug", "Debug mode (more output than verbose)" ) do |val|
-    options[:debug] = true
+  opts.on( "-d", "--debug=[N]", Integer,
+           "Turn on debugging messages (levels)" ) do |val|
+    options[:debug] = val || DBGLVL1
   end  # -d --debug
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
@@ -173,7 +179,7 @@ options[:keep] = true if options[:refresh]
 
 # Configure FileUtils options from audioscram com-line options:
 fopts = Hash.new
-fopts[:verbose] = options[:verbose] || options[:dryrun]
+fopts[:verbose] = options[:verbose] || options[:dryrun] || options[:debug] > DBGLVL0
 fopts[:noop]    = options[:dryrun]
 
 # TO-DO
@@ -196,16 +202,17 @@ source = File.dirname( ARGV[1] )
 source = Dir.pwd if source == '.'
 puts "source is '#{source}'" if options[:verbose]
 
-# Count music files in this source-path:
-mp3spec = File.join( source, "**", "*.mp3" )
-cnt = Dir.glob( mp3spec ).count
+# Create the source and destination paths:
+mp3libspec = File.join( source, "**", "*.mp3" )
+##playerspec = File.join( player... )
 
 # Randomize -- pair each music file with a random number:
-musicfile = Scramble.new
-Dir.glob( mp3spec ).each { | mf | musicfile.store( mf ) }
+musicfiles = Scramble.new
+Dir.glob( mp3libspec ).each { | mf | musicfiles.store( mf ) }
 
 # Randomized -- sort the music files by random# --
-musicfile.shuffle
+musicfiles.shuffle
+musicfiles.to_s if options[:debug] >= DBGLVL1
 
 # Now fetch musicfiles in randomized order, copy them to player:
 # ... music.fetch
@@ -213,7 +220,6 @@ musicfile.shuffle
 # TO-DO:
 # (X) OptionParse
 # ( ) if !options[:keep], remove files from /media/player/path/
-# (X) cnt = Dir.glob( "./RipLibrary/**/*.mp3" ).count
 # (X) Dir.glob( "./RipLibrary/**/*.mp3" ).each { |mf| store(mf) }
 #
 # ( ) fetch each musicfile in randomized order:

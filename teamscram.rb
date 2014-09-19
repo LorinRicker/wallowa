@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (09/17/2012)"
+  PROGID = "#{PROGNAME} v1.0 (09/18/2012)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # Create N-member teams from a class roster file
@@ -30,6 +30,13 @@ COMMENTMARK = '#'   # for Ruby, Perl, Python & bash (etc.) source files
 STDINFD  = 0
 STDOUTFD = 1
 
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2
+DBGLVL3 = 3
+
+DEFAULT_TN = 2  # default number of members per team (options[:teamsize])
+
 # ==========
 
 def prepare( outfile )
@@ -46,21 +53,30 @@ rescue IOError => e
   exit false
 end
 
-def report( teams, outf )
+def report( teams, outf, combos )
+  # Report the nCk:
+  ln = '-' * ( combos.length + 4 )
+  outf.puts "\n#{ln}"
+  outf.puts "| #{combos.bold} |"
+  outf.puts "#{ln}\n"
   # Report/output the teams:
   tnum = 0
   teams.each do | t |
     tnum += 1
-    outf.puts "\n#{'='*10}\n  Team #{tnum}"
-    mnum = 0
+    tn = "Team #{tnum}".bold.underline
+    outf.puts "\n #{tn}"
+    tcnt = mnum = 0
     t.each do | m |
       mnum += 1
-      member = m ? sprintf("\#%2d - %s", mnum, member ) : '(empty)'
+      tcnt += 1 if m
+      member = sprintf("\#%2d - %s", mnum, m ? m : '(empty)' )
       outf.puts "#{' '*4}#{member}"
     end
-    outf.puts "\n  Total of #{mnum} members"
+    outf.puts "\n  Total of #{tcnt} members"
   end
-  outf.puts "\n#{'='*10}\n\nTotal of #{tnum} teams"
+  tn = "Total of #{tnum} teams".color(:red).bold
+  outf.puts "\n#{tn}"
+  outf.puts "\nTeams assigned at #{Time.now}"
 end  # report
 
 def process( inputf, outf, options )
@@ -69,19 +85,25 @@ def process( inputf, outf, options )
     roster = Scramble.new
     while line = inf.gets
       line = line.chomp
+      puts "line: '#{line}'" if options[:debug] >= DBGLVL2
       next if line.lstrip[0] == COMMENTMARK
       next if line.collapse == ""
       roster.store( line )
     end
     # Shuffle the roster:
     roster.shuffle
+    roster.to_s if options[:debug] >= DBGLVL1
     # Extract teams, n-members at a time, from roster,
     # aggregate each team into a set of teams:
     teams = []
-    while ( team = roster.deal( options[:teamnumber] ) ) != nil
+    exhausted = false
+    until exhausted
+      team, exhausted = roster.deal( options[:teamsize] )
+      pp team if options[:debug] >= DBGLVL2
       teams << team
     end
-    report( teams, outf )
+    puts "\nTeams: #{teams}" if options[:debug] >= DBGLVL1
+    report( teams, outf, roster.report_combination( options[:teamsize] ) )
     outf.close if outf != STDOUTFD
   end
 rescue Errno::ENOENT => e
@@ -91,8 +113,8 @@ end
 
 # ==========
 
-options = { teamnumber: 2,   # Number of members on each team
-            debug:      nil
+options = { teamsize: 2,   # Number of members on each team
+            debug:      DBGLVL0
           }
 
 optparse = OptionParser.new { |opts|
@@ -109,16 +131,21 @@ optparse = OptionParser.new { |opts|
     options[:about] = true
     exit true
   end  # -a --about
-  opts.on( "-t", "-n", "--teamnumber=N", "Integer",
+  opts.on( "-t", "-n", "--teamsize=N", Integer,
            "Number of members on each team" ) do |val|
-    options[:teamnumber] = val || 2
+    options[:teamsize] = val || DEFAULT_TN
   end  # -n -m --members
-  opts.on( "-d", "--debug=[N]", "Turn on debugging messages (levels)" ) do |val|
-    options[:debug] = val || 1
+  opts.on( "-d", "--debug=[N]", Integer,
+           "Turn on debugging messages (levels)" ) do |val|
+    options[:debug] = val || DBGLVL1
   end  # -d --debug
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
 }.parse!  # leave residue-args in ARGV
+
+options[:teamsize] = DEFAULT_TN if options[:teamsize] <= 0
+
+options[:verbose] = true if options[:debug] > DBGLVL0
 
 process( ARGV[0], prepare( ARGV[1] ), options )

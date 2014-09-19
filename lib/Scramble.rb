@@ -4,7 +4,7 @@
 # Scramble.rb
 #
 # Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 09/17/2014
+# Version 1.0, 09/18/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -74,6 +74,37 @@ class Scramble
     @factorial_series = [ 1 ]
   end  # initialize
 
+# =====
+
+  # Calculates n! (n-factorial), using a memoized (@factorial_series) algorithm.
+  def factorial( n )
+    @factorial_series[n] ||= n * factorial( n-1 )
+  end  # factorial
+  # +n!+ is an alias for this class's +factorial+ method.
+  alias :n! :factorial
+
+  # Calculates the number of combination of "'n' things taken 'k' at a time",
+  # or the number of k-combinations a set S of n elements.  Wikipedia gives
+  # this calculation as: n!/k!(n-k)!
+  # (see http://en.wikipedia.org/wiki/Combination)
+  def combination( n, k )
+    return 0 if k > n
+    n!(n) / ( n!(k) * n!(n-k) )
+  end  # combination
+
+  # Reports the k-combinations of @vals.size elements taken k at a time.
+  def to_combination( k )
+    k = k.to_i if not k.kind_of? Integer
+    combination( @vals.size, k )
+  end  # to_combination
+
+  def report_combination( k )
+    combos = to_combination( k ).thousands
+    return "Possible #{combos} combinations of #{@deck.size} elements taken #{k} at a time."
+  end  # report_combination
+
+# =====
+
   # Resets (starts over) with a new collection of +@vals+.
   #
   # +@deckindex+ is (re)set to +nil+ indicating that the +@deck+
@@ -142,10 +173,10 @@ class Scramble
     end
   end  # fetch
 
-  # Collects and returns a collection ("deals a hand") of +numobj+ objects
+  # Collects and returns a collection ("deals a hand") of +elements+ objects
   # from the randomized +@deck+.  Each collection (or "hand") is an array.
   #
-  # If <b>@deck % numobj != 0</b>, the last "hand" will be padded with nil
+  # If <b>@deck mod elements != 0</b>, the last "hand" will be padded with nil
   # values to make a final collection of +nobj+ values.
   #
   # Both +deal+ and +fetch+ require that the calling environment has stored one
@@ -154,38 +185,18 @@ class Scramble
   # the +@pile+ into the +@deck+.  Any attempt to +fetch+ *after* +reset+ and
   # *before* +shuffle+ have been called results in raising the +NoteYetDone+
   # exception.
- def deal( numobj = 1, valueonly = true )
+ def deal( elements = 1, valueonly = true )
+    elements = elements.to_i if not elements.kind_of? Integer
     hand = []
     exhausted = false
-    until hand.length >= numobj || exhausted
+    until ( hand.length >= elements ) || exhausted
       val = self.fetch( valueonly )
       exhausted = (val == nil)
       hand << val if not exhausted
     end
-    hand << nil while hand.length < numobj
+    hand << nil while hand.length < elements
     return hand, exhausted
   end  # deal
-
-  # Calculates n! (n-factorial), using a memoized (@factorial_series) algorithm.
-  def factorial( n )
-    @factorial_series[n] ||= n * factorial( n-1 )
-  end  # factorial
-  # +n!+ is an alias for this class's +factorial+ method.
-  alias :n! :factorial
-
-  # Calculates the number of combinations of "'n' things taken 'k' at a time",
-  # or the number of k-combinations a set S of n elements.  Wikipedia gives
-  # this calculation as: n!/k!(n-k)!
-  # (see http://en.wikipedia.org/wiki/Combination)
-  def combinations( n, k )
-    return 0 if k > n
-    n!(n) / ( n!(k) * n!(n-k) )
-  end  # combinations
-
-  # Reports the k-combinations of @vals.size elements taken k at a time.
-  def to_combinations( k = 2 )
-    combos = combinations( @vals.size, k )
-  end  # to_combinations
 
   # Reports the class's instance variables in pretty-print format.
   def to_s
@@ -221,24 +232,27 @@ if $0 == __FILE__
   require_relative 'StringEnhancements'
 
   carddeck = Scramble.new
-  cards    = %w[ 1 2 3 4 5 6 7 8 9 J Q K A ]
-  cards.each { |c| carddeck.store( "♠ #{c}")}
-  cards.each { |c| carddeck.store( "♣ #{c}")}
-  cards.each { |c| carddeck.store( "♥ #{c}")}
-  cards.each { |c| carddeck.store( "♦ #{c}")}
+  cards    = %w[ 2 3 4 5 6 7 8 9 10 J Q K A ]
+  cards.each { |c| carddeck.store( "#{c}♠")}
+  cards.each { |c| carddeck.store( "#{c}♣")}
+  cards.each { |c| carddeck.store( "#{c}♥")}
+  cards.each { |c| carddeck.store( "#{c}♦")}
 
   carddeck.shuffle
   carddeck.to_s
   tsiz = carddeck.deck.size
-  n = 5
-  puts "\nDeal poker hand (#{tsiz})"
-  (1..6).each { |t| puts "  #{carddeck.deal(n)}" }
-  puts "There are #{carddeck.to_combinations(n).thousands} combinations of #{tsiz} cards dealt #{n} at a time."
-  puts "(This value is verified in http://en.wikipedia.org/wiki/Combination, 'Example of counting combinations')"
+  h = 6  # hands
+  n = 5  # cards in a hand
+  puts "\nDeal #{h} poker hands (deck of #{tsiz} cards):"
+  (1..h).each { |t| puts "  #{carddeck.deal(n)}" }
+  puts carddeck.report_combination( n )
+  puts "(This value is verified in http://en.wikipedia.org/wiki/Combination,"
+  puts " 'Example of counting combination': 2,598,960)"
 
   carddeck.shuffle
-  n = 10
-  puts "\nDeal bridge hand (#{tsiz})"
-  (1..4).each { |t| puts "  #{carddeck.deal(n)}" }
-  puts "There are #{carddeck.to_combinations(n).thousands} combinations of #{tsiz} cards dealt #{n} at a time."
+  h =  4  # hands
+  n = 13  # cards in a hand
+  puts "\nDeal #{h} bridge hands (deck of #{tsiz} cards):"
+  (1..h).each { |t| puts "  #{carddeck.deal(n)}" }
+  puts carddeck.report_combination( n )
 end
