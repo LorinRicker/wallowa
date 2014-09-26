@@ -3,7 +3,7 @@
 
 # process.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,25 +11,137 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.3 (10/22/2012)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v2.1 (09/25/2012)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+# A really simple script to perform a prompted-kill-process,
+# "$ ps aux | grep [f]oobar" -- where the "...grep [p]attern"
+# trick with the brackets [] sidesteps finding the ps|grep
+# command itself... This does the same thing by *not* finding
+# the process which invokes this command:
 
 # === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
+require 'pp'
 require_relative 'Prompted'
 require_relative 'TermChar'
 require_relative 'ANSIseq'
 
-# Main -- a really simple script to perform a prompted-kill-process,
-#         "$ ps aux | grep [f]oobar" -- where the "...grep [p]attern"
-#         trick with the brackets [] sidesteps finding the ps|grep
-#         command itself... This does the same thing by *not* finding
-#         the process which invokes this command:
+# ==========
 
-options = {}  # hash for all com-line options;
-  # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
-  # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
-  # also see "Pickaxe v1.9", p. 776
+def abort( os )
+  # Not yet supporting Unix(es), Darwin (Mac), Windoze, etc:
+  STDERR.puts "%#{PROGNAME}-f-nosupp, operating system '#{os}' is not yet supported"
+  exit false
+end  # abort( os )
+
+def identify_os
+  begin
+    whichos = RUBY_PLATFORM  # s'posed to exist, but might not for some Rubies
+  rescue NameError => e
+    require 'rbconfig'
+    whichos = RbConfig::CONFIG['host_os']
+  ensure
+    case whichos.downcase
+    when /linux/ then return :linux
+    when /vms/   then return :vms
+    else
+      abort( whichos )
+    end
+  end
+end  # identify_os
+
+def generate_command( options, twidth )
+  case options[:os]
+  when :linux
+    # Customize the output of ps -- note that pid is now first field! --
+    psopt = '-e --format pid,euser,%cpu,%mem,rss,stat,args'
+    cmd   = [ 1, "ps #{psopt} --width #{twidth}" ]
+  when :vms
+    # Note that pid is always first, and this listing is not customizable --
+    cmd   = [ 2, "SHOW SYSTEM /CLUSTER" ]
+  else
+    abort( options[:os] )
+  end
+  return cmd
+end  # generate_command
+
+def kill_it( pid, options )
+  if askprompted( "Kill this process #{pid}", "N" )
+    if options[:test]  # rehearse for the right platform...
+      case options[:platform]
+      when :linux
+        STDOUT.puts ">>> $ kill -s #{options[:signal]} #{pid}".color(:red).bold
+      when :vms
+        STDOUT.puts ">>> $ STOP /ID=#{pid}".color(:red).bold
+      end
+    else  # really do it... equiv -> %x{ kill -kill #{pid} }
+      begin
+        Process.kill( options[:signal].to_sym, pid.to_i )
+        # N.B. -- Will VMS Ruby's Std-Library support Process.kill?
+        #         If not, then must do %x{ STOP /ID=#{pid} }
+      rescue Errno::ESRCH => e  # 'No such process'
+        puts "%#{PROGNAME}-w-noproc, this process has been terminated (parent process killed)"
+        # continue...
+      end
+    end
+    puts ""
+  end
+end  # kill_it
+
+def process( args, options )
+  options[:os] = identify_os
+  STDERR.puts "%#{PROGNAME}-i-os, '#{options[:os]}' operating system" if options[:debug]
+  # Switch immediately to testing-mode if the identified OpSys <> the com-line requested one...
+  options[:test] = true if options[:platform] && options[:platform] != options[:os]
+  STDERR.puts "options: #{options}" if options[:debug]
+
+  # Set-up for terminal dimensions, especially varying width:
+  termwidth = TermChar.terminal_dimensions( options[:verbose] )
+
+  hdlines, command = generate_command( options, termwidth[1] )
+
+  args.each do | pgm |
+    lno = pcount = 0
+    pgmpat = Regexp.new( pgm, Regexp::IGNORECASE )
+    %x{ #{command} }.each_line do | p |
+      lno += 1
+      if lno > hdlines
+        # Match process-line for requested program, but
+        #  not the line that invoked *this* program!
+        if ! p.index( $0 )    # and_then
+          if pgmpat =~ p      # program-pattern matched in current line?
+            STDOUT.puts p     # display it & count it...
+            pcount += 1
+            pid = p.split[0]  # process-id is FIRST field...
+
+            kill_it( pid, options) if options[:kill]
+
+          end
+        end
+      elsif not options[:raw]         # Print the ps-header,
+        STDOUT.puts "" if lno == 1    # preceeded by one blank line
+        if lno == hdlines
+          # Underline the last header line, extending underline to right-margin:
+          q = p.chomp + ' ' * ( termwidth[1] - p.length + 1 )
+          STDOUT.puts q.bold.underline
+        else
+          # just echo the header line:
+          STDOUT.puts p.chomp.bold
+        end
+      end
+    end
+    STDOUT.puts "\nProcess count: #{pcount}" unless options[:raw]
+  end  # args.each
+
+end  # process
+
+# ==========
+
+options = { signal:   "KILL",
+            platform: nil,
+            debug:    nil
+          }
 
 optparse = OptionParser.new do |opts|
   # Set the banner:
@@ -37,63 +149,33 @@ optparse = OptionParser.new do |opts|
   opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
     puts opts
     options[:help] = true
+    exit true
   end  # -? --help
   opts.on( "-a", "--about", "Display program info" ) do |val|
     puts "#{PROGID}"
     puts "#{AUTHOR}"
     options[:about] = true
+    exit true
   end  # -a --about
   opts.on( "-k", "--kill", "Kill a process" ) do |val|
     options[:kill] = true
   end  # -k --kill
+  opts.on( "-p", "--platform=OpSys", "--opsys", "Operating system platform (for testing)" ) do |val|
+    options[:platform] = val.downcase.to_sym
+  end  # -p --platform
   opts.on( "-r", "--raw", "Raw output (no header, no footer)" ) do |val|
     options[:raw] = true
   end  # -r --raw
+  opts.on( "-s", "--signal[=KILL]", "Process termination signal (default = KILL)" ) do |val|
+    options[:signal] = val.upcase
+  end  # -s --signal
   opts.on( "-t", "--test", "Test (rehearse) the kill" ) do |val|
     options[:test] = true
   end  # -t --test
+  opts.on( "-d", "--debug=[N]", "Turn on debugging messages (levels)" ) do |val|
+    options[:debug] = val || 1
+  end  # -d --debug
 end  #OptionParser.new
 optparse.parse!  # leave residue-args in ARGV
 
-# Customize the output of ps -- note that pid is now FIRST field! --
-ps_options = '-e --format pid,euser,%cpu,%mem,rss,stat,args'
-
-# Set-up ps for terminal dimensions, especially varying width:
-termwidth = TermChar.terminal_dimensions( options[:verbose] )
-twidth = "--width #{termwidth[1]}"
-
-ARGV.each do | pgm |
-  pgmpat = Regexp.new( pgm, Regexp::IGNORECASE )
-  showproc = %x{ ps #{ps_options} #{twidth} }
-  lno = pcnt = 0
-  showproc.each_line do | p |
-    lno += 1
-    if lno > 1
-      # Match process-line for requested program, but
-      #  not the line that invoked *this* program!
-      if ! p.index( $0 )    # and_then
-        if pgmpat =~ p      # program-pattern matched in current line?
-          puts "#{p}"       # display it & count it...
-          pcnt += 1
-          pid = p.split[0]  # process-id is FIRST field...
-                            # ...see ps_options above
-          if options[:kill]
-            if askprompted( "Kill this process #{pid}", "N" )
-              if options[:test]  # rehearse...
-                puts ">>> kill -kill #{pid}"
-              else  # really do it... equiv -> %x{ kill -kill #{pid} }
-                Process.kill( :KILL, pid.to_i )
-                puts ""
-              end  # if options[:test]
-            end  # if askprompted
-          end  # if options[:kill]
-
-        end  # if pgmpat =~ p
-      end  # if ! p.index( !0 )
-    elsif not options[:raw]  # print the ps-header
-      q = p.chomp + ' ' * ( termwidth[1] - p.length )
-      printf "\n%s\n".bold.underline, q
-    end  # if lno > 1
-  end  # showproc.each
-  puts "\nProcess count: #{pcnt}" unless options[:raw]
-end  # ARGV.each
+process( ARGV, options )
