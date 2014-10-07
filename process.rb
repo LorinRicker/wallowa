@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.1 (09/25/2012)"
+  PROGID = "#{PROGNAME} v2.2 (10/07/2012)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -97,12 +97,13 @@ def process( args, options )
   STDERR.puts "options: #{options}" if options[:debug]
 
   # Set-up for terminal dimensions, especially varying width:
-  termwidth = TermChar.terminal_dimensions( options[:verbose] )
+  termdim = TermChar.terminal_dimensions( options[:verbose] )
 
-  hdlines, command = generate_command( options, termwidth[1] )
+  hdlines, command = generate_command( options, termdim[1] )
+  lno = pcount = acount = 0
 
   args.each do | pgm |
-    lno = pcount = 0
+    acount += 1
     pgmpat = Regexp.new( pgm, Regexp::IGNORECASE )
     %x{ #{command} }.each_line do | p |
       lno += 1
@@ -114,16 +115,14 @@ def process( args, options )
             STDOUT.puts p     # display it & count it...
             pcount += 1
             pid = p.split[0]  # process-id is FIRST field...
-
             kill_it( pid, options) if options[:kill]
-
           end
         end
       elsif not options[:raw]         # Print the ps-header,
         STDOUT.puts "" if lno == 1    # preceeded by one blank line
         if lno == hdlines
           # Underline the last header line, extending underline to right-margin:
-          q = p.chomp + ' ' * ( termwidth[1] - p.length + 1 )
+          q = p.chomp + ' ' * ( termdim[1] - p.length + 1 )
           STDOUT.puts q.bold.underline
         else
           # just echo the header line:
@@ -131,7 +130,9 @@ def process( args, options )
         end
       end
     end
-    STDOUT.puts "\nProcess count: #{pcount}" unless options[:raw]
+    if acount == args.size
+      STDOUT.puts "\nProcess count: #{pcount}" unless options[:raw]
+    end
   end  # args.each
 
 end  # process
@@ -160,13 +161,15 @@ optparse = OptionParser.new do |opts|
   opts.on( "-k", "--kill", "Kill a process" ) do |val|
     options[:kill] = true
   end  # -k --kill
-  opts.on( "-p", "--platform=OpSys", "--opsys", "Operating system platform (for testing)" ) do |val|
+  opts.on( "-p", "--platform=OpSys", "--opsys",
+           "Operating system platform (for testing)" ) do |val|
     options[:platform] = val.downcase.to_sym
   end  # -p --platform
   opts.on( "-r", "--raw", "Raw output (no header, no footer)" ) do |val|
     options[:raw] = true
   end  # -r --raw
-  opts.on( "-s", "--signal[=KILL]", "Process termination signal (default = KILL)" ) do |val|
+  opts.on( "-s", "--signal[=#{options[:signal]}]",
+           "Process termination signal (default = #{options[:signal]})" ) do |val|
     options[:signal] = val.upcase
   end  # -s --signal
   opts.on( "-t", "--test", "Test (rehearse) the kill" ) do |val|
