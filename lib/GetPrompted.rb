@@ -3,32 +3,27 @@
 
 # GetPrompted.rb
 #
-# Copyright © 2011 Lorin Ricker <Lorin@RickerNet.us>
-# Version 0.4, 04/14/2012
+# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.1, 10/08/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
 
-require 'readline'        # See "Pickaxe v1.9", p. 788
-include Readline          #
-require 'abbrev'          #                   , p. 720
+require_relative 'AppCmdCompletions'
+include AppCmdCompletions
 
-COMMANDS = %w{ exit quit }
-  ABBREV = COMMANDS.abbrev
-Readline.completion_proc = proc do |string|
-  ABBREV[string]
-  end  # proc
-
-def getprompted( pstr, dstr )
-  # "remembers" the last value entered by user
-  # and offers it as the current default...
-  default ||= dstr
-  prompt = pstr + ( default == "" ? ": " : " [#{default}]: " )
-  response = readline( prompt, true ).strip
-  exit true if response.downcase == "exit" || response.downcase == "quit"
-  return ( response != "" ? response : default )
+# GetPrompted returns a +response+ (string) from the user as prompted,
+# or returns a +default+ response (string) if available and the user
+# accepts that default by pressing the <Enter> key.
+# Prompt-termination punctuation is a colon ":".
+def getprompted( prompt, default )
+  dstr ||= default
+  pstr = prompt + ( dstr == "" ? ": " : " [#{dstr}]: " )
+  response = readline( pstr, true ).strip.downcase
+  exit true if response == "exit" || response == "quit"
+  return ( response != "" ? response : dstr )
 rescue StandardError
   exit true  # this exit always provides cmd-line status:0
 end #getprompted
