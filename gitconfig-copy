@@ -1,0 +1,16 @@
+[core]
+	editor = subl -n -w
+[diff]
+	tool = meld
+[user]
+	name = Lorin Ricker
+	email = Lorin@RickerNet.us
+[color]
+	ui = true
+[alias]
+	co = checkout
+	stat = status
+	pom = push -u origin master
+	wtf = whatchanged
+	com = commit -m
+	cl = config --list
