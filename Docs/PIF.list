@@ -1,4 +1,4 @@
-# Package Installation (LMR).list  -- 10/07/2014
+# Package Installation (LMR).list  -- 10/09/2014
 
 # package-name            ; [flags] ; [ppa-repository] ; [inquiry-comment]
 
@@ -70,6 +70,8 @@ krename
 kruler
 tree
 meld                    ; ask
+fldiff                  ; ask
+dhex                    ; ask
 agrep                   ; ask
 m4                      ; ask
 john                    ; ask
