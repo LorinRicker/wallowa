@@ -1,0 +1,171 @@
+# Package Installation (LMR).list  -- 10/07/2014
+
+# package-name            ; [flags] ; [ppa-repository] ; [inquiry-comment]
+
+# for testing -- [EXIT] is an early-out...
+# tree                    ; ask
+# eject
+# [EXIT]
+
+# Core stuff --
+gksu
+synaptic
+curl
+sshfs
+acl
+eiciel
+eject
+dlocate
+htop
+iotop
+dstat
+
+# SMART: Self-Monitoring, Analysis and Reporting Technology
+#        for [S]ATA & SCSI hard disks --
+smartmontools           ; ask
+smart-notifier          ; ask
+
+# Networking --
+openssh-client
+openssl
+cifs-utils
+#samba-common            ; ask
+vinagre                  ; ask ; ; VNC viewer client
+vino                     ; ask ; ; VNC viewer client
+
+# File and disk support --
+gparted
+dar
+unison
+unison-gtk
+filezilla
+qbittorrent
+grsync
+wipe
+secure-delete
+
+# Tools and Utilities --
+putty
+lynx
+glipper
+xclip
+k3b
+shutter
+simplescreenrecorder    ; ask ; ppa:maarten-baert/simplescreenrecorder
+qalculate-gtk           ; ask
+teseq                   ; ask ; ; Term-esc/control-seq prettyprinter
+# autokey-gtk             ; ask
+
+# Best web browser --
+chromium-browser        ; ask
+## openjdk-7-jre-headless  ; ask ; ; NPAPI plugins no longer supported in Chrome
+## icedtea-7-plugin        ; ask
+flashplugin-installer   ; ask ; ; installer for Adobe Flash Player
+
+# Software Development Tools --
+kompare
+komparator
+kdiff3-qt
+krename
+kruler
+tree
+meld                    ; ask
+agrep                   ; ask
+m4                      ; ask
+john                    ; ask
+
+# Nautilus plugins and extensions
+nautilus-compare
+nautilus-open-terminal
+nautilus-scripts-manager
+nautilus-wipe
+nautilus-gtkhash
+nautilus-dropbox
+
+# TrueCrypt is still outside of Debian/Ubuntu package management   --
+# http://www.truecrypt.org/downloads for *.tar.gz and instructions --
+#   truecrypt               ; ask ; ???ppa:«+»???
+
+# virtualbox                   ; ask ; ; installed with virtualbox-qt
+virtualbox-qt                  ; ask
+virtualbox-guest-additions-iso ; ask
+
+git                     ; ask
+gitk                    ; ask ; ; GUI visualizer for git
+qgit                    ; ask ; ; Qt git viewer
+
+# Best Text Editors
+atom                    ; ask ; ppa:webupd8team/atom
+sublime-text-installer  ; ask ; ppa:webupd8team/sublime-text-3
+# (someday:) lighttable   ; ask ; [ppa:«+»]
+
+# Programming languages --
+# Ruby would be here, but we use RVM for installs instead:
+erlang                  ; ask ; ; includes a whole raft of OTP packages, etc.
+erlang-doc              ; ask ; ;
+erlang-manpages         ; ask ; ;
+golang                  ; ask ; ; the Go programming language (metapackage)
+
+# Other Text Editors, IDEs --
+emacs23                 ; ask
+geaney                  ; ask
+geany-plugin-common     ; ask ; ; ...only if Geany is installed
+geany-plugin-prettyprint; ask ; ; ...only if Geany is installed
+geany-plugin-insertnum  ; ask ; ; ...only if Geany is installed
+
+# GUI Tweakers --
+gnome-session-flashback       ; ask
+compizconfig-settings-manager ; ask
+unity-tweak-tool              ; ask
+
+# PulseAudio modules
+pavucontrol             ; ;   ; PulseAudio volume controls
+pavumeter               ; ;   ; PulseAudio output/speaker meter
+padevchooser            ; ;   ; PulseAudio device chooser
+paman                   ; ;   ; PulseAudio manager front-end
+paprefs                 ; ;   ; PulseAudio preferences
+
+audio-recorder          ; ask ; ppa:osmoma/audio-recorder
+gstreamer1.0-plugins-base ;   ; ; OGG format
+gstreamer1.0-plugins-good ;   ; ; WAV and Flac formats
+gstreamer1.0-plugins-ugly ;   ; ; MP3 format
+
+# Music Workstation and Tools --
+# (K3b can rip CD tracks; alternative CD-rippers: asunder, ripperx, sound-juicer)
+vorbis-tools
+ruby-ogginfo
+vlc
+audacity
+ardour                  ; ask
+sound-juicer            ; ask
+puddletag               ; ask ; ppa:webupd8team/puddletag
+easytag                 ; ask
+musescore               ; ask
+frescobaldi             ; ask
+lilypond                ; ask
+beets                   ; ask
+digikam                 ; ask
+darktable               ; ask
+gimp                    ; ask
+calibre                 ; ask
+
+# TeX/LaTeX IDEs --
+latexila                ; ask
+texmaker                ; ask
+lyx                     ; ask ; ; takes A Long Time to install!
+
+# Solaar -- Logitech Unifying Receivers
+solaar                  ; ask ; ppa:daniel.pavel/solaar
+
+# Games & math:
+golly                   ; ask ; ; Game of Life
+ltris                   ; ask ; ; Tetris-like
+cuyo                    ; ask ; ; Tetris-like
+fractalnow              ; ask ; ; fractals
+fraqtive                ; ask ; ; fractals
+mandelbulber            ; ask ; ; fractals
+fractgen                ; ask ; ; fractals
+xfractint               ; ask ; ; fractals
+
+# In-Development (experimental) stuff --
+# clicompanion            ; ask ; ppa:clicompanion-devs/clicompanion-nightlies
