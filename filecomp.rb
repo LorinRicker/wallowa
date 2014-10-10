@@ -12,8 +12,28 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.5 (10/08/2014)"
+  PROGID = "#{PROGNAME} v2.5 (10/09/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+# YADT := Yet Another Diff-Tool:
+# -----------------------------
+# The EXEC_TOOLS are command-line utilities which can (must)
+#   be invoked with the Kernel.exec method (which "chain-invokes"
+#   that exec'd program, does not return to this caller).
+# The CANDIDATE_TOOLS gives the list of _possible_ diff-tools
+#   which _may_ be used from this script -- all possible and
+#   tested/verified utilities useful in this context.
+# The residue-set CANDIDATE_TOOLS - EXEC_TOOLS is that set of
+#   diff-tools which will be launched with the Kernel.spawn
+#   method as independent GUI/window tools.
+#
+# >>> Update one or both of these constants if/when you add YADT!   <<<
+# >>> Also be sure to update the help-text for OptionParse's --help <<<
+     EXEC_TOOLS = %w{ cmp dhex diff }
+CANDIDATE_TOOLS = %w{ cmp dhex diff fldiff kdiff3 kompare meld }
+
+  # Note: tried 'hexdiff', but found it too buggy to use...
+  #       but 'dhex' is very nice, both for hex diffing and editing.
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
@@ -24,26 +44,61 @@ require_relative 'Prompted'
 require_relative 'ANSIseq'
 require_relative 'TermChar'
 
+def is_app_installed?( app, options )
+  response = %x{ whereis #{app} }.chomp.split(' ')
+  puts "$ whereis #{app}: #{response}" if options[:verbose]
+  return response[1] != nil
+end  # is_app_installed?
+
 def which_diff( options )
-  diffs = %w{ cmp diff fldiff hexdiff kdiff3 kompare meld }
-  cmds  = app_cmd_completions( diffs )
-  diff  = getprompted( "Which diff-utility #{p diffs}", "kompare" )
-  # «+»
+  # Test: is the candidate-app installed?  If so, add it to diffs array:
+  diffs = []
+  CANDIDATE_TOOLS.each { |c| diffs << c if is_app_installed?( c, options ) }
+  # Setup readline completions vocabulary, and prompt user for "Which app?"
+  difftools = app_cmd_completions( diffs )
+  # Prefer the user-spec'd options[:diff] as the default diff-tool,
+  # else just use kompare (if its installed) or diff (always installed)...
+  if not ( defdiff = difftools[options[:diff]] )  # assignment!!
+    defdiff = diffs.index('kompare') ? 'kompare' : 'diff'
+  end
+  diff = getprompted( "Diff-tool #{diffs.to_s.color(:dkgray)}", defdiff )
+  diff = difftools[diff]  # Get fully-expanded command from hash...
+  exit true if diff == "exit" || diff == "quit"
+  # User could have entered "foobar" for all we know...
+  # sanity-check the response -- is diff in diffs?
+  if not diffs.index( diff )
+    $stderr.puts "%#{PROGNAME}-e-unsupported, no such diff-tool '#{diff}'"
+    exit true
+  end
+  case diff.to_sym  # a couple of special cases...
+  when :cmp  then diff = "#{diff} -b --verbose"           # all bytes
+  when :dhex then diff = "#{diff} -f ~/.dhexrc"
+  when :diff then diff = "#{diff} -yW#{options[:width]}"  # parallel, width
+  end  # case
+  return [ diff, "/usr/bin/#{diff.downcase} 2>/dev/null" ]
 end  # which_diff
 
 def ask_diff( f1, f2, options )
-  launch = askprompted( "Launch kompare/diff on these files" ) if ! options[:kompare]
-  if launch || options[:kompare]
+  if askprompted( "Launch a diff-tool on these files" )
     progname, launchstr = which_diff( options )
-    puts "launching #{progname}..."
-    # launch the diffie-program as child/subproc; it's noisey on startup, so discard stderr...
-    spawn( "kompare 2>/dev/null \"#{f1}\" \"#{f2}\"" )
-    spawn( launchstr )
+    cmd = "#{launchstr} '#{f1}' '#{f2}'"
+    msg = "launching #{progname.underline.color(:dkgray)}..."
+    sep = ('=' * options[:width]).color(:red)
+    if EXEC_TOOLS.index(progname.split(' ')[0])
+      # These com-line tools can run directly in same XTerm session/context --
+      puts "\n#{sep}\n#{msg}\n\n"
+      exec( cmd )
+    else
+      # Launch these tools as child/subproc and as independent windows
+      # (same as invoking from com-line, e.g.:  $ kompare & ) --
+      puts msg
+      spawn( cmd )
+    end
   end
 end  # ask_diff
 
 def report( stat, f1, f2, options )
-  sep = stat ? "==".bold.color(:green) : "<>".bold.color(:red)
+  sep = stat ? "==".bold.color(:cyan) : "<>".bold.color(:red)
   puts "'#{f1}' #{sep} '#{f2}'"
   ask_diff( f1, f2, options ) if ! stat
   # User will exit getprompted() with Ctrl-D or Ctrl-Z,
@@ -52,13 +107,14 @@ end  # report
 
 # === Main ===
 options = {  # hash for all com-line options:
-  :digest =>  "SHA1",
-  :width  =>  nil
+  :diff   => nil,
+  :digest => "SHA1",
+  :width  => nil
   }
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
-  opts.on( "-m", "--digest", "=[OPT]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
+  opts.on( "-m", "--digest", "=[DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
            ## %w{ SHA1 SHA256 SHA384 SHA512 MD5 sha1 sha256 sha385 sha512 md5 },
            "Message digest type (SHA1 (d), SHA[256,384,512] or MD5)" ) do |val|
   options[:digest] = val || "SHA1"
@@ -69,27 +125,38 @@ optparse = OptionParser.new { |opts|
   opts.on( "-t", "--times", "Include file times (mtime, atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
-  opts.on( "-k", "--kompare", "Launch Kompare to see diff-details" ) do |val|
-    options[:kompare] = true
-  end  # -k --kompare
+  opts.on( "-u", "--diff-tool", "=TOOL", "Which diff-tool to use" ) do |val|
+    options[:diff] = val.downcase
+  end  # -t --diff-tool
   opts.on( "-w", "--width", "Terminal display width" ) do |val|
     options[:width] = val.to_i
   end  # -w --width
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-  # --- Set the banner & Help option ---
-  opts.banner = "Usage: #{PROGNAME} [options] [file1] [file2]"
-  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
-    puts opts
-    exit true
-  end  # -h --help
   # --- About option ---
-  opts.on( "-a", "--about", "Display program info" ) do |val|
+  opts.on( "-a", "--about", "Display program/version info" ) do |val|
     puts "#{PROGID}"
     puts "#{AUTHOR}"
     exit true
   end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "Usage: #{PROGNAME} [options] [file1] [file2]"
+  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
+    puts opts
+    puts "\n  --diff-tool (-u) let's you specify your favorite file comparison"
+    puts "    tool for comparing two files or file-versions.  filecomp knows"
+    puts "    about several *nix command-line and GUI/windows tools, including:"
+    puts "    #{CANDIDATE_TOOLS.to_s}."
+    puts "    Of these, #{EXEC_TOOLS.to_s} are command-line tools, while"
+    puts "    the remainder are GUI/windows tools."
+    puts "\n    Nearly all of these tools (except \"diff\") are optional, and must"
+    puts "    be specifically installed on your system.  Any tools not installed"
+    puts "    will not appear in the prompt-line to invoke the diff-tool; the"
+    puts "    program that you specify with the --diff-tool switch will appear"
+    puts "    as the [default] in that prompt-line, ready for your use."
+    exit true
+  end  # -h --help
 }.parse!  # leave residue-args in ARGV
 
 options[:width] ||= TermChar.terminal_width

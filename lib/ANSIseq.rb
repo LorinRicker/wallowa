@@ -4,7 +4,7 @@
 # ANSIseq.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.8, 08/28/2014
+# Version 2.0, 10/09/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -114,3 +114,20 @@ def clearscreen
 end  # clearscreen
 
 end  # class String
+
+# === Main/test/demo ===
+if $0 == __FILE__
+  puts "\n#{'='*3} ANSI color demo #{'='*30}"
+  colors = [ :black, :white,
+             :red, :ltred, :blue, :ltblue, :green, :ltgreen,
+             :purple, :ltpurple, :cyan, :ltcyan, :dkgray, :ltgray,
+             :yellow, :brown ]
+  x = "ABC.xyz!"
+  colors.each do | c |
+    cs = c.to_s
+    ps = sprintf( "%10s: '%s' - '%s' - '%s'", cs, x.color(c),
+                       x.bold.color(c), cs.underline.color(c) )
+    puts ps
+  end
+  puts "#{'='*50}"
+end

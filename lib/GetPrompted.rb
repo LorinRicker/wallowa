@@ -4,7 +4,7 @@
 # GetPrompted.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 10/08/2014
+# Version 1.1, 10/09/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -21,8 +21,8 @@ include AppCmdCompletions
 def getprompted( prompt, default )
   dstr ||= default
   pstr = prompt + ( dstr == "" ? ": " : " [#{dstr}]: " )
-  response = readline( pstr, true ).strip.downcase
-  exit true if response == "exit" || response == "quit"
+  response = readline( pstr, true ).strip
+  exit true if response.downcase == "exit" || response.downcase == "quit"
   return ( response != "" ? response : dstr )
 rescue StandardError
   exit true  # this exit always provides cmd-line status:0

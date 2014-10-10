@@ -4,7 +4,7 @@
 # AskPrompted.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 10/08/2014
+# Version 1.1, 10/09/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -30,8 +30,8 @@ def askprompted( prompt, default = "Y" )
   # but does test & respond to exit/quit/Ctrl-D/Ctrl-Z...
   dstr ||= default
   pstr = prompt + ( dstr == "" ? " (y/n)? " : " (y/n) [#{dstr}]? " )
-  answer = readline( pstr, true ).strip.downcase
-  exit true if answer == "exit" || answer == "quit"
+  answer = readline( pstr, true ).strip
+  exit true if answer.downcase == "exit" || answer.downcase == "quit"
   answer = dstr if answer == ""
   return ( answer[0].downcase == "y" ? true : false )
 rescue StandardError
