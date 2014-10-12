@@ -86,7 +86,7 @@
 #   %dcl-S-created, symlink ~/bin/capcase created
 #   %dcl-S-created, symlink ~/bin/locase created
 
-# The --symlinks (-s) option checks &/or verifies each function in ALL_LINKS
+# The --symlinks (-s) option checks &/or verifies each function in FNC_LINKS
 # (including itself), and either creates a symlink to the dcl script if it does
 # not (yet) exist, or complains with an error message if a previous (ordinary)
 # file by that name already exists.
@@ -107,13 +107,13 @@
  DCLNAME = File.join( PATH, "dcl" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v1.05 (06/10/2013)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.06 (10/10/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
-require 'StringEnhancements'
 require 'pp'
+require_relative 'StringEnhancements'
 require_relative 'ANSIseq'
 
 # ==========
@@ -151,46 +151,27 @@ end  # getargs
 
 # ==========
 
-ALL_LINKS = %w{ capcase locase upcase
+CMD_LINKS = %w{ copy create rename
+                delete purge
+                directory show }   # "set" conflicts with bash 'set' command
+FNC_LINKS = %w{ capcase locase upcase
                 collapse compress
                 cjust ljust rjust
-                edit element
+                edit element extract
                 length pluralize
-                substr thousands titlecase
+                substr titlecase
+                thousands numbernames
                 trim trim_leading trim_trailing
                 uncomment
                 dclsymlink }
+ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = {}  # hash for all com-line options;
   # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ dclfunction ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    fperline = 5                        # functions per line
-    i        = 0                        # a counter
-    hlp      = "Available functions: "
-    hlplen   = hlp.length
-    ALL_LINKS.each do | a |  # concatenate a ,-sep & measured list of functions
-      i += 1
-      hlp += a
-      hlp += ", " if i < ALL_LINKS.size
-      hlp += "\n" + " "*hlplen if i % fperline == 0 && i < ALL_LINKS.size
-    end  # ALL_LINKS.each
-    puts "\n#{hlp}"                     # print formated functions-help
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-l", "--links", "--symlinks",
            "Create or verify symlinks for all functions" ) do |val|
     options[:symlinks] = true
@@ -198,8 +179,31 @@ optparse = OptionParser.new do |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "Usage: #{PROGNAME} [options] [ dclfunction ]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    fperline = 5                        # functions per line
+    i        = 0                        # a counter
+    hlp      = "Available functions: "
+    hlplen   = hlp.length
+    FNC_LINKS.each do | a |  # concatenate a ,-sep & measured list of functions
+      i += 1
+      hlp += a
+      hlp += ", " if i < FNC_LINKS.size
+      hlp += "\n" + " "*hlplen if i % fperline == 0 && i < FNC_LINKS.size
+    end  # FNC_LINKS.each
+    puts "\n#{hlp}"                     # print formated functions-help
+    options[:help] = true
+    exit true
+  end  # -? --help
+}.parse!  # leave residue-args in ARGV
 
 action = File.basename( $0 ).downcase  # $0 is name of invoking symlink...
 
@@ -208,61 +212,67 @@ if options[:symlinks]
   exit true
 else
 
-  case action                     # Dispatch the command-line action;
+  case action.to_sym              # Dispatch the command-line action;
                                   # invoking symlink's name is $0 ...
-  when "capcase"
+  when :capcase
     args = getargs( options )
     result = args.capcase
 
-  when "collapse"
+  when :collapse
     args = getargs( options )
     result = args.collapse
 
-  when "compress"
+  when :compress
     args = getargs( options )
     result = args.compress
 
-  when "length"
+  when :length
     args = getargs( options )
     result = args.length         # String class does this one directly
 
-  when "locase"
+  when :locase
     args = getargs( options )
     result = args.locase         # String class does this one directly
 
-  when "thousands"
+  when :thousands
+    # $ thousands number
     args = getargs( options )
     result = args.thousands
 
-  when "titlecase"
+  when :numbernames
+    # $ numbernames number
+    args = getargs( options )
+    result = args.numbernames
+
+  when :titlecase
     args = getargs( options )
     result = args.titlecase
 
-  when "trim"
+  when :trim
     args = getargs( options )
     result = args.strip          # String class does this one directly
 
-  when "trim_leading"
+  when :trim_leading
     args = getargs( options )
     result = args.lstrip         # String class does this one directly
 
-  when "trim_trailing"
+  when :trim_trailing
     args = getargs( options )
     result = args.rstrip         # String class does this one directly
 
-  when "uncomment"
+  when :uncomment
     args = getargs( options )
     result = args.uncomment
 
-  when "upcase"
+  when :upcase
     args = getargs( options )
     result = args.upcase         # String class does this one directly
 
-  # when "«+»"
+  # when :«+»
   #   args = getargs( options )
   #   result = args.«+»
 
-  when "cjust"
+  when :cjust
     # $ cjust width "String to center-justify..."
     ## >> How to default width to terminal-width, and how to specify padchr? Syntax?
     width  = ARGV.shift.to_i
@@ -270,29 +280,29 @@ else
     args = getargs( options )
     result = args.center( width )
 
-  when "ljust"
+  when :ljust
     # $ ljust width "String to center-justify..."
     width  = ARGV.shift.to_i
     # padchr = ARGV.shift
     args = getargs( options )
     result = args.ljust( width )
 
-  when "rjust"
+  when :rjust
     # $ rjust width "String to center-justify..."
     width  = ARGV.shift.to_i
     # padchr = ARGV.shift
     args = getargs( options )
     result = args.rjust( width )
 
-  when "edit"
+  when :edit
     # $ edit "func1,func2[,...]" "String to filter"
     #   where "func1,funct2[,...]" -- the editlist -- is required
     editlist = ARGV.shift            # assign and remove arg [0]
     args = getargs( options )
     result = args.edit( editlist, '#' )  # assume bash-style comments
 
-  when "element"
-    # $ element 2 [","] "String,to,extract,an,element,from"
+  when :element
+    # $ element 2 [","] "String,to,extract,an,element,from:
     #   where first arg is the element-number (zero-based) to extract,
     #   and second arg is (optional) element separator (default ",");
     #   note that if length of second arg is > 1, it defaults, and
@@ -302,7 +312,7 @@ else
     args = getargs( options )
     result = args.element( elem, sep )
 
-  when "pluralize"
+  when :pluralize
     # $ pluralize word howmany [irregular]
     word      = ARGV.shift                  # assign and remove arg [0]
     howmany   = ARGV.shift.to_i             # and arg [1]
@@ -310,18 +320,23 @@ else
     # args = getargs( options )             # ...ignore rest of com-line
     result = word.pluralize( howmany, irregular )
 
-  when "substr"
+  when :substr, :extract
     # $ substr start len "String to extract/substring from..."
     start = ARGV.shift.to_i
     len   = ARGV.shift.to_i
     args  = getargs( options )
     result = args[start,len]      # String class does this one directly
 
-  when "dclsymlink"
+  when :dclsymlink
+    # $ dclsymlink action [action]...
     dclsymlink( ARGV )            # Set &/or verify this action verb symlink
     exit true
 
-  end  # case $PROGNAME
+  else
+    $stderr.puts "%#{PROGNAME}-e-nyi, dcl #{action} not yet implemented"
+    exit true
+
+  end  # case
 
   if options[:verbose]
     $stderr.puts "%#{PROGNAME}-I-echo,   $ " + "#{action}".underline + " '#{args}'"
