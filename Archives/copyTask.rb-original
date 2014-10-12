@@ -1,0 +1,18 @@
+def copyTask( srcGlob, tarDirSuffix, taskSymbol )
+  tarDir = File.join BUPDIR, tarDirSuffix
+  puts "copyTask: Target directory --> #{tarDir}" if DEBUG
+  directory tarDir
+  FileList[srcGlob].sort.each do |src|
+    fn  = File.basename(src)
+    tar = File.join tarDir, fn
+    fileTimeComparison( src, tar ) if DEBUG == 3
+    puts "copyTask: Backup #{src} to .../#{tarDirSuffix}" if DEBUG == 1
+    desc "Copy #{fn} to .../#{tarDirSuffix}"
+    file tar => [src] do |t|
+      puts t.investigation if DEBUG == 2      # rake's Task::investigation
+      puts "$ cp #{src}, #{tar}, :verbose" if DEBUG == 1
+      cp src, tar, :verbose => true
+    end
+    task taskSymbol => tar
+  end
+end  # copyTask
