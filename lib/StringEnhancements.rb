@@ -4,7 +4,7 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.1, 09/03/2014
+# Version 2.2, 10/13/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -254,21 +254,28 @@ class String
 
 # -----
 
-  # This routine is based on Chris Pine's exercise/implementation in
-  # his great introductory book "Learn to Program" (see his solution
-  # in Appendix A, pp. 144-147), but improved for performance -- he uses
-  # a static (not mutable) $illions array; and extended generality --
-  # all the way uppast one-googol and into the quadragintillions.
+  # This numbernames routine is based on Chris Pine's exercise/implementation
+  # in his great introductory book "Learn to Program" (see his solution in
+  # Appendix A, pp. 144-147), but improved for performance -- he uses a mutable
+  # $illions array -- and extended generality, all the way uppast one-googol
+  # and into the quadragintillions.
   # Works for Integer, Fixnum and Bignum values, as well as for String
   # numeric representations:  "123456", "123,456,789" and "987_654_321"
   # (commas & underscores are stripped from the string representation).
   # Any decimal (fractional) value is truncated (stripped) and thus
   # ignored in resultant output.
-  # Also provides a parameter to control: "Title Cased Number Strings",
-  # "Capitalized number strings", "UPPER CASED NUMBER STRINGS" and
-  # "lower cased number strings" (which is how the string representation
-  # is initially generated).
-  def numbernames( setcase = :titlecase )
+  #
+  # Provides parameter 'stanzasep' (default is a comma ',') which is a
+  # character (or string) which separates the stanzas of the number word-
+  # phrase; this separator can be a newline '\n' to display the number
+  # word-phrase on multiple lines (one or more).  The newline '\n' separator
+  # is mostly useful for com-line displays with echo -e and dcl.rb's invocation
+  # -- for example:  $ echo -e $( numberlines 123123123123123123 )
+  # Also provides parameter 'setcase' to control: "Title Cased Number
+  # Strings" (the default), "Capitalized number strings", "UPPER CASED
+  # NUMBER STRINGS" and "lower cased number strings" (which is how the
+  # string representation is initially generated).
+  def numbernames( stanzasep = ',', setcase = :titlecase )
     ## require_relative 'Diagnostics'
     ## code = Diagnostics::Code.new( colorize = :red )
     $ones  ||= %w{ one       two      three
@@ -327,6 +334,9 @@ class String
                    [   3, 'thousand'   ],
                    [   2, 'hundred'    ]
                  ]
+    # Convert any \-chars:
+    sep = stanzasep
+    #pp ["stanzasep",stanzasep,sep]
     # Discard any fractional part, remove any separators:
     nstr   = self.split('.')[0].gsub(',','').gsub('_','')
     number = nstr.to_i
@@ -343,17 +353,17 @@ class String
         write = left / zpwr          # how many zillions left?
         left  = left - write * zpwr  # residue...
         if write > 0
-          ## code.trace( recursion: "#{write}.to_s.numbernames(#{setcase})" )
-          prefix = write.to_s.numbernames( setcase )  # recurse
+          ## code.trace( recursion: "#{write}.to_s.numbernames(#{stanzasep,setcase})" )
+          prefix = write.to_s.numbernames( stanzasep, setcase )  # recurse
           # Aggregate prefix and common-suffixes:
           result = result + prefix
           zname = zname + 'trigint'  if (93..120).cover?(zbase) && zbase % 3 == 0
           zname = zname + 'vigint'   if (63.. 90).cover?(zbase)
           zname = zname + 'dec'      if (33.. 60).cover?(zbase)
-          zname = zname + 'illion,'  if ( 6..123).cover?(zbase) && zbase % 3 == 0
+          zname = zname + 'illion' + sep if (6..123).cover?(zbase) && zbase % 3 == 0
           result = result + ' ' + zname
           # Commas after "*illion"; special case, after "thousand" too:
-          result = result + ',' if zbase == 3
+          result = result + sep if zbase == 3
           # Don't form something like 'two billionfifty-one'
           result = result + ' ' if left > 0
         end
@@ -402,8 +412,8 @@ class Numeric
     self.to_s.thousands( sep )
   end  # thousands
 
-  def numbernames( setcase = :titlecase )
-    self.to_s.numbernames( setcase )
+  def numbernames( stanzasep = ',', setcase = :titlecase )
+    self.to_s.numbernames( stanzasep, setcase )
   end  # numbernames
 
 end  # class Numeric
