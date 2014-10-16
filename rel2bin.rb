@@ -3,7 +3,7 @@
 
 # rel2bin.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,15 +11,16 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (10/22/2012)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.7 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
-require_relative 'ANSIseq'
-require_relative 'FileEnhancements'
-require_relative 'StringEnhancements'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/FileEnhancements'
+require_relative 'lib/StringEnhancements'
+require_relative 'lib/AskPrompted'
 
 # Main -- Script which releases other scripts (files) to a .../<tfdir>/
 #         directory for "released" execution.
@@ -40,7 +41,24 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
+optparse = OptionParser.new { |opts|
+  opts.on( "-b", "--bin", "=PATH_TO_BIN",
+           "Path to 'bin' directory" ) do |val|
+    options[:bin] = File.expand_path( val )
+  end  # -b --bin
+  opts.on( "-m", "--mode", "=MODE", String, /700|750|770|755|775|777/,
+           "File mode (protection)" ) do |val|
+    options[:mode] = '0' + val
+  end  # -m --mode
+  opts.on( "-s", "--strip", "Strip (force) the file extension" ) do |val|
+    options[:strip] = true
+  end  # -s --strip
+  opts.on( "-t", "--test", "Test (rehearse) the release" ) do |val|
+    options[:test] = true
+  end  # -t --test
+  opts.on( "-v", "--verbose", "Verbose mode: show all internal traces" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
   # Set the banner:
   opts.banner = "Usage: #{PROGNAME} [options] [ file-to-release | ... ]"
   opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
@@ -52,25 +70,7 @@ optparse = OptionParser.new do |opts|
     puts "#{AUTHOR}"
     options[:about] = true
   end  # -a --about
-  opts.on( "-b", "--bin", "=PATH",
-           "Path to 'bin' directory" ) do |val|
-    options[:bin] = File.expand_path( val )
-  end  # -b --bin
-  opts.on( "-m", "--mode", "=MODE", Integer, /700|750|770|755|775|777/,
-           "File mode (protection)" ) do |val|
-    options[:mode] = '0'+ val
-  end  # -m --mode
-  opts.on( "-s", "--strip", "Strip (force) the file extension" ) do |val|
-    options[:strip] = true
-  end  # -s --strip
-  opts.on( "-t", "--test", "Test (rehearse) the release" ) do |val|
-    options[:test] = true
-  end  # -t --test
-  opts.on( "-v", "--verbose", "Verbose mode: show all internal traces" ) do |val|
-    options[:verbose] = true
-  end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+}.parse!  # leave residue-args in ARGV
 
 fmode      = options[:mode] || '0755'
 fprot      = fmode.to_i(8)
@@ -103,27 +103,36 @@ ARGV.each do | sfile |
   # file, so don't strip the file extension)...
   sflang   = File.parse_shebang( sffull )
   shellscr = [ '.sh', '.csh' ].index( sfext )
-  nameonly = ! sfbase.isMixedCase? || shellscr || options[:strip]
+  # Is this a library/require/include file? MixedCaseFileName is the tip-off --
+  libfile  = sfbase.isMixedCase?
+  nameonly = ! libfile || shellscr || options[:strip]
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, sflang: '#{sflang}', nameonly: #{nameonly}" if options[:verbose]
 
   # Figure out where user's .../bin/ folder is:
   # Check com-line switch, ENV[] for 'BIN' or 'B', etc:
+  tfdir = '~/bin'
   if options[:bin]
     tfdir = options[:bin]
   elsif ENV['BIN']
     tfdir = ENV['BIN']
   elsif ENV['B']
     tfdir = ENV['B']
-  else
-    tfdir = '~/bin'
   end  # if
+  tfdirtree = File.join( tfdir, 'lib' )  # create ~/bin/lib
   if ! File.directory?( tfdir )
     $stderr.puts "%#{PROGNAME}-E-NODIR, directory #{tfdir} does not exist"
-    exit false
+    createdir = askprompted( "Create directory #{tfdir}?", "N" )
+    if createdir
+      mkdir_p( tfdirtree, :verbose => options[:verbose] )
+      # ...and continue
+    else
+      exit false  # Quit if not allowed to create the target directory...
+    end
   end  # if tfdir.exists?
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, tfdir: #{tfdir}" if options[:verbose]
 
   # Sort out the destination filespec:
+  tfdir = tfdirtree if libfile  # Adjust the target-dir for a library file
   tfbase = nameonly ? File.basename( sfbase, sfext ) : sfbase
   tffull = File.join( tfdir, tfbase )
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, tffull: #{tffull}" if options[:verbose]

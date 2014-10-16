@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.16 (08/28/2014)"
+  PROGID = "#{PROGNAME} v1.17 (10/15/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
@@ -78,8 +78,8 @@ require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
 require 'yaml'
-require_relative 'ANSIseq'
-require_relative 'FileEnhancements'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/FileEnhancements'
 
 # ==========
 
@@ -151,20 +151,6 @@ options = {  # hash for all com-line options:
   }
 
 optparse = OptionParser.new { |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] output-audio-file input-audio-file(s)" +
-              "\n Note: Output file is first, then two or more input files"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
   opts.on( "-t", "--type", "=AUDIO", /ogg|mp3|wav/i,
            "Audio-type of files (ogg (d), mp3, wav)" ) do |val|
     options[:type] = val.downcase || "ogg"
@@ -184,6 +170,20 @@ optparse = OptionParser.new { |opts|
   opts.on( "-d", "--debug", "Debug mode (more output than verbose)" ) do |val|
     options[:debug] = true
   end  # -d --debug
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options] output-audio-file input-audio-file(s)" +
+              "\n Note: Output file is first, then two or more input files"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
 }.parse!  # leave residue-args in ARGV
 
 checkdir( CONFIGDIR )

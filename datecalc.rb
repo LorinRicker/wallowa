@@ -3,7 +3,7 @@
 
 # datecalc.rb
 #
-# Copyright © 2012 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2012-2014 Lorin Ricker <lorin@rickernet.us>
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -12,12 +12,12 @@
 
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
-require_relative 'DateCalc'
-require_relative 'ANSIseq'
+require_relative 'lib/DateCalc'
+require_relative 'lib/ANSIseq'
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (10/23/2012)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.2 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === Main ===
 options = {}  # hash for all com-line options;
@@ -25,17 +25,7 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} options [date1 [date2]]"
-  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
-    puts opts
-    exit true  # status:0
-  end  # -h
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    exit true   # ...depends on desired program behavior
-  end  # -a
+optparse = OptionParser.new { |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v
@@ -54,8 +44,17 @@ optparse = OptionParser.new do |opts|
 #  opts.on( "-«·»", "--«·»", "Description-«·»" ) do |val|
 #    options[:«·»] = «·»
 #  end  # -«·»
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} options [date1 [date2]]"
+  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
+    puts opts
+    exit true  # status:0
+  end  # -h
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    exit true   # ...depends on desired program behavior
+  end  # -a
+}.parse!  # leave residue-args in ARGV
 
 if !ARGV[0]
   ARGV << DateCalc.thisday( "today" ).to_s  # push the default if empty

@@ -3,7 +3,7 @@
 
 # lsfunction.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,14 +11,14 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.03 (10/22/2012)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.04 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
-require_relative 'Prompted'
-require_relative 'TermChar'
-require_relative 'ANSIseq'
+require_relative 'lib/Prompted'
+require_relative 'lib/TermChar'
+require_relative 'lib/ANSIseq'
 require 'pp'
 
 # List bash functions -- This script captures the raw output from
@@ -163,24 +163,7 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ funcname | envarname | ... ]" +
-              "\n       1. Each 'funcname' or 'envarname' can contain wildcard(s) '%'," +
-              "\n          e.g., f% (starts with 'f'), %doc% (containing 'doc')" +
-              "\n       2. Search/matching is case insensitive by default" +
-              "\n       3. -b (both) is implied if neither -f nor -e are asserted"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-e", "--envar", "--env", "--var",
            "List environment variable definition(s)" ) do |val|
     options[:envar] = true
@@ -204,8 +187,24 @@ optparse = OptionParser.new do |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options] [ funcname | envarname | ... ]" +
+              "\n       1. Each 'funcname' or 'envarname' can contain wildcard(s) '%'," +
+              "\n          e.g., f% (starts with 'f'), %doc% (containing 'doc')" +
+              "\n       2. Search/matching is case insensitive by default" +
+              "\n       3. -b (both) is implied if neither -f nor -e are asserted"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+}.parse!  # leave residue-args in ARGV
 
 ARGV[0] ||= "\\w+"  # default (missing arg) means "any/all"
 

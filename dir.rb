@@ -11,8 +11,8 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.4 (08/28/2014)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v4.5 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -25,9 +25,9 @@ require 'optparse'        # See "Pickaxe v1.9", p. 776
 # === File directory listing, VMS-style: ===
 require 'time'
 require 'pp'
-require_relative 'TermChar'
-require_relative 'DirectoryVMS'
-require_relative 'DateCalc'
+require_relative 'lib/TermChar'
+require_relative 'lib/DirectoryVMS'
+require_relative 'lib/DateCalc'
 
 # === Main ===
 options = { :about    => false,
@@ -50,18 +50,7 @@ options = { :about    => false,
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} options [ . | ... | directory | directory... ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-b", "--bytesize", "List file sizes in bytes (default is K, M, G, etc.)" ) do |val|
     options[:bytesize] = true
   end  # -b --bytesize
@@ -108,8 +97,18 @@ optparse = OptionParser.new do |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} options [ . | ... | directory | directory... ]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+  end  # -a --about
+}.parse!  # leave residue-args in ARGV
 
 pp options if options[:debug] >= DBGLVL2
 pp ARGV    if options[:debug] >= DBGLVL1

@@ -11,14 +11,14 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 (02/27/2014)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.05 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
-require_relative 'ANSIseq'
-require_relative 'TermChar'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/TermChar'
 
 # ==========
 
@@ -98,20 +98,7 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-c", "--color", "=String",
            /black|white|red|green|blue|purple|brown|cyan|yellow/i,
            "Output text in this color" ) do |val|
@@ -127,8 +114,20 @@ optparse = OptionParser.new do |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+}.parse!  # leave residue-args in ARGV
 
 color = options[:color] ? options[:color].to_sym : :black
 

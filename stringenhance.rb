@@ -3,15 +3,15 @@
 
 # stringenhance.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 0.6, 06/18/2012
+# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 0.7, 10/15/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
 
-require_relative 'StringEnhancements'
+require_relative 'lib/StringEnhancements'
 require 'pp'
 
 # Main -- test drivers:

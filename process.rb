@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (10/07/2012)"
+  PROGID = "#{PROGNAME} v2.3 (10/15/2012)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -23,9 +23,9 @@ PROGNAME = File.basename $0
 # === For command-line arguments & options parsing: ===
 require 'optparse'
 require 'pp'
-require_relative 'Prompted'
-require_relative 'TermChar'
-require_relative 'ANSIseq'
+require_relative 'lib/Prompted'
+require_relative 'lib/TermChar'
+require_relative 'lib/ANSIseq'
 
 # ==========
 
@@ -144,20 +144,7 @@ options = { signal:   "KILL",
             debug:    nil
           }
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ process-id-string | ... ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-k", "--kill", "Kill a process" ) do |val|
     options[:kill] = true
   end  # -k --kill
@@ -178,7 +165,19 @@ optparse = OptionParser.new do |opts|
   opts.on( "-d", "--debug=[N]", "Turn on debugging messages (levels)" ) do |val|
     options[:debug] = val || 1
   end  # -d --debug
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options] [ process-id-string | ... ]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+}.parse!  # leave residue-args in ARGV
 
 process( ARGV, options )

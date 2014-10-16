@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (09/18/2012)"
+  PROGID = "#{PROGNAME} v1.1 (10/15/2012)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # Create N-member teams from a class roster file
@@ -19,11 +19,11 @@ PROGNAME = File.basename $0
 # === For command-line arguments & options parsing: ===
 require 'optparse'
 require 'pp'
-require_relative 'Scramble'
-require_relative 'StringEnhancements'
-require_relative 'Prompted'
-require_relative 'TermChar'
-require_relative 'ANSIseq'
+require_relative 'lib/Scramble'
+require_relative 'lib/StringEnhancements'
+require_relative 'lib/Prompted'
+require_relative 'lib/TermChar'
+require_relative 'lib/ANSIseq'
 
 COMMENTMARK = '#'   # for Ruby, Perl, Python & bash (etc.) source files
 
@@ -118,6 +118,17 @@ options = { teamsize: 2,   # Number of members on each team
           }
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-t", "-n", "--teamsize=N", Integer,
+           "Number of members on each team" ) do |val|
+    options[:teamsize] = val || DEFAULT_TN
+  end  # -n -m --members
+  opts.on( "-d", "--debug=[N]", Integer,
+           "Turn on debugging messages (levels)" ) do |val|
+    options[:debug] = val || DBGLVL1
+  end  # -d --debug
+  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
   # Set the banner:
   opts.banner = "Usage: #{PROGNAME} [options] [ process-id-string | ... ]"
   opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
@@ -131,17 +142,6 @@ optparse = OptionParser.new { |opts|
     options[:about] = true
     exit true
   end  # -a --about
-  opts.on( "-t", "-n", "--teamsize=N", Integer,
-           "Number of members on each team" ) do |val|
-    options[:teamsize] = val || DEFAULT_TN
-  end  # -n -m --members
-  opts.on( "-d", "--debug=[N]", Integer,
-           "Turn on debugging messages (levels)" ) do |val|
-    options[:debug] = val || DBGLVL1
-  end  # -d --debug
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
-    options[:verbose] = true
-  end  # -v --verbose
 }.parse!  # leave residue-args in ARGV
 
 options[:teamsize] = DEFAULT_TN if options[:teamsize] <= 0

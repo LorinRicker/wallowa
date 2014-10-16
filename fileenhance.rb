@@ -3,16 +3,16 @@
 
 # fileenhance.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 0.3, 04/14/2012
+# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 0.4, 10/15/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
 
-require_relative 'StringEnhancements'
-require_relative 'FileEnhancements'
+require_relative 'lib/StringEnhancements'
+require_relative 'lib/FileEnhancements'
 require 'pp'
 
 # Main -- test drivers:

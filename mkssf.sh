@@ -13,7 +13,7 @@
 #       See file .../projects/login/aliases for the definition of alias "mkssf".
 
 shF=$( basename $0 )
-Ident="${shF}  # (LMR version 1.02 of 11/24/2013)"
+Ident="${shF}  # (LMR version 1.03 of 10/15/2014)"
 
 if [ -z "$1" ]; then
   workingdir="$( pwd )"

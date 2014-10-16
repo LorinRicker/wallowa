@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.05 09/17/2014"
+  PROGID = "#{PROGNAME} v1.06 10/15/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 STDINFD  = 0
@@ -127,20 +127,6 @@ options = { :limit => DEFAULT_LIMIT,
             :size  => 1 }
 
 optparse = OptionParser.new { |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options]" +
-              "\n       Tallies up frequencies of words in a document"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
   opts.on( "-l", "--limit", "=N", Integer, "Top N words to report" ) do |val|
     options[:limit] = val.to_i
   end  # -l --limit
@@ -156,6 +142,20 @@ optparse = OptionParser.new { |opts|
   opts.on( "-d", "--debug", "Debug mode (more output than verbose)" ) do |val|
     options[:debug] = true
   end  # -d --debug
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options]" +
+              "\n       Tallies up frequencies of words in a document"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
 }.parse!  # leave residue-args in ARGV
 
 options[:verbose] = options[:debug] if options[:debug]

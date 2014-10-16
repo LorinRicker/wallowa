@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.5 (10/09/2014)"
+  PROGID = "#{PROGNAME} v2.6 (10/15/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # YADT := Yet Another Diff-Tool:
@@ -38,11 +38,11 @@ CANDIDATE_TOOLS = %w{ cmp dhex diff fldiff kdiff3 kompare meld }
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 
-require_relative 'FileComparison'
-require_relative 'FileEnhancements'
-require_relative 'Prompted'
-require_relative 'ANSIseq'
-require_relative 'TermChar'
+require_relative 'lib/FileComparison'
+require_relative 'lib/FileEnhancements'
+require_relative 'lib/Prompted'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/TermChar'
 
 def is_app_installed?( app, options )
   response = %x{ whereis #{app} }.chomp.split(' ')

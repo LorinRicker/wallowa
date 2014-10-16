@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v1.08 (10/13/2014)"
+  PROGID = "#{PROGNAME} v1.10 (10/15/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # -----
@@ -115,8 +115,8 @@ PROGNAME = File.basename DCLNAME                # not "$0" here!...
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
 require 'pp'
-require_relative 'StringEnhancements'
-require_relative 'ANSIseq'
+require_relative 'lib/StringEnhancements'
+require_relative 'lib/ANSIseq'
 
 # ==========
 
@@ -259,11 +259,11 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = " Usage: #{PROGNAME} [options] [ dclfunction ]"
+  opts.banner = "  Usage: #{PROGNAME} [options] [ dclfunction ]"
   opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
     puts opts
-    help_available( ' Available commands: ', CMD_LINKS, 8 )
-    help_available( 'Available functions: ', FNC_LINKS, 4 )
+    help_available( '  Available commands: ', CMD_LINKS, 8 )
+    help_available( ' Available functions: ', FNC_LINKS, 4 )
     options[:help] = true
     exit true
   end  # -? --help

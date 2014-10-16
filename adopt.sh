@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# adopt.sh  -- 08/09/2012
+# adopt.sh  -- 08/09/2012, rev. 10/15/2014
 #
 # usage: anchor [options] [ dirtree | ... ]
 #
@@ -10,7 +10,7 @@
 #
 #    ~/bin/
 #       adopt(.sh)
-#       adoptDirTree(.rb)
+#       adoptdirtree(.rb)
 
 #~ path=$( readlink -f $0 )  # Expand full pathname of this script
 #~ path=${path%%.sh}         # ...then strip any ".sh" extension
@@ -19,7 +19,7 @@
 
 path=$( dirname $0 )
 
-#echo "$ sudo ${path}/adoptDirTree.rb $@"
-sudo ${path}/adoptDirTree.rb $@
+#echo "$ sudo ${path}/adoptdirtree $@"
+sudo ${path}/adoptdirtree $@
 
 # exit 0

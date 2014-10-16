@@ -3,7 +3,7 @@
 
 # lsfunction.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,13 +11,13 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.02 (11/24/2013)"
+  PROGID = "#{PROGNAME} v1.03 (10/15/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
-require_relative 'Prompted'
+require_relative 'lib/Prompted'
 
 # ==========
 
@@ -26,7 +26,10 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
+optparse = OptionParser.new { |opts|
+  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
   # Set the banner:
   opts.banner = "Usage: #{PROGNAME} [options] working_directory srchost [env_var_name]"
   opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
@@ -40,11 +43,7 @@ optparse = OptionParser.new do |opts|
     options[:about] = true
     exit true
   end  # -a --about
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
-    options[:verbose] = true
-  end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+}.parse!  # leave residue-args in ARGV
 
 # Build an environment-variable (VMS "logical name") command script which
 # creates a path definition for a remote directory path corresponding to

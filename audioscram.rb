@@ -108,7 +108,7 @@
 
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.01 (09/17/2014)"
+  PROGID = "#{PROGNAME} v1.02 (10/15/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
@@ -119,9 +119,9 @@ require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
 require 'yaml'
-require_relative 'Scramble'
-require_relative 'ANSIseq'
-require_relative 'FileEnhancements'
+require_relative 'lib/Scramble'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/FileEnhancements'
 
 # ==========
 
@@ -147,18 +147,6 @@ optparse = OptionParser.new { |opts|
   opts.on( "-r", "--refresh", "refresh each player repertory file" ) do |val|
     options[:refresh] = true
   end  # -r --refresh
-  # --- Set the banner & Help option ---
-  opts.banner = "Usage: #{PROGNAME} [options] /media/player/path ./RipLibrary/path"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    exit true
-  end  # -? --help
-  # --- About option ---
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    exit true
-  end  # -a --about
   # --- DryRun option ---
   opts.on( "-n", "--dryrun", "Dry run: do not actually modify files or environment" ) do |val|
     options[:dryrun] = true
@@ -172,6 +160,18 @@ optparse = OptionParser.new { |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  # --- Set the banner & Help option ---
+  opts.banner = "Usage: #{PROGNAME} [options] /media/player/path ./RipLibrary/path"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    exit true
+  end  # -? --help
+  # --- About option ---
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    exit true
+  end  # -a --about
 }.parse!  # leave residue-args in ARGV
 
 # Some options override:

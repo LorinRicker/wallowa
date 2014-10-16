@@ -3,7 +3,7 @@
 
 # tonerow.rb
 #
-# Copyright © 2013 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2013-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -41,13 +41,13 @@
 #      where Д: 10 and ξ: 11
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 (12/02/2013)"
+  PROGID = "#{PROGNAME} v1.05 (10/15/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
-require_relative 'ANSIseq'
+require_relative 'lib/ANSIseq'
 
 # ==========
 
@@ -186,19 +186,6 @@ end  # class ToneRow
 options = {} # hash for all com-line options:
 
 optparse = OptionParser.new { |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] input-row >outfile"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
   opts.on( "-d", "--diagonal", "Invoke diagonal check" ) do |val|
     options[:diagonal] = true
   end  # -d --diagonal
@@ -213,6 +200,19 @@ optparse = OptionParser.new { |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options] input-row >outfile"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
 }.parse!
 
 # User input row may be a single string: 0123456789de

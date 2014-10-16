@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
-# adoptDirTree.rb  -- called by adopt[.sh] in order to wrap with sudo
+# adoptdirtree.rb  -- called by adopt[.sh] in order to wrap with sudo
 #
-# Copyright © 2012-13 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-14 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,16 +11,16 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = "adopt"  # File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (06/10/2013)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.3 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
 require 'find'
-require_relative 'ANSIseq'
-require_relative 'FileEnhancements'
-require_relative 'StringEnhancements'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/FileEnhancements'
+require_relative 'lib/StringEnhancements'
 
 # Main -- Script to ensure that all files in a directory(-tree)
 #         are owned by the uid:gid of the parent directory.
@@ -30,25 +30,14 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ dirtree-path | ... ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-d", "--debug", "debug mode: show all internal traces" ) do |val|
     options[:debug] = true
   end  # -d --debug
-  opts.on( "-m", "--mode", "=MODE", Integer,
+  opts.on( "-m", "--mode", "=MODE", String,
            /600|644|664|666|700|750|770|755|775|777/,
-           "File mode (protection)" ) do |val|
-    options[:mode] = '0'+ val
+           "File mode (protection mask)" ) do |val|
+    options[:mode] = '0' + val
   end  # -m --mode
   opts.on( "-t", "--test", "Test (rehearse) the adoption" ) do |val|
     options[:test] = true
@@ -56,8 +45,20 @@ optparse = OptionParser.new do |opts|
   opts.on( "-v", "--verbose", "Verbose mode: show all internal traces" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options] [ dirtree-path | ... ]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+}.parse!  # leave residue-args in ARGV
 
 ARGV << "./*" if !ARGV[0]  # default is current-dir if none specified
 

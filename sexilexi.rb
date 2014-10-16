@@ -3,7 +3,7 @@
 
 # sexilexi.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,14 +11,14 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.01 (11/10/2012)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.02 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'ripper'
 require 'pp'
-require_relative 'ANSIseq'
+require_relative 'lib/ANSIseq'
 
 # ==========
 
@@ -66,20 +66,7 @@ options = {}  # hash for all com-line options;
   # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
   # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
-  end  # -a --about
+optparse = OptionParser.new { |opts|
   opts.on( "-b", "--start", "=N", Integer, "Start/begin-line to analyze" ) do |val|
     options[:start] = val
   end  # -b --start
@@ -98,8 +85,20 @@ optparse = OptionParser.new do |opts|
   opts.on( "-v", "--end", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options]"
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+}.parse!  # leave residue-args in ARGV
 
 # Either inhale a Ruby source file or prompt user to enter a code-fragment:
 if options[:srcfile]

@@ -12,9 +12,9 @@
 
 # ========================================================================
 # Single dependency: That there be a system-wide installation of a Ruby,
-#                    e.g., /usr/bin/ruby1.9.1
+#                    e.g., /usr/bin/ruby2.x
 #
-#  $ sudo apt-get install ruby[1.9.1]
+#  $ sudo apt-get install ruby[2.x]
 #
 # Because the typical full-installation use case is
 #  $ sudo /.../autoinstall ...
@@ -26,17 +26,17 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 06/03/2014"
+  PROGID = "#{PROGNAME} v1.04 10/15/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
-require_relative 'ANSIseq'
-require_relative 'StringEnhancements'
-require_relative 'TimeEnhancements'
-require_relative 'AskPrompted'
+require_relative 'lib/ANSIseq'
+require_relative 'lib/StringEnhancements'
+require_relative 'lib/TimeEnhancements'
+require_relative 'lib/AskPrompted'
 
 # Meta-characters in the Package Installation File (PIF):
 COMMENTSYM = '#'
@@ -107,8 +107,8 @@ end  # aptgetinstall
 # ==========
 
 # Default PIF is whatever's found in current working directory:
-defpif = Dir.glob("./PackageInstallation_*.list").first ||
-         "./PackageInstallation.list"
+defpif = Dir.glob("./Package Installation*.list").first ||
+         "./Package Installation.list"
 
 options = {  # hash for all com-line options:
   :pif      => "#{defpif}",
@@ -155,17 +155,6 @@ optparse = OptionParser.new { |opts|
                  "Echo the parsed-PIF data only (no other actions)" ) do |val|
     options[:echoonly] = true
   end  # -e --echoonly
-  # --- Set the banner & Help options ---
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    exit true
-  end  # -? --help
-  # --- About option ---
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
-    exit true
-  end  # -a --about
   # --- DryRun option ---
   opts.on( "-n", "--dryrun", "Dry run: don't actually install,",
                  "  just show what would be installed" ) do |val|
@@ -179,9 +168,20 @@ optparse = OptionParser.new { |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  # --- Set the banner & Help options ---
   opts.banner = "\n  Usage: #{PROGNAME} [options] ['package' ['package']...]" +
                 "\n\n   where each 'package' is a PIF-line: 'package [;flags] [;ppa] [;inquiry-comment]'" +
                 "\n   (usually single-quoted to avoid globbing, use special characters, etc.)\n "
+  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+    puts opts
+    exit true
+  end  # -? --help
+  # --- About option ---
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    puts "#{AUTHOR}"
+    exit true
+  end  # -a --about
 }.parse!  # leave residue-args in ARGV
 
 # Propagate a couple of implications --

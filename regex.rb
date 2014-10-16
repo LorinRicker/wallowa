@@ -16,12 +16,12 @@ require 'optparse'  # See "Pickaxe v1.9", p. 776
 require 'readline'  #                   , p. 788
 include Readline    #
 require 'abbrev'    #                   , p. 720
-require_relative 'GetPrompted'
-require_relative 'ANSIseq'
+require_relative 'lib/GetPrompted'
+require_relative 'lib/ANSIseq'
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.6 (08/28/2014)"
-  AUTHOR = "Lorin Ricker, Franktown, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.7 (10/15/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   LA = '>'.color(:red)
   RA = '<'.color(:red)
@@ -79,16 +79,7 @@ options = {}  # hash for all com-line options;
               # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
               # also see "Pickaxe v1.9", p. 776
 
-optparse = OptionParser.new do |opts|
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options]       # Ctrl/D or 'exit' to exit"
-  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
-    puts opts
-    exit
-  end
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-  end
+optparse = OptionParser.new { |opts|
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end
@@ -102,8 +93,17 @@ optparse = OptionParser.new do |opts|
 #  opts.on( "-m", "--multiline", "Newlines treated as ordinary character" ) do |val|
 #    options[:multiline] = true
 #    end
-end  #OptionParser.new
-optparse.parse!  # leave residue-args in ARGV
+  # Set the banner:
+  opts.banner = "Usage: #{PROGNAME} [options]       # Ctrl/D or 'exit' to exit"
+  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
+    puts opts
+    exit true
+  end
+  opts.on( "-a", "--about", "Display program info" ) do |val|
+    puts "#{PROGID}"
+    exit true
+  end
+}.parse!  # leave residue-args in ARGV
 
 printf( "Case %ssensitive pattern matching...\n\n", \
         ( options[:caseinsensitive] ? "in".underline : "" ) )

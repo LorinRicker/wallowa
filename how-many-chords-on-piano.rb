@@ -3,8 +3,8 @@
 
 # how-many-chords-on-piano.rb
 #
-# Copyright (C) 2012-2013 Lorin Ricker <lorin@rickernet.us>
-# Version: 0.5, 06/24/2013
+# Copyright (C) 2012-2014 Lorin Ricker <lorin@rickernet.us>
+# Version: 0.6, 10/15/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
