@@ -1,4 +1,4 @@
-# Package Installation (LMR).list  -- 10/09/2014
+# Package Installation (LMR).list  -- 10/11/2014
 
 # package-name            ; [flags] ; [ppa-repository] ; [inquiry-comment]
 
@@ -138,14 +138,25 @@ vorbis-tools
 ruby-ogginfo
 vlc
 audacity
+
+mp3diags                ;     ; ; MP3 diagnostics and fixes
+mp3diags-docs           ;     ; ;
+mp3gain                 ;     ; ;
+lame                    ;     ; ; LAME Ain't an MP3 Encoder
+lame-doc
+
 ardour                  ; ask
 sound-juicer            ; ask
 puddletag               ; ask ; ppa:webupd8team/puddletag
 easytag                 ; ask
+tagtool                 ; ask
+kid3-qt                 ; ask
 musescore               ; ask
 frescobaldi             ; ask
 lilypond                ; ask
 beets                   ; ask
+
+# Photo/image Tools --
 digikam                 ; ask
 darktable               ; ask
 gimp                    ; ask
