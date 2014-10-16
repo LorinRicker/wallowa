@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
-# RandomWordGenerator.rb
+# randomwordgenerator.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <lorin@rickernet.us>
-# Version 0.3, 06/04/2014
+# Version 0.4, 10/15/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
