@@ -4,7 +4,7 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.2, 10/13/2014
+# Version 2.3, 10/14/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -257,8 +257,21 @@ class String
   # This numbernames routine is based on Chris Pine's exercise/implementation
   # in his great introductory book "Learn to Program" (see his solution in
   # Appendix A, pp. 144-147), but improved for performance -- he uses a mutable
-  # $illions array -- and extended generality, all the way uppast one-googol
+  # $illions array -- and extended generality, all the way up past one googol
   # and into the quadragintillions.
+  #
+  # These names of numbers corresponds to the "U.S., Canada and modern British
+  # (Short Scale)" vocabulary -- the current implementation extends to the range
+  # of 10^123 or "Quadragintillion", although the official vocabulary extends to
+  # 10^3003 or "Millinillion."  As "one quadragintillion" exceeds "one googol" by
+  # a magnitude of 10^23rd, this seems like "enough."
+  # Authority: http://en.wikipedia.org/wiki/Names_of_large_numbers
+  #
+  # It's worth noting that this algorithm of ~122 lines of Ruby code generates,
+  # for an equivalent number (one-to-one mapping) of discrete inputs, at least
+  # two times (±) nine hundred ninety nine quadragintillion distinct and unique
+  # output strings, the names of all of those numbers!
+  #
   # Works for Integer, Fixnum and Bignum values, as well as for String
   # numeric representations:  "123456", "123,456,789" and "987_654_321"
   # (commas & underscores are stripped from the string representation).
