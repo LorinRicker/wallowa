@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v1.10 (10/15/2014)"
+  PROGID = "#{PROGNAME} v1.11 (10/23/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # -----
@@ -290,19 +290,15 @@ else
     case action.to_sym
     when :copy
       # Set up source & destination, qualifiers -- Note...
-        # fileutils.rb: "Copies +src+ to +dest+. If +src+ is a directory, this method
-        # copies all its contents recursively. If +dest+ is a directory, copies +src+
-        # to +dest/src+."
-      if File.directory?( src ) && File.directory?( dst )
-        FileUtils.cp_r( src, dst, fuoptions )
+      # fileutils.rb: "Copies +src+ to +dest+. If +src+ is a directory, this method
+      # copies all its contents recursively. If +dest+ is a directory, copies +src+
+      # to +dest/src+."
+      # "If +src+ is a list of files, then +dest+ must be a directory."
+      if File.directory?( dst )
+        FileUtils.cp( src, dst, fuoptions )
       else
-        # fileutils.rb: "If +src+ is a list of files, then +dest+ must be a directory."
-        if File.directory?( dst )
-          FileUtils.cp( src, dst, fuoptions )
-        else
-          $stderr.puts "%#{PROGNAME}-e-notdir, destination path must be a directory"
-          exit false
-        end
+        $stderr.puts "%#{PROGNAME}-e-notdir, destination path must be a directory"
+        exit false
       end
     # when :create
     # when :rename
