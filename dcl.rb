@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v1.11 (10/23/2014)"
+  PROGID = "#{PROGNAME} v1.11 (10/24/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # -----
@@ -119,6 +119,12 @@ require_relative 'lib/StringEnhancements'
 require_relative 'lib/ANSIseq'
 
 # ==========
+
+def bad_fucmd_params( e, debug )
+  $stderr.puts "%#{PROGNAME}-e-notdir, destination path must be a directory"
+  pp e if debug > DBGLVL0
+  exit false
+end  # bad_fucmd_params
 
 def help_available( tag, links, perline )
   hlp    = tag
@@ -279,7 +285,7 @@ else
   if CMD_LINKS.find( action )   # one of the Command actions?
     src, dst, quals = qualifierparse( ARGV )
     fuoptions = blend( options, quals )
-    if options[:debug] >= 1
+    if options[:debug] >= DBGLVL2
       pp src
       pp dst
       pp quals
@@ -289,19 +295,20 @@ else
     # Commands:
     case action.to_sym
     when :copy
-      # Set up source & destination, qualifiers -- Note...
-      # fileutils.rb: "Copies +src+ to +dest+. If +src+ is a directory, this method
-      # copies all its contents recursively. If +dest+ is a directory, copies +src+
-      # to +dest/src+."
-      # "If +src+ is a list of files, then +dest+ must be a directory."
-      if File.directory?( dst )
+      # See ri FileUtils[::cp]
+      begin
         FileUtils.cp( src, dst, fuoptions )
-      else
-        $stderr.puts "%#{PROGNAME}-e-notdir, destination path must be a directory"
-        exit false
+      rescue StandardError => e
+        bad_fucmd_params( e, options[:debug] )
       end
     # when :create
-    # when :rename
+    when :rename
+      # See ri FileUtils[::cp]
+      begin
+        FileUtils.mv( src, dst, fuoptions )
+      rescue StandardError => e
+        bad_fucmd_params( e, options[:debug] )
+      end
     # when :delete
     # when :purge
     # when :directory
