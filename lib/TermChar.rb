@@ -3,8 +3,8 @@
 
 # TermChar.rb
 #
-# Copyright © 2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 0.1, 04/14/2012
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.0, 10/26/2012
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -15,11 +15,11 @@ module TermChar
 
   def self.terminal_dimensions( show = nil )
     # Hack to get terminal's display dimensions (# of lines & characters) --
-    # stty size returns terminal's [height width] (#lines, #columns):
+    # stty size returns terminal's [length width] (#lines, #columns):
     tdim = %x{stty size}.split.collect { |w| w.to_i }
     if show
-      puts "Terminal width is #{tdim[1]} characters..."
-      puts "Terminal height is #{tdim[0]} lines..."
+      puts "Terminal width is #{tdim[1]} characters"
+      puts "Terminal length is #{tdim[0]} lines"
     end  # if show
     return tdim
   end  # terminal_dimensions
@@ -31,5 +31,5 @@ module TermChar
   def self.terminal_width
     terminal_dimensions[1]
   end  # terminal_width
-  
+
 end  # module TermChar
