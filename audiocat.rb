@@ -67,34 +67,20 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.17 (10/15/2014)"
+  PROGID = "#{PROGNAME} v1.16 (10/27/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
-   CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
-  CONFIGFILE = File.join( "#{CONFIGDIR}", ".#{PROGNAME}.yaml.rc" )
+   CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
+  CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
-require 'yaml'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
 
 # ==========
-
-def checkdir( confdir, perms = 0700 )
-  Dir.mkdir( confdir, perms ) if ! Dir.exists?( confdir )
-end  # checkdir
-
-def configuration( cfile, config, saveoverride = false )
-  if File.exists?( cfile ) && ! saveoverride
-    return YAML.load_file( cfile )
-  else
-    File.open( cfile, 'w' ) { |f| YAML::dump( config, f ) }
-    $stderr.puts "%#{PROGNAME}-I-init, config-file #{cfile} initialized"
-  end  # if File.exists? cfile
-end  # configuration
 
 def copycat( infiles, outfile, options )
   # Copy-catenate infiles to outfile
@@ -186,12 +172,14 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
 }.parse!  # leave residue-args in ARGV
 
-checkdir( CONFIGDIR )
 # Propagate a couple of implications --
 # (which should *not* be saved in the CONFIGFILE):
 options[:remove] = false if options[:dryrun]  # dryrun always implies keep...
 options[:debug]   ||= options[:dryrun]  # ...and also debug...
 options[:verbose] ||= options[:debug]   # ...and debug implies verbose
+
+## File.check_yaml_dir( CONFIGDIR )
+## File.configuration_yaml( «+», «+» )
 
 puts "%#{PROGNAME}-I-FTYPE, audio filetype is '#{options[:type]}'" if options[:debug]
 

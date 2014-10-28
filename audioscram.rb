@@ -108,17 +108,16 @@
 
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.02 (10/15/2014)"
+  PROGID = "#{PROGNAME} v1.03 (10/27/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
-   CONFIGDIR = File.join( ENV['HOME'], ".config", "#{PROGNAME}" )
-  CONFIGFILE = File.join( "#{CONFIGDIR}", ".#{PROGNAME}.yaml.rc" )
+   CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
+  CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require 'fileutils'
-require 'yaml'
 require_relative 'lib/Scramble'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
@@ -181,6 +180,9 @@ options[:keep] = true if options[:refresh]
 fopts = Hash.new
 fopts[:verbose] = options[:verbose] || options[:dryrun] || options[:debug] > DBGLVL0
 fopts[:noop]    = options[:dryrun]
+
+## File.check_yaml_dir( CONFIGDIR )
+## File.configuration_yaml( «+», «+» )
 
 # TO-DO
 # Player mounts as /dev/sdb ("/media/lorin/SANSA CLIPP"), type vfat
