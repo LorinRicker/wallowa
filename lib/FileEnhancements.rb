@@ -3,14 +3,16 @@
 
 # FileEnhancements.rb
 #
-# Copyright © 2012-2013 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.11, 06/21/2013
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.12, 10/27/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
 
+require 'yaml'
+require 'fileutils'
 #~ require 'pp'
 
 ONEKILO = 2 ** 10  #                1024
@@ -300,5 +302,21 @@ end  # open( "/etc/passwd" )
       return readlink
     end
   end  # File.readlink!
+
+  # Verify the existence of an app-specific directory for a configuration
+  # file in ~/home, create it if it's missing.
+  def self.check_yaml_dir( confdir, perms = 0700 )
+    Dir.mkdir( confdir, perms ) if ! Dir.exists?( confdir )
+  end  # check_yaml_dir
+
+  # Save or (re)load an app-specific configuration file (YAML).
+  def self.configuration_yaml( cfile, config, saveoverride = false )
+    if File.exists?( cfile ) && ! saveoverride
+      return YAML.load_file( cfile )
+    else
+      File.open( cfile, 'w' ) { |f| YAML::dump( config, f ) }
+      $stderr.puts "%YAML-i-init, config-file #{cfile} initialized"
+    end  # if File.exists? cfile
+  end  # configuration_yaml
 
 end  # class File
