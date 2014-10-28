@@ -16,15 +16,21 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v1.11 (10/24/2014)"
+  PROGID = "#{PROGNAME} v2.00 (10/27/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+   CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
+  CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
 
 # -----
 
 # dcl provides command line (shell) access to a small library of string-
 # transformational routines which are reminiscent of those found in the
 # VMS/DCL repertory of F$* functions, callable as if these were bash
-# "built-in" functions.
+# "built-in" functions (v1.xx).  It also is extended (v2.xx) to provide
+# DCL file operation command emulations for several common file commands:
+# COPY:cp, DELETE:rm, RENAME:mv, CREATE:touch, PURGE:??, DIRECTORY:ls and
+# SHOW:set.
 
 # Access (calls) to these functions are implemented by creating named symlinks
 # for each function; these symlinks point (refer to) this dcl script itself,
@@ -116,6 +122,7 @@ require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
 require 'pp'
 require_relative 'lib/StringEnhancements'
+require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
 
 # ==========
@@ -171,7 +178,7 @@ def getargs( options )
   return args
 end  # getargs
 
-def qualifierparse( argvector )
+def parse_dcl_qualifiers( argvector )
   argvl  = argvector.length
   quals  = Hash.new
   fspecs = []
@@ -192,7 +199,7 @@ def qualifierparse( argvector )
          when 2 then [ fspecs[0],     fspecs[1],  quals ]
                 else [ fspecs[0..-2], fspecs[-1], quals ]
          end  # case
-end  # qualifierparse
+end  # parse_dcl_qualifiers
 
 def blend( options, quals )
   fuopts = Hash.new
@@ -275,6 +282,9 @@ optparse = OptionParser.new { |opts|
   end  # -? --help
 }.parse!  # leave residue-args in ARGV
 
+## File.check_yaml_dir( CONFIGDIR )
+## File.configuration_yaml( «+», «+» )
+
 action = File.basename( $0 ).downcase  # $0 is name of invoking symlink...
 
 if options[:symlinks]
@@ -283,7 +293,7 @@ if options[:symlinks]
 else
   # Dispatch/processing for each sym-linked command begins here...
   if CMD_LINKS.find( action )   # one of the Command actions?
-    src, dst, quals = qualifierparse( ARGV )
+    src, dst, quals = parse_dcl_qualifiers( ARGV )
     fuoptions = blend( options, quals )
     if options[:debug] >= DBGLVL2
       pp src
@@ -303,13 +313,19 @@ else
       end
     # when :create
     when :rename
-      # See ri FileUtils[::cp]
+      # See ri FileUtils[::mv]
       begin
         FileUtils.mv( src, dst, fuoptions )
       rescue StandardError => e
         bad_fucmd_params( e, options[:debug] )
       end
-    # when :delete
+    when :delete
+      # See ri FileUtils[::rm]
+      begin
+        FileUtils.rm( src, fuoptions )
+      rescue StandardError => e
+        bad_fucmd_params( e, options[:debug] )
+      end
     # when :purge
     # when :directory
     # when :show
