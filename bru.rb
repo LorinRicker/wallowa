@@ -47,7 +47,7 @@ require_relative 'lib/ANSIseq'
 # ==========
 
 def filespec( optfile, deffile, opttext = "" )
-  xfile  = optfile ? File.absolute_path( optfile ) : deffile
+  xfile  = optfile ? File.absolute_path( optfile ) : File.absolute_path( deffile )
   xfile += '/' if File.directory?( xfile ) && xfile[-1] != '/'
   xfile = "«not found»" if ! File.exists?( xfile )
   qfile = opttext + xfile
@@ -182,7 +182,7 @@ if options[:debug] >= DBGLVL2
   $stderr.puts "  Actual excludefile: '#{exclfile.color(:red)}'"
   $stderr.puts "    Source directory: '#{sourcedir.color(:purple)}'"
   $stderr.puts "    Backup directory: '#{backupdir.color(:purple)}'"
-  $stderr.puts "           Operation:  #{op.underline.color(:purple)}"
+  $stderr.puts "           Operation:  #{op.underline.color(:blue)}"
   $stderr.puts "  Full rsync command: '$#{rsync.color(:blue)}'\n\n"
 end
 

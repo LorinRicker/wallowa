@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.00 (10/27/2014)"
+  PROGID = "#{PROGNAME} v2.01 (10/29/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -258,7 +258,8 @@ optparse = OptionParser.new { |opts|
            "Verbose mode (/LOG)" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-  opts.on( "-d", "--debug=INTEGER", "Show debug information (levels: 1, 2 or 3)" ) do |val|
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)" ) do |val|
     options[:debug] = val.to_i
   end  # -d --debug
   opts.on( "-l", "--links", "--symlinks",
