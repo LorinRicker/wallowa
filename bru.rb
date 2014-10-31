@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.02 (10/28/2014)"
+  PROGID = "#{PROGNAME} v1.03 (10/30/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -39,41 +39,71 @@ DBGLVL3 = 3
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'fileutils'
 require 'pp'
 require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
+require_relative 'lib/AskPrompted'
 
 # ==========
 
-def filespec( optfile, deffile, opttext = "" )
-  xfile  = optfile ? File.absolute_path( optfile ) : File.absolute_path( deffile )
-  xfile += '/' if File.directory?( xfile ) && xfile[-1] != '/'
-  xfile = "«not found»" if ! File.exists?( xfile )
-  qfile = opttext + xfile
-  return qfile if opttext == ""
-  return [ xfile, qfile ]
-end  # filespec
+def config_save( opt )
+  # opt is a local copy of options, so we can patch a few
+  # values without disrupting the original/global hash --
+  opt[:about]     = false
+  opt[:debug]     = DBGLVL0
+  opt[:recover]   = false
+  opt[:noop]      = false
+  opt[:sudo]      = ""
+  opt[:update]    = false
+  opt[:verbose]   = false
+  AppConfig.configuration_yaml( CONFIGFILE, opt, true )  # force the save/update
+end  # config_save
 
-def badtree( op, tree, deftree = "" )
-  dir = tree || deftree
+def excludespec( optfile, deffile, opttext = "" )
+  fil  = optfile ? File.absolute_path( optfile ) : File.absolute_path( deffile )
+  fil += '/' if File.directory?( fil ) && fil[-1] != '/'
+  opt  = opttext + fil
+  fil  = "«not found»" if not File.exists?( fil )
+  return [ fil, opt ]
+end  # excludespec
+
+def dirspec( optdir, defdir )
+  dir  = optdir ? File.absolute_path( optdir ) : File.absolute_path( defdir )
+  dir += '/' if File.directory?( dir ) && dir[-1] != '/'
+  return dir
+end  # dirspec
+
+def dir_error( op, dir )
   $stderr.puts "%#{PROGNAME}-e-fnf, #{op} Directory Tree not found: #{dir}"
   exit false
-end  # badtree
+end  # dir_error
+
+def make_tree( op, dir, options )
+  if options[:verbose]
+    answer = askprompted( "#{op} Directory Tree does not exist; create it" )
+    dir_error( op, dir ) if not answer  # "No"? -- error-msg and exit
+  end
+  pp dir
+  pp options
+  FileUtils.mkdir_p( dir, :mode => 0700,
+                     :noop => options[:noop], :verbose => options[:verbose] )
+end  # make_tree
 
 # ==========
 
 options = {
-            :about      => false,
-            :debug      => DBGLVL0,
             :sourcetree => nil,
             :backuptree => nil,
-            :recover    => false,
-            :exclude    => nil,
-            :noop       => false,
+            :exclude    => "none",
             :itemize    => false,
+            :about      => false,
+            :debug      => DBGLVL0,
+            :recover    => false,
+            :noop       => false,
             :sudo       => "",
-            :forcesave  => false,
+            :update  => false,
             :verbose    => false
           }
 
@@ -88,22 +118,26 @@ optparse = OptionParser.new { |opts|
            "(optional) Backup directory tree - If specified, this",
            "value overrides any other backup directory given on",
            "the command line; this value will be saved in the",
-           "configuration file if --forcesave is also specified" ) do |val|
+           "configuration file if --update is also specified" ) do |val|
     options[:backuptree] = val
   end  # -b --sourcetree
+  opts.on( "-e", "--exclude", "=ExcludeFile", String,
+           "Exclude-file containing files (patterns) to omit",
+           "from this backup; if there is no exclude-file,",
+           "specify as '--exclude-file=none'" ) do |val|
+    options[:exclude] = val || "none"
+  end  # -e --exclude
+    opts.on( "-i", "--[no-]itemize",
+           "Itemize changes (output) during file transfer" ) do |val|
+    options[:itemize] = val
+  end  # -i --itemize
+  opts.separator ""
+  opts.separator "    The options below are always saved in the configuration file"
+  opts.separator "    in their 'off' or 'default' state:"
   opts.on( "-r", "--recover", "--restore",
            "Recover (restore) the SourceDirectory from the BackupDir" ) do |val|
     options[:recover] = true
   end  # -r --recover
-  opts.on( "-x", "--exclude", "=ExcludeFile", String,
-           "Exclude-file containing files (patterns) to omit from this backup;",
-           "if no exclude-file, specify as '--exclude-file=none'" ) do |val|
-    options[:exclude] = val
-  end  # -x --exclude
-    opts.on( "-i", "--itemize",
-           "Itemize changes (output) during file transfer" ) do |val|
-    options[:itemize] = true
-  end  # -i --itemize
   opts.on( "-S", "--sudo",
            "Run this backup/restore with sudo" ) do |val|
     options[:sudo] = "sudo"
@@ -113,10 +147,12 @@ optparse = OptionParser.new { |opts|
     options[:noop]  = true
     options[:verbose] = true  # Dry-run implies verbose...
   end  # -n --noop
-  opts.on( "-f", "--forcesave", "--update",
-           "Update (force save) the configuration file" ) do |val|
-    options[:forcesave] = true
-  end  # -f --forcesave
+  opts.on( "-u", "--update", "--save",
+           "Update (save) the configuration file; a configuration",
+           "file is automatically created if it doesn't exist:",
+           "#{CONFIGFILE}" ) do |val|
+    options[:update] = true
+  end  # -u --update
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
@@ -124,7 +160,7 @@ optparse = OptionParser.new { |opts|
            "Show debug information (levels: 1, 2 or 3)" ) do |val|
     options[:debug] = val.to_i
   end  # -d --debug
-  opts.on( "-a", "--about", "Display program info" ) do |val|
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
     puts "#{PROGID}"
     puts "#{AUTHOR}"
     options[:about] = true
@@ -132,7 +168,7 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "  Usage: #{PROGNAME} [options] [BackupDir]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     puts opts
     options[:help] = true
     exit true
@@ -152,15 +188,16 @@ rverbose += " --itemize-changes" if options[:itemize]
 if options[:exclude].locase == "none"
   exclfile, excloption = "«none»", ""
 else
-  exclfile, excloption = filespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
+  exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
 end
 
 # If a SourceDirectory is specified, us it rather than the default:
-sourcedir = filespec( options[:sourcetree], DEFSOURCETREE )
+sourcedir = dirspec( options[:sourcetree], DEFSOURCETREE )
 
-# If a BackupDirectory is specified, us it rather than the default:
-bdir = options[:backuptree] || ARGV[0]   # com-line's --backuptree spec trumps ARGV[0]
-backupdir = filespec( bdir, DEFBACKUPTREE )
+# If a BackupDirectory is specified, use it rather than the default;
+# the --backuptree spec, if given, trumps ARGV[0]:
+options[:backuptree] ||= ARGV[0]
+backupdir = dirspec( options[:backuptree], DEFBACKUPTREE )
 
 # The full rsync command with options:
 rsync  = "#{options[:sudo]} rsync #{rcommon}#{rverbose}#{excloption} "
@@ -168,11 +205,7 @@ rsync  = "#{options[:sudo]} rsync #{rcommon}#{rverbose}#{excloption} "
 rsync += options[:recover] ? "#{backupdir} #{sourcedir}" : "#{sourcedir} #{backupdir}"
 
 # Update the config-file, at user's request:
-if options[:forcesave]
-  options[:forcesave] = false  # Store these values only...
-  options[:sudo] = ""          # ...for these options!
-  AppConfig.configuration_yaml( CONFIGFILE, options, true )  # force the save/update
-end
+config_save( options ) if options[:update]
 
 if options[:debug] >= DBGLVL2
   op = options[:recover] ? "Recover <=" : "Backup =>"
@@ -186,9 +219,18 @@ if options[:debug] >= DBGLVL2
   $stderr.puts "  Full rsync command: '$#{rsync.color(:blue)}'\n\n"
 end
 
-badtree( "Backup", backupdir, DEFBACKUPTREE ) if backupdir[0] != "/"
-badtree( "Source", sourcedir, DEFSOURCETREE ) if sourcedir[0] != "/"
+if options[:recover]
+  dir_error( "Backup", backupdir          ) if not File.exists?( backupdir )
+  make_tree( "Source", sourcedir, options ) if not File.exists?( sourcedir )
+else
+  dir_error( "Source", sourcedir          ) if not File.exists?( sourcedir )
+  make_tree( "Backup", backupdir, options ) if not File.exists?( backupdir )
+end
 
-# %x{ #{rsync} }.each_line { |ln| $stdout.puts ln }
+if options[:verbose]
+  # %x{ #{rsync} }.each_line { |ln| $stdout.puts ln }
+else
+  # %x{ #{rsync} }
+end
 
 exit true
