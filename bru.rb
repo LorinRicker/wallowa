@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.03 (10/30/2014)"
+  PROGID = "#{PROGNAME} v1.04 (10/31/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -228,9 +228,9 @@ else
 end
 
 if options[:verbose]
-  # %x{ #{rsync} }.each_line { |ln| $stdout.puts ln }
+  %x{ #{rsync} }.each_line { |ln| $stdout.puts ln }
 else
-  # %x{ #{rsync} }
+  %x{ #{rsync} }
 end
 
 exit true
