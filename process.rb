@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.3 (10/15/2012)"
+  PROGID = "#{PROGNAME} v2.4 (11/10/2012)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -105,7 +105,7 @@ def process( args, options )
   args.each do | pgm |
     acount += 1
     pgmpat = Regexp.new( pgm, Regexp::IGNORECASE )
-    %x{ #{command} }.each_line do | p |
+    %x{ #{command} }.lines do | p |
       lno += 1
       if lno > hdlines
         # Match process-line for requested program, but

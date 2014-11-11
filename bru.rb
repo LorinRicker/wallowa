@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 (10/31/2014)"
+  PROGID = "#{PROGNAME} v1.05 (11/09/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -227,10 +227,6 @@ else
   make_tree( "Backup", backupdir, options ) if not File.exists?( backupdir )
 end
 
-if options[:verbose]
-  %x{ #{rsync} }.each_line { |ln| $stdout.puts ln }
-else
-  %x{ #{rsync} }
-end
+%x{ #{rsync} }.lines { |ln| $stdout.puts ln }
 
 exit true

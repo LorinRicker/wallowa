@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 10/15/2014"
+  PROGID = "#{PROGNAME} v1.05 11/10/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # === For command-line arguments & options parsing: ===
@@ -95,10 +95,10 @@ def aptgetinstall( logoutf, package, ask, ppa, inq, options )
       instout = %x{ #{cmd} }         # executed only as sudo/root
     end
     install_end  = Time.now
-    instout.each_line do | ln |
+    instout.lines do | ln |
       STDOUT.puts ln if options[:debug]
       logoutf.puts ln   # echo all install-output lines to log file
-    end  # this_install.each_line
+    end  # this_install.lines
     logoutf.puts "  package-end timestamp: #{install_end}"
     logoutf.puts "#{' '*11}elapsed time: #{ install_start.elapsed( install_end ) }"
   end
@@ -242,7 +242,7 @@ File.open( logf, "a" ) do | logoutf |
   if ! ARGV[0]   # No command-line parameters? Then use the PIF...
 
     File.open( pif, "r" ) do | inf |
-      inf.each_line do | ln |
+      inf.lines do | ln |
 
         package, flags, ppa, inqcomment = Array.new( 4, "" )  # start sane each interation
 
@@ -285,7 +285,7 @@ File.open( logf, "a" ) do | logoutf |
           logoutf.puts msg
         end
 
-      end  # inf.each_line
+      end  # inf.lines
 
     end  # File.open inf
 

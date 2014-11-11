@@ -67,11 +67,11 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.16 (10/27/2014)"
+  PROGID = "#{PROGNAME} v1.18 (11/10/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
-  CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
+  CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
@@ -80,7 +80,22 @@ require 'fileutils'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
 
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2
+DBGLVL3 = 3
+
 # ==========
+
+def config_save( opt )
+  # opt is a local copy of options, so we can patch a few
+  # values without disrupting the original/global hash --
+  opt[:about]     = false
+  opt[:debug]     = DBGLVL0
+  opt[:update]    = false
+  opt[:verbose]   = false
+  AppConfig.configuration_yaml( CONFIGFILE, opt, true )  # force the save/update
+end  # config_save
 
 def copycat( infiles, outfile, options )
   # Copy-catenate infiles to outfile
@@ -129,32 +144,38 @@ end  # delfiles
 options = {  # hash for all com-line options:
   :help   => false,
   :about  => false,
-  :type   => "ogg",    # Set specific flags for YAML...
+  :type   => "mp3",    # Set specific flags for YAML...
   :save   => false,
   :dryrun => false,
   :remove => false,
-  :debug  => false
+  :debug  => DBGLVL0
   }
 
+options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) )
+
 optparse = OptionParser.new { |opts|
-  opts.on( "-t", "--type", "=AUDIO", /ogg|mp3|wav/i,
-           "Audio-type of files (ogg (d), mp3, wav)" ) do |val|
-    options[:type] = val.downcase || "ogg"
+  opts.on( "-t", "--type", "=AUDIO", /mp3|ogg|wav/i,
+           "Audio-type of files (mp3 (d), ogg, wav)" ) do |val|
+    options[:type] = val.downcase || "mp3"
   end  # -t --type
-  opts.on( "-s", "--save", "Save command-line configuration preferences" ) do |val|
-    options[:save] = true
-  end  # -s --save
   opts.on( "-n", "--dryrun", "Dry run: don't actually copy or delete files" ) do |val|
     options[:dryrun] = true
   end  # -n --dryrun
   opts.on( "-r", "--remove", "Remove (delete, default is keep) input files" ) do |val|
     options[:remove] = true
   end  # -r --remove
+  opts.on( "-u", "--update", "--save",
+           "Update (save) the configuration file; a configuration",
+           "file is automatically created if it doesn't exist:",
+           "#{CONFIGFILE}" ) do |val|
+    options[:update] = true
+  end  # -u --update
   opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --debug
-  opts.on( "-d", "--debug", "Debug mode (more output than verbose)" ) do |val|
-    options[:debug] = true
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)" ) do |val|
+    options[:debug] = val
   end  # -d --debug
   # Set the banner:
   opts.banner = "Usage: #{PROGNAME} [options] output-audio-file input-audio-file(s)" +
@@ -174,14 +195,14 @@ optparse = OptionParser.new { |opts|
 
 # Propagate a couple of implications --
 # (which should *not* be saved in the CONFIGFILE):
-options[:remove] = false if options[:dryrun]  # dryrun always implies keep...
-options[:debug]   ||= options[:dryrun]  # ...and also debug...
-options[:verbose] ||= options[:debug]   # ...and debug implies verbose
+options[:remove] = false if options[:dryrun]      # dryrun always implies keep...
+options[:debug]  = DBGLVL1 if options[:dryrun]    # ...and also debug...
+options[:verbose] ||= options[:debug] > DBGLVL0   # ...and debug implies verbose
 
-## File.check_yaml_dir( CONFIGDIR )
-## File.configuration_yaml( «+», «+» )
+puts "%#{PROGNAME}-I-FTYPE, audio filetype is '#{options[:type]}'" if options[:debug] > DBGLVL0
 
-puts "%#{PROGNAME}-I-FTYPE, audio filetype is '#{options[:type]}'" if options[:debug]
+# Update the config-file, at user's request:
+config_save( options ) if options[:update]
 
 # Working with this file-type (extension):
 fext = ".#{options[:type]}"
@@ -205,7 +226,7 @@ pat = Regexp.new( /^(.*?)    # any prefix (lazy)  m[1]
 infiles = []
 
 ARGV.each do | f |    # Each remaining file in ARGV is an input filespec...
-  $stderr.puts "%#{PROGNAME}-I-ARGV, '#{f}'" if options[:debug]
+  $stderr.puts "%#{PROGNAME}-I-ARGV, '#{f}'" if options[:debug] > DBGLVL0
   argfiles = []
   m = pat.match( f )
   if m   # Matched a pattern file-range "lo..hi",
@@ -230,14 +251,14 @@ ARGV.each do | f |    # Each remaining file in ARGV is an input filespec...
 end  # ARGV.each
 
 insize  = infiles.size
-pp infiles if options[:debug]
+pp infiles if options[:debug] > DBGLVL0
 
 fnflag = badflag = false
 infiles.each do | inf |   # Validate each input file...
   binf = File.basename(inf)
   if File.exists?( inf )
     $stderr.puts "%#{PROGNAME}-I-INFILE, '#{binf}'" if options[:verbose]
-    if ! File.verify_magicnumber( inf, options[:type], options[:debug] )
+    if ! File.verify_magicnumber( inf, options[:type] )
       $stderr.puts "%#{PROGNAME}-E-BADMAGIC, wrong file signature: #{binf}"
       badflag = true
     end  # if ! File.verify_magicnumber( inf )
@@ -262,26 +283,25 @@ when "ogg"
   #   3. oggCat barfs out noise messages "StreamMux::operator<<: Warning:
   #        packet number for stream <0> not matching: expected: nnn got 3"
   #      for each segment copied... so shunt the noise to /dev/null/ ...
-  cmd = "oggCat 2>/dev/null \"#{outfile}\""
-  infiles.each { |inf| cmd = cmd + " \"#{inf}\"" }
-  if options[:debug]
-    $stderr.puts "%#{PROGNAME}-I-ECHO, $ #{cmd}"
+  noise = options[:debug] <= DBGLVL1 ? "2>/dev/null " : nil
+  cmd = "oggCat #{noise}\"#{outfile}\""
+  infiles.each { |inf| cmd += " \"#{inf}\"" }
+  $stderr.puts "%#{PROGNAME}-I-ECHO, $ #{cmd}" if options[:debug] > DBGLVL0
+  $stdout.puts "%#{PROGNAME}-I-WORKING, be patient - oggCat converting (~15sec/Mb)"
+  %x{ #{cmd} }
+  stat = $?
+  if stat == 0
+    delfiles( infiles, options ) if options[:remove]
   else
-    stat = %x{ #{cmd} }
-    if $? == 0
-      delfiles( infiles, options ) if options[:remove]
-    else
-      $stderr.puts "%oggCat-E-STAT, exit: #{$?.exitstatus}"
-      $stderr.puts "              status: #{stat}"
-    end  # if $? != 0
-  end  # if options[:debug]
+    $stderr.puts "%oggCat-E-STAT, exit: #{stat.exitstatus}"
+  end  # if stat != 0
 when "mp3"
-  if options[:debug]
+  if options[:debug] > DBGLVL0
     $stderr.puts "%#{PROGNAME}-I-CALL, copycat()..."
   else
     copycat( infiles, outfile, options )
     delfiles( infiles, options ) if options[:remove]
-  end  # if options[:debug]
+  end  # if options[:debug] > DBGLVL0
 else
   $stderr.puts "%#{PROGNAME}-E-BADFILE, unsupported file type #{options[:type]}"
 end  # case options[:type]
