@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.05 (11/09/2014)"
+  PROGID = "#{PROGNAME} v1.06 (11/12/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -81,14 +81,18 @@ def dir_error( op, dir )
 end  # dir_error
 
 def make_tree( op, dir, options )
-  if options[:verbose]
-    answer = askprompted( "#{op} Directory Tree does not exist; create it" )
-    dir_error( op, dir ) if not answer  # "No"? -- error-msg and exit
+  answer = askprompted( "#{op} Directory Tree does not exist; create it" )
+  dir_error( op, dir ) if not answer  # "No"? -- error-msg and exit
+  begin
+    FileUtils.mkdir_p( dir, :mode => 0700,
+                       :noop => options[:noop], :verbose => options[:verbose] )
+  rescue SystemCallError => e
+    $stderr.puts "%#{PROGNAME}-f-priv, cannot create directory tree (FileUtils.mkdir_p)"
+    $stderr.puts "-e-exception, #{$!}"
+    recovery = "sudo mkdir -pv #{dir}"
+    $stderr.puts "-i-recovery, >> $ #{recovery.underline.color(:red)}"
+    dir_error( op, dir )
   end
-  pp dir
-  pp options
-  FileUtils.mkdir_p( dir, :mode => 0700,
-                     :noop => options[:noop], :verbose => options[:verbose] )
 end  # make_tree
 
 # ==========
