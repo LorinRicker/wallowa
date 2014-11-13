@@ -4,7 +4,7 @@
 # Scramble.rb
 #
 # Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 09/18/2014
+# Version 1.1, 11/11/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -26,26 +26,30 @@ require 'pp'
 #   @vals : An array which holds the 'raw' objects (in the order stored)
 #   @pile : A hash which collects the objects, associating each stored object
 #           (the Value) with a random number (its Key)
-#   @deck : An array which receives a sorted version of the @pile hash, thus
+#   @deck : An array which receives a sorted version of the +@pile+ hash, thus
 #           presenting its elements as a sorted list of [rand#,object] pairs
 #           retrieval of these array elements "in sorted order" is now equi-
 #           valent to "dealing them in random order".
 #
-# Because, as each Value object is @pile-stored, it is associated with a unique
-# (and potentially different for each run) random number, and then the @pile is
-# sorted into the @deck, that sort serves as a kind of "reverse-shuffle" so
-# that as Values are retrieved by sorted (random) Key from the @deck-array,
+# Because, as each Value object is +@pile+-stored, it is associated with a unique
+# (and potentially different for each run) random number, and then the +@pile+ is
+# sorted into the +@deck+, that sort serves as a kind of "reverse-shuffle" so
+# that as Values are retrieved by sorted (random) Key from the +@deck-array+,
 # they are retrieved in random order, distinct from the order in which they
 # were stored.
 #
 # Instance variables:
 #
-#    @vals       : An array which holds the 'current' values (for reshuffles)
-#    @pile       : A hash which collects the (unrandomized) collection objects
-#    @deck       : An array which is the randomized collection
+#    @vals       : An array which holds the 'current' values (for reshuffles).
+#    @pile       : A hash which collects the (unrandomized) collection objects.
+#    @deck       : An array which is the randomized collection.
 #    @deckindex  : Initially nil to indicate that objects are being collected
-#                  into the @pile and that @deck has not yet been "randomized"
-#                  (sorted)
+#                  into the +@pile+ and that @deck has not yet been "randomized"
+#                  (sorted).  The +shuffle+ method sets +@deckindex+ to 0 (zero),
+#                  and +@deckindex+ is incremented by 1 (one) for each object
+#                  which is dealt (by the fetch method). The (private) method
+#                  +reset_deck+ sets +@deckindex+ back to nil, indicating that the
+#                  +@pile+ and the +@deck+ are again being collected.
 #    @seed       : An integer which, if provided as the *optional* parameter to
 #                  Scramble.new, provides a known seed value to Random, thus
 #                  producing a repeatable random sequence (useful for testing
@@ -56,7 +60,7 @@ require 'pp'
 #                  a specific, shared seed value puts each instance on the same
 #                  (pseudo)Random sequence/cycle.
 #
-# For convenience, +@pile+, +@deck+, @vals, +@deckindex+ and +@seed+ are exposed
+# For convenience, +@pile+, +@deck+, +@vals+, +@deckindex+ and +@seed+ are exposed
 # as read-only attributes of the class.
 
 class Scramble
@@ -107,8 +111,8 @@ class Scramble
 
   # Resets (starts over) with a new collection of +@vals+.
   #
-  # +@deckindex+ is (re)set to +nil+ indicating that the +@deck+
-  # is empty (new) and unsorted.
+  # +@deckindex+ is (re)set to nil indicating that the +@deck+ is empty (new)
+  # and unsorted.
   #
   # Calling (client) environment must now (re)+store+ objects into the +@pile+;
   # when the last object has been stored in the +@pile+, the calling environment
@@ -120,7 +124,7 @@ class Scramble
 
   # Stashes (stores) the parameter object in the +@vals+ array.
   #
-  # Ensures that +@deckindex+ remains +nil+ until +shuffle+ is invoked to
+  # Ensures that +@deckindex+ remains nil until +shuffle+ is invoked to
   # "randomize" (sort) +@pile+ into the +@deck+, at which point calling
   # environment can invoke +deal+ and/or +fetch+ to retrieve +@deck+ objects.
   def store( obj )
@@ -130,7 +134,7 @@ class Scramble
     return @vals.size
   end  # store
 
-  # Stashes (stores) each element of @vals into the +@pile+ hash, assigning
+  # Stashes (stores) each element of +@vals+ into the +@pile+ hash, assigning
   # it a random key, and then sorts +@pile+ into +@deck+.  The result is a
   # "randomized sequence" when retrieved sequentially from +@deck+.
   def shuffle
@@ -142,12 +146,12 @@ class Scramble
   end  # shuffle
 
   # Returns "the next" object to caller from +@deck+, keeping internal track of
-  # "next object" via +@deckindex+, or returns +nil+ when the last legitimate
+  # "next object" via +@deckindex+, or returns nil when the last legitimate
   # value has previously been produced and resets internal state to "start over
   # again" (i.e., recycles the sequence of values).
   #
-  # +fetch+ takes a single optional parameter, +valueonly+, which defaults to +true+
-  # to control the return of the object's value (only).  If +valueonly+ is +false+,
+  # +fetch+ takes a single optional parameter, +valueonly+, which defaults to true
+  # to control the return of the object's value (only).  If +valueonly+ is false,
   # then the return value is a +[key,value]+ pair (an array); this is primarily
   # useful for debugging and verification, as in normal use, only the values in
   # randomized order of return are desired.
