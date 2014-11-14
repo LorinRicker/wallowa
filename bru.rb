@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.06 (11/12/2014)"
+  PROGID = "#{PROGNAME} v1.08 (11/13/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -26,7 +26,7 @@ PROGNAME = File.basename $0
 DBGLVL0 = 0
 DBGLVL1 = 1
 DBGLVL2 = 2
-DBGLVL3 = 3
+DBGLVL3 = 3  # reserved for pry-nav &/or binding.pry
 
 # -----
 
@@ -41,6 +41,7 @@ DBGLVL3 = 3
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
 require 'pp'
+require 'pry'
 require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
@@ -62,7 +63,7 @@ def config_save( opt )
 end  # config_save
 
 def excludespec( optfile, deffile, opttext = "" )
-  fil  = optfile ? File.absolute_path( optfile ) : File.absolute_path( deffile )
+  fil  = optfile ? File.expand_path( optfile ) : File.expand_path( deffile )
   fil += '/' if File.directory?( fil ) && fil[-1] != '/'
   opt  = opttext + fil
   fil  = "«not found»" if not File.exists?( fil )
@@ -70,7 +71,7 @@ def excludespec( optfile, deffile, opttext = "" )
 end  # excludespec
 
 def dirspec( optdir, defdir )
-  dir  = optdir ? File.absolute_path( optdir ) : File.absolute_path( defdir )
+  dir  = optdir ? File.expand_path( optdir ) : File.expand_path( defdir )
   dir += '/' if File.directory?( dir ) && dir[-1] != '/'
   return dir
 end  # dirspec
@@ -97,8 +98,7 @@ end  # make_tree
 
 # ==========
 
-options = {
-            :sourcetree => nil,
+options = { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => "none",
             :itemize    => false,
@@ -107,7 +107,7 @@ options = {
             :recover    => false,
             :noop       => false,
             :sudo       => "",
-            :update  => false,
+            :update     => false,
             :verbose    => false
           }
 
@@ -178,6 +178,8 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+binding.pry if options[:debug] >= 3
 
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times
