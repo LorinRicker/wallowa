@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.08 (11/13/2014)"
+  PROGID = "#{PROGNAME} v1.10 (11/14/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -25,9 +25,9 @@ PROGNAME = File.basename $0
 
 DBGLVL0 = 0
 DBGLVL1 = 1
-DBGLVL2 = 2
-DBGLVL3 = 3  # reserved for pry-nav &/or binding.pry
-
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
 # -----
 
 # bru provides a command line driver for routine rsync backup and restore
@@ -41,7 +41,6 @@ DBGLVL3 = 3  # reserved for pry-nav &/or binding.pry
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
 require 'pp'
-require 'pry'
 require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
@@ -64,9 +63,12 @@ end  # config_save
 
 def excludespec( optfile, deffile, opttext = "" )
   fil  = optfile ? File.expand_path( optfile ) : File.expand_path( deffile )
-  fil += '/' if File.directory?( fil ) && fil[-1] != '/'
-  opt  = opttext + fil
-  fil  = "«not found»" if not File.exists?( fil )
+  if File.exists?( fil )
+    opt = opttext + fil
+  else
+    fil = "«not found»"
+    opt = ""
+  end
   return [ fil, opt ]
 end  # excludespec
 
@@ -100,7 +102,7 @@ end  # make_tree
 
 options = { :sourcetree => nil,
             :backuptree => nil,
-            :exclude    => "none",
+            :exclude    => nil,
             :itemize    => false,
             :about      => false,
             :debug      => DBGLVL0,
@@ -125,11 +127,12 @@ optparse = OptionParser.new { |opts|
            "configuration file if --update is also specified" ) do |val|
     options[:backuptree] = val
   end  # -b --sourcetree
-  opts.on( "-e", "--exclude", "=ExcludeFile", String,
+  opts.on( "-e", "--exclude", "[=ExcludeFile]", String,
            "Exclude-file containing files (patterns) to omit",
            "from this backup; if there is no exclude-file,",
-           "specify as '--exclude-file=none'" ) do |val|
-    options[:exclude] = val || "none"
+           "the default is used:",
+           "  #{DEFEXCLFILE}" ) do |val|
+    options[:exclude] = val || DEFEXCLFILE
   end  # -e --exclude
     opts.on( "-i", "--[no-]itemize",
            "Itemize changes (output) during file transfer" ) do |val|
@@ -179,7 +182,12 @@ optparse = OptionParser.new { |opts|
   end  # -? --help
 }.parse!  # leave residue-args in ARGV
 
-binding.pry if options[:debug] >= 3
+#######################################
+if options[:debug] >= 3               #
+  require 'pry'                       #
+  binding.pry if options[:debug] >= 3 #
+end                                   #
+#######################################
 
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times
@@ -188,14 +196,10 @@ rcommon  = "-auh --stats"           # --archive --update --human-readable --stat
 rcommon += " -n" if options[:noop]  # --dry-run
 # Turn on verbose/progress output?
 rverbose  = options[:verbose] ? " --progress" : ""
-rverbose += " --itemize-changes" if options[:itemize]
+rverbose += options[:itemize] ? " --itemize-changes" : ""
 
 # If an exclude-from file is specified (or default) and exists, use it:
-if options[:exclude].locase == "none"
-  exclfile, excloption = "«none»", ""
-else
-  exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
-end
+exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
 
 # If a SourceDirectory is specified, us it rather than the default:
 sourcedir = dirspec( options[:sourcetree], DEFSOURCETREE )
