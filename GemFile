@@ -1,0 +1,47 @@
+# GemFile -- for ~/projects/ruby
+#
+# Don't forget: $ rvm gemset {export|import} backup.gems  ##!!
+
+source 'http://rubygems.org'
+
+gem 'pry'          # also installs: method_source, coderay and slop
+gem 'pry-byebug'   # also installs: debugger-linecache, columnize and byebug
+# gem 'pry-nav'    # don't install pry-nav if using pry-byebug
+
+gem 'rake'
+gem 'rdoc'
+gem 'bundler'
+
+gem 'bigdecimal'
+gem 'json'
+
+# group :test do
+#   gem 'rspec-rails', '>= 2.0.0'
+# end
+
+# ------- Old (global) gems list --------
+# *** LOCAL GEMS ***
+#                            rvm-@global   system-wide
+# bigdecimal (1.2.3)             X              X
+# bundler (1.7.4)                X              X
+# bundler-unload (1.0.2)         X              X
+# byebug (3.5.1)                                X
+# coderay (1.1.0)                X              X
+# columnize (0.8.9)                             X
+# debugger-linecache (1.2.0)                    X
+# executable-hooks (1.3.2)       X              X
+# gem-wrappers (1.2.7)           X              X
+# io-console (0.4.2)             X              X
+# json (1.8.1)                   X              X
+# method_source (0.8.2)                         X
+# minitest (4.7.5)               X              X
+# pry (0.10.1)                                  X
+# pry-byebug (2.0.0)                            X
+# pry-nav (0.2.4)                               X
+# psych (2.0.2)                  X              X
+# rake (10.1.0)                  X              X
+# rdoc (4.1.2, 4.1.0)            X              X
+# rubygems-bundler (1.4.4)       X              X
+# rvm (1.11.3.9)                 X              X
+# slop (3.6.0)                                  X
+# test-unit (2.1.0.0)            X              X
