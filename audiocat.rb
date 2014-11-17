@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.18 (11/10/2014)"
+  PROGID = "#{PROGNAME} v1.29 (11/16/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -82,9 +82,9 @@ require_relative 'lib/FileEnhancements'
 
 DBGLVL0 = 0
 DBGLVL1 = 1
-DBGLVL2 = 2
-DBGLVL3 = 3
-
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
 # ==========
 
 def config_save( opt )
@@ -193,6 +193,13 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
 }.parse!  # leave residue-args in ARGV
 
+#######################################
+if options[:debug] >= 3               #
+  require 'pry'                       #
+  binding.pry if options[:debug] >= 3 #
+end                                   #
+#######################################
+
 # Propagate a couple of implications --
 # (which should *not* be saved in the CONFIGFILE):
 options[:remove] = false if options[:dryrun]      # dryrun always implies keep...
@@ -224,10 +231,10 @@ pat = Regexp.new( /^(.*?)    # any prefix (lazy)  m[1]
                   /ix )      # ..."Lazy" prefix gives _all_ of the first
                              #    digits to the first integer value
 infiles = []
+argfiles = []
 
 ARGV.each do | f |    # Each remaining file in ARGV is an input filespec...
   $stderr.puts "%#{PROGNAME}-I-ARGV, '#{f}'" if options[:debug] > DBGLVL0
-  argfiles = []
   m = pat.match( f )
   if m   # Matched a pattern file-range "lo..hi",
          # so roll thru the file-range here...
@@ -242,15 +249,15 @@ ARGV.each do | f |    # Each remaining file in ARGV is an input filespec...
       zcur = zcur.succ
     end  # while zcur <= zhi
   else
-    Dir.glob( f ).each { |x| argfiles << x }
-    #infiles << File.default_extension( Dir.glob( f ), fext )
+    g = File.extname( f ) != "" ? f : "#{f}#{fext}"
+    Dir.glob( g ).each { |x| argfiles << x }
   end  # if m
   # Careful -- globs with 2 or more wildcards (e.g., "*-{01..32}-*")
   #            can yield duplicate filespecs, so impose uniqueness:
-  argfiles.uniq.each { |x| infiles << x }
 end  # ARGV.each
 
-insize  = infiles.size
+argfiles.uniq.each { |x| infiles << x }
+insize = infiles.size
 pp infiles if options[:debug] > DBGLVL0
 
 fnflag = badflag = false
@@ -284,16 +291,17 @@ when "ogg"
   #        packet number for stream <0> not matching: expected: nnn got 3"
   #      for each segment copied... so shunt the noise to /dev/null/ ...
   noise = options[:debug] <= DBGLVL1 ? "2>/dev/null " : nil
-  cmd = "oggCat #{noise}\"#{outfile}\""
-  infiles.each { |inf| cmd += " \"#{inf}\"" }
+  cmd = "oggCat #{noise}'#{outfile}'"
+  infiles.each { |inf| cmd += " '#{inf}'" }
   $stderr.puts "%#{PROGNAME}-I-ECHO, $ #{cmd}" if options[:debug] > DBGLVL0
   $stdout.puts "%#{PROGNAME}-I-WORKING, be patient - oggCat converting (~15sec/Mb)"
   %x{ #{cmd} }
-  stat = $?
+  stat = $?.exitstatus
   if stat == 0
     delfiles( infiles, options ) if options[:remove]
   else
-    $stderr.puts "%oggCat-E-STAT, exit: #{stat.exitstatus}"
+    $stderr.puts "%#{PROGNAME}-E-STAT, exit: #{stat}"
+    $stderr.puts "-E-INSTALLED, is oggCat (oggvideotools) installed?" if stat == 127
   end  # if stat != 0
 when "mp3"
   if options[:debug] > DBGLVL0
