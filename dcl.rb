@@ -16,13 +16,20 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.01 (10/29/2014)"
+  PROGID = "#{PROGNAME} v2.02 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
 
 # -----
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# ==========
 
 # dcl provides command line (shell) access to a small library of string-
 # transformational routines which are reminiscent of those found in the
@@ -116,7 +123,6 @@ PROGNAME = File.basename DCLNAME                # not "$0" here!...
 #   ...
 #   %dcl-S-created, symlink ~/bin/dclsymlink created
 
-# -----
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'fileutils'
@@ -211,13 +217,8 @@ end  # blend
 
 # ==========
 
-DBGLVL0 = 0
-DBGLVL1 = 1
-DBGLVL2 = 2
-DBGLVL3 = 3
-
 CMD_LINKS = %w{ copy create rename
-                delete purge
+                delete purge search
                 directory show }   # "set" conflicts with bash 'set' command
 FNC_LINKS = %w{ capcase locase upcase titlecase
                 collapse compress
@@ -254,34 +255,47 @@ optparse = OptionParser.new { |opts|
            "Preserves file metadata (owner, permissions, datetimes)" ) do |val|
     options[:preserve] = true
   end  # -p --preserve
-  opts.on( "-v", "--verbose", "--log",
-           "Verbose mode (/LOG)" ) do |val|
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  # --- Debug option ---
   opts.on( "-d", "--debug", "=DebugLevel", Integer,
-           "Show debug information (levels: 1, 2 or 3)" ) do |val|
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
     options[:debug] = val.to_i
   end  # -d --debug
   opts.on( "-l", "--links", "--symlinks",
            "Create or verify symlinks for all functions" ) do |val|
     options[:symlinks] = true
   end  # -l --symlinks --links
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     options[:about] = true
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "  Usage: #{PROGNAME} [options] [ dclfunction ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
+  opts.banner = "\n  Usage: #{PROGNAME} [options] dclfunction"   +
+                "\n\n   where dclfunction is the DCL command or lexical function to execute.\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
     help_available( '  Available commands: ', CMD_LINKS, 8 )
     help_available( ' Available functions: ', FNC_LINKS, 4 )
     options[:help] = true
     exit true
   end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 ## File.check_yaml_dir( CONFIGDIR )
 ## File.configuration_yaml( «+», «+» )
@@ -329,6 +343,7 @@ else
       end
     # when :purge
     # when :directory
+    # when :search  # grep
     # when :show
     else
       $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"

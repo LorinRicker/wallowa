@@ -11,8 +11,15 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (10/15/2012)"
+  PROGID = "#{PROGNAME} v1.2 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# ==========
 
 # Create N-member teams from a class roster file
 
@@ -29,11 +36,6 @@ COMMENTMARK = '#'   # for Ruby, Perl, Python & bash (etc.) source files
 
 STDINFD  = 0
 STDOUTFD = 1
-
-DBGLVL0 = 0
-DBGLVL1 = 1
-DBGLVL2 = 2
-DBGLVL3 = 3
 
 DEFAULT_TN = 2  # default number of members per team (options[:teamsize])
 
@@ -122,27 +124,42 @@ optparse = OptionParser.new { |opts|
            "Number of members on each team" ) do |val|
     options[:teamsize] = val || DEFAULT_TN
   end  # -n -m --members
-  opts.on( "-d", "--debug=[N]", Integer,
-           "Turn on debugging messages (levels)" ) do |val|
-    options[:debug] = val || DBGLVL1
-  end  # -d --debug
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ process-id-string | ... ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     options[:about] = true
     exit true
   end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options] infile" +
+                "\n\n   where infile is the file (path) which contains the pool of names" +
+                "\n   from which to form teams, one name per line.\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 options[:teamsize] = DEFAULT_TN if options[:teamsize] <= 0
 

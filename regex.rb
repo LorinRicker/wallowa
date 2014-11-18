@@ -12,16 +12,23 @@
 # See the file 'gpl' distributed within this project directory tree.
 #
 
+PROGNAME = File.basename $0
+  PROGID = "#{PROGNAME} v1.8 (11/17/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# -----
+
 require 'optparse'  # See "Pickaxe v1.9", p. 776
 require 'readline'  #                   , p. 788
 include Readline    #
 require 'abbrev'    #                   , p. 720
 require_relative 'lib/GetPrompted'
 require_relative 'lib/ANSIseq'
-
-PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.7 (10/15/2014)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   LA = '>'.color(:red)
   RA = '<'.color(:red)
@@ -33,6 +40,8 @@ PROGNAME = File.basename $0
   IND2 = " " * 14
   IND3 = IND1 + IND2
    SEP = "-" * 16
+
+# ===========
 
 def showregex( sstr, rstr, options )
   reopt = ( options[:caseinsensitive] ? Regexp::IGNORECASE : nil )
@@ -74,36 +83,55 @@ def showregex( sstr, rstr, options )
 end  #showregex
 
 # === Main ===
-options = {}  # hash for all com-line options;
-              # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
-              # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
-              # also see "Pickaxe v1.9", p. 776
+options = { :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
-    options[:verbose] = true
-  end
   opts.on( "-i", "--caseinsensitive", "Pattern-matching is case-insensitive" ) do |val|
     options[:caseinsensitive] = true
-  end
-# Actually, these regexp options are impractical for this exerciser:
-#  opts.on( "-e", "--extended", "Ignore spaces and newlines in regexp" ) do |val|
-#    options[:extended] = true
-#    end
-#  opts.on( "-m", "--multiline", "Newlines treated as ordinary character" ) do |val|
-#    options[:multiline] = true
-#    end
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options]       # Ctrl/D or 'exit' to exit"
-  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
-    puts opts
+  end  # -i --caseinsensitive
+  # Actually, these regexp options are impractical for this exerciser:
+  #  opts.on( "-e", "--extended", "Ignore spaces and newlines in regexp" ) do |val|
+  #    options[:extended] = true
+  #    end
+  #  opts.on( "-m", "--multiline", "Newlines treated as ordinary character" ) do |val|
+  #    options[:multiline] = true
+  #    end
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
+    options[:about] = true
     exit true
-  end
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
+  end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options]       # Ctrl/D or 'exit' to exit\n\n"
+  opts.on_tail( "-h", "-?", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
     exit true
   end
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 printf( "Case %ssensitive pattern matching...\n\n", \
         ( options[:caseinsensitive] ? "in".underline : "" ) )

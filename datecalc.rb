@@ -10,25 +10,29 @@
 # See the file 'gpl' distributed within this project directory tree.
 #
 
+PROGNAME = File.basename $0
+  PROGID = "#{PROGNAME} v1.3 (11/17/2014)"
+  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# -----
+
 require 'optparse'        # See "Pickaxe v1.9", p. 776
 require 'pp'
 require_relative 'lib/DateCalc'
 require_relative 'lib/ANSIseq'
 
-PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (10/15/2014)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
-
 # === Main ===
-options = {}  # hash for all com-line options;
-  # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
-  # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
-  # also see "Pickaxe v1.9", p. 776
+options = { :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
-    options[:verbose] = true
-  end  # -v
   opts.on( "-a", "--after", "=N", Integer, "N".underline + " days after " + "date".underline + " is " + "<DATE>".bold ) do |val|
     options[:after] = val
   end  # -A
@@ -44,17 +48,39 @@ optparse = OptionParser.new { |opts|
 #  opts.on( "-«·»", "--«·»", "Description-«·»" ) do |val|
 #    options[:«·»] = «·»
 #  end  # -«·»
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} options [date1 [date2]]"
-  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
-    puts opts
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} options [date1 [date2]]\n\n"
+  opts.on_tail( "-h", "-?", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
     exit true  # status:0
   end  # -h
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    exit true   # ...depends on desired program behavior
-  end  # -a
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 if !ARGV[0]
   ARGV << DateCalc.thisday( "today" ).to_s  # push the default if empty

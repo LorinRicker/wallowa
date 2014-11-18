@@ -108,11 +108,18 @@
 
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.03 (10/27/2014)"
+  PROGID = "#{PROGNAME} v1.04 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# ==========
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
@@ -123,11 +130,6 @@ require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
 
 # ==========
-
-DBGLVL0 = 0
-DBGLVL1 = 1
-DBGLVL2 = 2
-DBGLVL3 = 3
 
 options = {  # hash for all com-line options:
   :keep    => false,
@@ -150,28 +152,40 @@ optparse = OptionParser.new { |opts|
   opts.on( "-n", "--dryrun", "Dry run: do not actually modify files or environment" ) do |val|
     options[:dryrun] = true
   end  # -n --dryrun
-  # --- Debug option ---
-  opts.on( "-d", "--debug=[N]", Integer,
-           "Turn on debugging messages (levels)" ) do |val|
-    options[:debug] = val || DBGLVL1
-  end  # -d --debug
   # --- Verbose option ---
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-  # --- Set the banner & Help option ---
-  opts.banner = "Usage: #{PROGNAME} [options] /media/player/path ./RipLibrary/path"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    exit true
-  end  # -? --help
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
   # --- About option ---
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     exit true
   end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options] /media/player/path ./RipLibrary/path" +
+                "\n\n   The media-player path must be provided first, followed by"      +
+                "\n   the source-path for the music files.\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    exit true
+  end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 # Some options override:
 options[:keep] = true if options[:refresh]

@@ -11,8 +11,15 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 (10/15/2014)"
+  PROGID = "#{PROGNAME} v1.05 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# -----
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'        # See "Pickaxe v1.9", p. 776
@@ -158,10 +165,10 @@ end  # find_envar
 
 # ==========
 
-options = {}  # hash for all com-line options;
-  # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
-  # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
-  # also see "Pickaxe v1.9", p. 776
+options = { :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 optparse = OptionParser.new { |opts|
   opts.on( "-e", "--envar", "--env", "--var",
@@ -184,27 +191,44 @@ optparse = OptionParser.new { |opts|
   opts.on( "-s", "--casesensitive", "--sensitive", "Case sensitive search/matching" ) do |val|
     options[:casesensitive] = true
   end  # -s --casesensitive --sensitive
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ funcname | envarname | ... ]" +
-              "\n       1. Each 'funcname' or 'envarname' can contain wildcard(s) '%'," +
-              "\n          e.g., f% (starts with 'f'), %doc% (containing 'doc')" +
-              "\n       2. Search/matching is case insensitive by default" +
-              "\n       3. -b (both) is implied if neither -f nor -e are asserted"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     options[:about] = true
     exit true
   end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options] [ funcname | envarname | ... ]"     +
+              "\n\n     1. Each 'funcname' or 'envarname' can contain wildcard(s) '%'," +
+              "\n        e.g., f% (starts with 'f'), %doc% (containing 'doc')"          +
+              "\n     2. Search/matching is case insensitive by default"                +
+              "\n     3. -b (both) is implied if neither -f nor -e are asserted\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 ARGV[0] ||= "\\w+"  # default (missing arg) means "any/all"
 

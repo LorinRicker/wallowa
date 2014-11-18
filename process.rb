@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.4 (11/10/2012)"
+  PROGID = "#{PROGNAME} v2.5 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -19,6 +19,13 @@ PROGNAME = File.basename $0
 # trick with the brackets [] sidesteps finding the ps|grep
 # command itself... This does the same thing by *not* finding
 # the process which invokes this command:
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# ==========
 
 # === For command-line arguments & options parsing: ===
 require 'optparse'
@@ -162,22 +169,41 @@ optparse = OptionParser.new { |opts|
   opts.on( "-t", "--test", "Test (rehearse) the kill" ) do |val|
     options[:test] = true
   end  # -t --test
-  opts.on( "-d", "--debug=[N]", "Turn on debugging messages (levels)" ) do |val|
-    options[:debug] = val || 1
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
   end  # -d --debug
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options] [ process-id-string | ... ]"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     options[:about] = true
     exit true
   end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options] [ process-id-string | ... ]" +
+                "\n\n   where process-id-string is any character string to"    +
+                "\n   identify one or more processes to display and/or kill.\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 process( ARGV, options )

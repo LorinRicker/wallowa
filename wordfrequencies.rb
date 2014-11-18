@@ -21,8 +21,15 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.06 10/15/2014"
+  PROGID = "#{PROGNAME} v1.07 11/17/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# -----
 
 STDINFD  = 0
 STDOUTFD = 1
@@ -124,7 +131,11 @@ end
 
 # === Main ===
 options = { :limit => DEFAULT_LIMIT,
-            :size  => 1 }
+            :size  => 1,
+            :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 optparse = OptionParser.new { |opts|
   opts.on( "-l", "--limit", "=N", Integer, "Top N words to report" ) do |val|
@@ -136,27 +147,41 @@ optparse = OptionParser.new { |opts|
   opts.on( "-t", "--trim", "Trim away common words" ) do |val|
     options[:trim] = true
   end  # -t --trim
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
-  end  # -v --debug
-  opts.on( "-d", "--debug", "Debug mode (more output than verbose)" ) do |val|
-    options[:debug] = true
+  end  # -v --verbose
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
   end  # -d --debug
-  # Set the banner:
-  opts.banner = "Usage: #{PROGNAME} [options]" +
-              "\n       Tallies up frequencies of words in a document"
-  opts.on( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
-    options[:help] = true
-    exit true
-  end  # -? --help
-  opts.on( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     options[:about] = true
     exit true
   end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options]" +
+                "\n\n     Tallies the frequencies of words in a document.\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 options[:verbose] = options[:debug] if options[:debug]
 

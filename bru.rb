@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.10 (11/14/2014)"
+  PROGID = "#{PROGNAME} v1.11 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -126,7 +126,7 @@ optparse = OptionParser.new { |opts|
            "the command line; this value will be saved in the",
            "configuration file if --update is also specified" ) do |val|
     options[:backuptree] = val
-  end  # -b --sourcetree
+  end  # -b --backuptree
   opts.on( "-e", "--exclude", "[=ExcludeFile]", String,
            "Exclude-file containing files (patterns) to omit",
            "from this backup; if there is no exclude-file,",
@@ -141,10 +141,14 @@ optparse = OptionParser.new { |opts|
   opts.separator ""
   opts.separator "    The options below are always saved in the configuration file"
   opts.separator "    in their 'off' or 'default' state:"
-  opts.on( "-r", "--recover", "--restore",
-           "Recover (restore) the SourceDirectory from the BackupDir" ) do |val|
+  opts.on( "-R", "--recover", "--restore",
+           "Recover (restore) the SourceDirectory from the BackupDir",
+           "Note: Do not change the values of either --sourcetree or",
+           "      --backuptree... Use the same values as given for",
+           "      the original backup operation; this option properly",
+           "      uses these to restore the BackupDir to SourceDir.\n\n" ) do |val|
     options[:recover] = true
-  end  # -r --recover
+  end  # -R --recover
   opts.on( "-S", "--sudo",
            "Run this backup/restore with sudo" ) do |val|
     options[:sudo] = "sudo"
@@ -160,34 +164,44 @@ optparse = OptionParser.new { |opts|
            "#{CONFIGFILE}" ) do |val|
     options[:update] = true
   end  # -u --update
+  # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  # --- Debug option ---
   opts.on( "-d", "--debug", "=DebugLevel", Integer,
-           "Show debug information (levels: 1, 2 or 3)" ) do |val|
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
     options[:debug] = val.to_i
   end  # -d --debug
+  # --- About option ---
   opts.on_tail( "-a", "--about", "Display program info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     options[:about] = true
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "  Usage: #{PROGNAME} [options] [BackupDir]"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] [BackupDir]" +
+                "\n\n   The target BackupDir (directory) can be specified either as the command"   +
+                "\n   argument or as the value of the option --backuptree.  If both are provided," +
+                "\n   then the command argument is used.  The SourceDir is always specified as"    +
+                "\n   the value of the --sourcetree option.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
-    puts opts
+    $stdout.puts opts
     options[:help] = true
     exit true
   end  # -? --help
 }.parse!  # leave residue-args in ARGV
 
-#######################################
-if options[:debug] >= 3               #
-  require 'pry'                       #
-  binding.pry if options[:debug] >= 3 #
-end                                   #
-#######################################
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times

@@ -12,8 +12,15 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.6 (10/15/2014)"
+  PROGID = "#{PROGNAME} v2.7 (11/17/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# ==========
 
 # YADT := Yet Another Diff-Tool:
 # -----------------------------
@@ -106,22 +113,24 @@ def report( stat, f1, f2, options )
 end  # report
 
 # === Main ===
-options = {  # hash for all com-line options:
-  :diff   => nil,
-  :digest => "SHA1",
-  :width  => nil
-  }
+options = { :diff    => nil,
+            :digest  => "SHA1",
+            :width   => nil,
+            :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
-  opts.on( "-m", "--digest", "=[DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
+  opts.on( "-s", "--digest", "=[DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
            ## %w{ SHA1 SHA256 SHA384 SHA512 MD5 sha1 sha256 sha385 sha512 md5 },
            "Message digest type (SHA1 (d), SHA[256,384,512] or MD5)" ) do |val|
   options[:digest] = val || "SHA1"
-  end  # -m --digest
-  opts.on( "-d", "--dependency", "Dependency (files' mtimes) mode" ) do |val|
+  end  # -s --digest
+  opts.on( "-m", "--dependency", "Dependency (files' mtimes) mode" ) do |val|
     options[:dependency] = true
-  end  # -d --dependency
+  end  # -m --dependency
   opts.on( "-t", "--times", "Include file times (mtime, atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
@@ -131,33 +140,50 @@ optparse = OptionParser.new { |opts|
   opts.on( "-w", "--width", "Terminal display width" ) do |val|
     options[:width] = val.to_i
   end  # -w --width
-  opts.on( "-v", "--verbose", "Verbose mode" ) do |val|
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
   # --- About option ---
-  opts.on( "-a", "--about", "Display program/version info" ) do |val|
-    puts "#{PROGID}"
-    puts "#{AUTHOR}"
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "Usage: #{PROGNAME} [options] [file1] [file2]"
-  opts.on( "-h", "-?", "--help", "Display this help text" ) do |val|
-    puts opts
-    puts "\n  --diff-tool (-u) let's you specify your favorite file comparison"
-    puts "    tool for comparing two files or file-versions.  filecomp knows"
-    puts "    about several *nix command-line and GUI/windows tools, including:"
-    puts "    #{CANDIDATE_TOOLS.to_s}."
-    puts "    Of these, #{EXEC_TOOLS.to_s} are command-line tools, while"
-    puts "    the remainder are GUI/windows tools."
-    puts "\n    Nearly all of these tools (except \"diff\") are optional, and must"
-    puts "    be specifically installed on your system.  Any tools not installed"
-    puts "    will not appear in the prompt-line to invoke the diff-tool; the"
-    puts "    program that you specify with the --diff-tool switch will appear"
-    puts "    as the [default] in that prompt-line, ready for your use."
+  opts.banner = "\n  Usage: #{PROGNAME} [options] file1 file2" +
+                "\n\n   where file1 is compared to file2, and any differences can be reported.\n\n"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    $stdout.puts "\n  --diff-tool (-u) let's you specify your favorite file comparison"
+    $stdout.puts "    tool for comparing two files or file-versions.  filecomp knows"
+    $stdout.puts "    about several *nix command-line and GUI/windows tools, including:"
+    $stdout.puts "    #{CANDIDATE_TOOLS.to_s}."
+    $stdout.puts "    Of these, #{EXEC_TOOLS.to_s} are command-line tools, while"
+    $stdout.puts "    the remainder are GUI/windows tools."
+    $stdout.puts "\n    Nearly all of these tools (except \"diff\") are optional, and must"
+    $stdout.puts "    be specifically installed on your system.  Any tools not installed"
+    $stdout.puts "    will not appear in the prompt-line to invoke the diff-tool; the"
+    $stdout.puts "    program that you specify with the --diff-tool switch will appear"
+    $stdout.puts "    as the [default] in that prompt-line, ready for your use."
     exit true
   end  # -h --help
 }.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
 
 options[:width] ||= TermChar.terminal_width
 
