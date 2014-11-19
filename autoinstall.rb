@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.06 11/17/2014"
+  PROGID = "#{PROGNAME} v1.07 11/18/2014"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -127,8 +127,8 @@ options = {  # hash for all com-line options:
   :help     => nil,
   :about    => nil,
   :dryrun   => nil,
-  :debug    => nil,
-  :verbose  => nil
+  :verbose  => nil,
+  :debug    => DBGLVL0
   }
 
 optparse = OptionParser.new { |opts|
