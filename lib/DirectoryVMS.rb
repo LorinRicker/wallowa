@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.4, 08/28/2014
+# Version 4.7, 11/19/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -125,7 +125,7 @@ class DirectoryVMS
   def filterBefore( fspecs, fdate )
     nspecs = []
     fspecs.each do |f|
-      nspecs << f if File.directory?(f) || File.lstat(f).mtime <= fdate
+      nspecs << f if File.lstat(f).mtime <= fdate
     end
     nspecs
   end  # filterBefore
@@ -133,7 +133,7 @@ class DirectoryVMS
   def filterSince( fspecs, fdate )
     nspecs = []
     fspecs.each do |f|
-      nspecs << f if File.directory?(f) || File.lstat(f).mtime >= fdate
+      nspecs << f if File.lstat(f).mtime >= fdate
     end
     nspecs
   end  # filterSince
@@ -141,7 +141,7 @@ class DirectoryVMS
   def filterLarger( fspecs, fsize )
     nspecs = []
     fspecs.each do |f|
-      nspecs << f if File.directory?(f) || File.lstat(f).size >= fsize
+      nspecs << f if File.lstat(f).size >= fsize
     end
     nspecs
   end  # filterLarger
@@ -149,7 +149,7 @@ class DirectoryVMS
   def filterSmaller( fspecs, fsize )
     nspecs = []
     fspecs.each do |f|
-      nspecs << f if File.directory?(f) || File.lstat(f).size <= fsize
+      nspecs << f if File.lstat(f).size <= fsize
     end
     nspecs
   end  # filterSmaller
