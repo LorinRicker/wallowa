@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.05 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.6 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -21,8 +21,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require_relative 'lib/Prompted'
 require_relative 'lib/TermChar'
 require_relative 'lib/ANSIseq'
@@ -165,9 +164,15 @@ end  # find_envar
 
 # ==========
 
-options = { :verbose => false,
-            :debug   => DBGLVL0,
-            :about   => false
+options = { :envar           => false,
+            :func            => false,
+            :both            => false,
+            :count           => false,
+            :msize           => false,
+            :caseinsensitive => false,
+            :verbose         => false,
+            :debug           => DBGLVL0,
+            :about           => false
           }
 
 optparse = OptionParser.new { |opts|

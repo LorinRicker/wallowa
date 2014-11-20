@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.11 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.2 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -37,8 +37,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # considerably better error-checking, command-line interfacing, robustness
 # and recoverability.
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'fileutils'
 require 'pp'
 require_relative 'lib/StringEnhancements'
@@ -104,13 +103,13 @@ options = { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => nil,
             :itemize    => false,
-            :about      => false,
-            :debug      => DBGLVL0,
             :recover    => false,
             :noop       => false,
             :sudo       => "",
             :update     => false,
-            :verbose    => false
+            :verbose    => false,
+            :debug      => DBGLVL0,
+            :about      => false
           }
 
 options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) )

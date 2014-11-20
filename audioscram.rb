@@ -108,7 +108,7 @@
 
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.04 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.5 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -121,8 +121,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # ==========
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'pp'
 require 'fileutils'
 require_relative 'lib/Scramble'
@@ -131,14 +130,13 @@ require_relative 'lib/FileEnhancements'
 
 # ==========
 
-options = {  # hash for all com-line options:
-  :keep    => false,
-  :help    => false,
-  :about   => false,
-  :dryrun  => false,
-  :debug   => DBGLVL0,
-  :verbose => false
-  }
+options = { :keep    => false,
+            :help    => false,
+            :dryrun  => false,
+            :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---

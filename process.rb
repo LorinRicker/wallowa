@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.6 (11/18/2014)"
+  PROGID = "#{PROGNAME} v2.7 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -27,7 +27,6 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # ==========
 
-# === For command-line arguments & options parsing: ===
 require 'optparse'
 require 'pp'
 require_relative 'lib/Prompted'
@@ -146,9 +145,11 @@ end  # process
 
 # ==========
 
-options = { signal:   "KILL",
-            platform: nil,
-            debug:    DBGLVL0
+options = { :signal   => "KILL",
+            :platform => nil,
+            :verbose  => false,
+            :debug    => DBGLVL0,
+            :about    => false
           }
 
 optparse = OptionParser.new { |opts|

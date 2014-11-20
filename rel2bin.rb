@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.9 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -21,8 +21,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'fileutils'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
@@ -43,7 +42,11 @@ require_relative 'lib/AskPrompted'
 #         default "~/bin"), file's protection mode and its uid:gid
 #         ownership are set/reset as needed.
 
-options = { :verbose => false,
+options = { :bin     => nil,
+            :mode    => nil,
+            :strip   => nil,
+            :test    => nil,
+            :verbose => false,
             :debug   => DBGLVL0,
             :about   => false
           }

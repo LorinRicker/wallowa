@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.07 11/17/2014"
+  PROGID = "#{PROGNAME} v1.8 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -34,7 +34,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 STDINFD  = 0
 STDOUTFD = 1
 
-DEFAULT_LIMIT = 10
+DEFAULT_LIMIT = 20
 
 TRIM_COMMON_WORDS = %w{ a an and but or not at as by between
                         to too also
@@ -58,8 +58,8 @@ TRIM_COMMON_WORDS = %w{ a an and but or not at as by between
                         ''
                       }.sort
 
-require 'pp'
 require 'optparse'
+require 'pp'
 
 # ============
 

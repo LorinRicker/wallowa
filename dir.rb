@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.6 (11/17/2014)"
+  PROGID = "#{PROGNAME} v4.7 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -22,7 +22,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # ==========
 
 # === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 
 # === File directory listing, VMS-style: ===
 require 'time'
@@ -32,10 +32,8 @@ require_relative 'lib/DirectoryVMS'
 require_relative 'lib/DateCalc'
 
 # === Main ===
-options = { :about    => false,
-            :bytesize => false,
+options = { :bytesize => false,
             :before   => false,
-            :debug    => DBGLVL0,
             :full     => false,
             :grand    => false,
             :hidden   => false,
@@ -46,11 +44,10 @@ options = { :about    => false,
             :recurse  => false,
             :reverse  => false,
             :times    => false,
-            :verbose  => false
-          }  # hash for all com-line options;
-  # see http://www.ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
-  # and http://ruby.about.com/od/advancedruby/a/optionparser.htm ;
-  # also see "Pickaxe v1.9", p. 776
+            :verbose  => false,
+            :debug    => DBGLVL0,
+            :about    => false
+          }
 
 optparse = OptionParser.new { |opts|
   opts.on( "-b", "--bytesize", "List file sizes in bytes (default is K, M, G, etc.)" ) do |val|

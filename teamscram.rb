@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.3 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -23,7 +23,6 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 # Create N-member teams from a class roster file
 
-# === For command-line arguments & options parsing: ===
 require 'optparse'
 require 'pp'
 require_relative 'lib/Scramble'
@@ -115,8 +114,10 @@ end
 
 # ==========
 
-options = { teamsize: 2,   # Number of members on each team
-            debug:      DBGLVL0
+options = { :teamsize => 2,   # Default number of members on each team
+            :verbose  => false,
+            :debug    => DBGLVL0,
+            :about    => false
           }
 
 optparse = OptionParser.new { |opts|

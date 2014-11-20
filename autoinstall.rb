@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.07 11/18/2014"
+  PROGID = "#{PROGNAME} v1.8 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -36,8 +36,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'pp'
 require 'fileutils'
 require_relative 'lib/ANSIseq'
@@ -117,19 +116,17 @@ end  # aptgetinstall
 defpif = Dir.glob("./Package Installation*.list").first ||
          "./Package Installation.list"
 
-options = {  # hash for all com-line options:
-  :pif      => "#{defpif}",
-  :logf     => "",
-  :rollover => nil,
-  :yes      => nil,
-  :testonly => nil,
-  :echoonly => nil,
-  :help     => nil,
-  :about    => nil,
-  :dryrun   => nil,
-  :verbose  => nil,
-  :debug    => DBGLVL0
-  }
+options = { :pif      => "#{defpif}",
+            :logf     => "",
+            :rollover => nil,
+            :yes      => nil,
+            :testonly => nil,
+            :echoonly => nil,
+            :dryrun   => nil,
+            :verbose  => nil,
+            :debug    => DBGLVL0,
+            :about    => nil
+          }
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---

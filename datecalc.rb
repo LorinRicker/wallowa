@@ -11,7 +11,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.3 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.4 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -21,7 +21,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'pp'
 require_relative 'lib/DateCalc'
 require_relative 'lib/ANSIseq'

@@ -13,7 +13,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.9 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -23,10 +23,10 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
-require 'optparse'  # See "Pickaxe v1.9", p. 776
-require 'readline'  #                   , p. 788
-include Readline    #
-require 'abbrev'    #                   , p. 720
+require 'optparse'
+require 'readline'
+include Readline
+require 'abbrev'
 require_relative 'lib/GetPrompted'
 require_relative 'lib/ANSIseq'
 
@@ -83,9 +83,10 @@ def showregex( sstr, rstr, options )
 end  #showregex
 
 # === Main ===
-options = { :verbose => false,
-            :debug   => DBGLVL0,
-            :about   => false
+options = { :caseinsensitive => false,
+            :verbose         => false,
+            :debug           => DBGLVL0,
+            :about           => false
           }
 
 optparse = OptionParser.new { |opts|

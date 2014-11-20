@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.20 (11/17/2014)"
+  PROGID = "#{PROGNAME} v1.3 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -80,8 +80,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # ==========
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'pp'
 require 'fileutils'
 require_relative 'lib/ANSIseq'
@@ -143,15 +142,15 @@ end  # delfiles
 
 # ==========
 
-options = {  # hash for all com-line options:
-  :help   => false,
-  :about  => false,
-  :type   => "mp3",    # Set specific flags for YAML...
-  :save   => false,
-  :dryrun => false,
-  :remove => false,
-  :debug  => DBGLVL0
-  }
+options = { :help    => false,
+            :type    => "mp3",
+            :save    => false,
+            :dryrun  => false,
+            :remove  => false,
+            :verbose => false,
+            :debug   => DBGLVL0,
+            :about   => false
+          }
 
 options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) )
 

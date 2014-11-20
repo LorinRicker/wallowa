@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.7 (11/17/2014)"
+  PROGID = "#{PROGNAME} v2.8 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -42,9 +42,7 @@ CANDIDATE_TOOLS = %w{ cmp dhex diff fldiff kdiff3 kompare meld }
   # Note: tried 'hexdiff', but found it too buggy to use...
   #       but 'dhex' is very nice, both for hex diffing and editing.
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
-
+require 'optparse'
 require_relative 'lib/FileComparison'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/Prompted'
@@ -113,6 +111,7 @@ def report( stat, f1, f2, options )
 end  # report
 
 # === Main ===
+
 options = { :diff    => nil,
             :digest  => "SHA1",
             :width   => nil,

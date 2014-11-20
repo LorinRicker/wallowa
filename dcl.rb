@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.02 (11/17/2014)"
+  PROGID = "#{PROGNAME} v2.1 (11/19/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -123,8 +123,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 #   ...
 #   %dcl-S-created, symlink ~/bin/dclsymlink created
 
-# === For command-line arguments & options parsing: ===
-require 'optparse'        # See "Pickaxe v1.9", p. 776
+require 'optparse'
 require 'fileutils'
 require 'pp'
 require_relative 'lib/StringEnhancements'
@@ -231,14 +230,13 @@ FNC_LINKS = %w{ capcase locase upcase titlecase
                 dclsymlink }
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
-options = {
-            :about       => false,
-            :debug       => DBGLVL0,
-            :interactive => false,
+options = { :interactive => false,
             :noop        => false,
             :preserve    => false,
             :links       => false,
-            :verbose     => false
+            :verbose     => false,
+            :debug       => DBGLVL0,
+            :about       => false
           }
 
 optparse = OptionParser.new { |opts|
