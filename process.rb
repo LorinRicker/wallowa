@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.7 (11/19/2014)"
+  PROGID = "#{PROGNAME} v2.8 (11/22/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -97,10 +97,10 @@ end  # kill_it
 
 def process( args, options )
   options[:os] = identify_os
-  STDERR.puts "%#{PROGNAME}-i-os, '#{options[:os]}' operating system" if options[:debug]
+  STDERR.puts "%#{PROGNAME}-i-os, '#{options[:os]}' operating system" if options[:debug] >= DBGLVL1
   # Switch immediately to testing-mode if the identified OpSys <> the com-line requested one...
   options[:test] = true if options[:platform] && options[:platform] != options[:os]
-  STDERR.puts "options: #{options}" if options[:debug]
+  STDERR.puts "options: #{options}" if options[:debug] >= DBGLVL1
 
   # Set-up for terminal dimensions, especially varying width:
   termdim = TermChar.terminal_dimensions( options[:verbose] )
