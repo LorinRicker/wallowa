@@ -4,7 +4,7 @@
 # how-many-chords-on-piano.rb
 #
 # Copyright (C) 2012-2014 Lorin Ricker <lorin@rickernet.us>
-# Version: 0.6, 10/15/2014
+# Version: 1.0, 11/21/2014
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -74,7 +74,6 @@ require_relative 'lib/StringEnhancements'
                                 # which now holds [0!,1!,2!,3!,...88!].
                                 # All subsequent "calculations" of any
                                 # n! are now simply array-lookups.
-  puts "\n88! = ", FACTORIAL88.thousands if ARGV[0]
 
   def chordCombos( nk )
     FACTORIAL88 / ( n!(nk) * n!(PIANO_KEYS - nk) )
@@ -86,13 +85,23 @@ require_relative 'lib/StringEnhancements'
     return totchords
   end  # numKeyChords
 
+  def how_many( title, chords )
+    puts "\n#{title}",
+      "#{chords.thousands} (or #{sprintf("%6.2e",chords)}), which is",
+      "#{chords.numbernames} chords."
+  end  # how_many
 
+# ==========
 chordsByKeys = Hash.new  # chordCombos by #-of-keys
 
 # Calculate hash of #-of-chords for each #-of-keys:
 (PIANO_KEYS+1).times { |p| chordsByKeys[p] = chordCombos(p) }
 
-pp chordsByKeys if ARGV[0]
+if ARGV[0]  # any non-nil argument will dump...
+  puts "\n88! = #{FACTORIAL88.thousands} (or #{sprintf("%6.2e",FACTORIAL88)})\n\n"
+  puts "#{FACTORIAL88.numbernames}\n\n"
+  pp chordsByKeys
+end
 
 # Total up the grand-total number of possible chords:
 totalChords = numKeyChords( chordsByKeys, PIANO_KEYS )
@@ -109,18 +118,14 @@ fiveKeyChords = numKeyChords( chordsByKeys, 5 )
 # twenty fingers on four human hands (either one or two pianos):
 twentyKeyChords = numKeyChords( chordsByKeys, 20 )
 
-puts "\nGrand total number of possible chords on an #{PIANO_KEYS}-key piano:",
-   totalChords.thousands,
-   "...considerably more than 309-septillion chords (#{sprintf("%6.2e",totalChords)})"
+how_many( "Grand total number of possible chords on an #{PIANO_KEYS}-key piano:",
+          totalChords )
 
-puts "\nNumber of possible chords playable by two hands (ten fingers):",
-   tenKeyChords.thousands,
-   "...over 5-trillion chords (#{sprintf("%6.2e",tenKeyChords)})"
+how_many( "Number of possible chords playable by two hands (ten fingers):",
+          tenKeyChords )
 
-puts "\nNumber of possible chords playable by one hand (five fingers):",
-   fiveKeyChords.thousands,
-   "...over 41.6-million chords (#{sprintf("%6.2e",fiveKeyChords)})"
+how_many( "Number of possible chords playable by one hand (five fingers):",
+          fiveKeyChords )
 
-puts "\nNumber of possible chords playable by four hands (twenty fingers):",
-   twentyKeyChords.thousands,
-   "...over 42.8-quintillion chords (#{sprintf("%6.2e",twentyKeyChords)})"
+how_many( "Number of possible chords playable by four hands (twenty fingers):",
+          twentyKeyChords )
