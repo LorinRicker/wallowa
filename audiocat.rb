@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.3 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.4 (11/30/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -276,6 +276,11 @@ infiles.each do | inf |   # Validate each input file...
       $stderr.puts "%#{PROGNAME}-E-BADMAGIC, wrong file signature: #{binf}"
       badflag = true
     end  # if ! File.verify_magicnumber( inf )
+    if inf.index( "'" )
+      $stderr.puts "%#{PROGNAME}-E-BADCHAR, apostrophe == single-quote,"
+      $stderr.puts " -W-RENAME, rename file to remove single-quote character(s)"
+      badflag = true
+    end  # if inf.index()
   else
     $stderr.puts "%#{PROGNAME}-E-FNF, file not found: #{binf}"
     fnflag = true
