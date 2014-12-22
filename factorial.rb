@@ -6,7 +6,8 @@
 # Copyright (C) 2011-2015 Lorin Ricker <lorin@rickernet.us>
 # Version: 0.5, 06/04/2014
 # Version: 0.6, 06/24/2014, adds Permutation and Combination
-# Version: 0.7, 12/17/2014, addes "Main -- test driver" test-case
+# Version: 0.8, 12/21/2014, adds "Main -- test driver" test-case
+#                           and tests for 52! and 120!
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -52,9 +53,13 @@ alias :comb :combination
 
 # Main -- test driver:
 if $0 == __FILE__ then
-  # The following calculated value for 120! (a 201-digit value)is an
-  #   independent evaluation from https://en.wikipedia.org/wiki/OCaml
-  # If this prints 'true', then we've got a pretty good cross-check...
-  puts n!(120).to_s ==
+  # The following calculated values for 120! (a 201-digit value) is an
+  #   independent evaluation from https://en.wikipedia.org/wiki/OCaml;
+  #   the value for 52! (a 68-digit value), the number of distinct shuffles
+  #   of 52-cards is from en.wikipedia.org/wiki/Orders_of_magnitude_(numbers)
+  # If these print 'true', then we've got a pretty good cross-check...
+  puts "120! calculation passed" if n!(120).to_s ==
     "6689502913449127057588118054090372586752746333138029810295671352301633557244962989366874165271984981308157637893214090552534408589408121859898481114389650005964960521256960000000000000000000000000000"
+  puts " 52! calculation passed" if n!(52) ==
+     80658175170943878571660636856403766975289505440883277824000000000000
 end
