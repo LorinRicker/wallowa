@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (11/19/2014)"
+  PROGID = "#{PROGNAME} v2.0 (12/23/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -39,6 +39,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'pp'
 require 'fileutils'
+require_relative 'lib/dpkg_utils'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/StringEnhancements'
 require_relative 'lib/TimeEnhancements'
@@ -280,28 +281,18 @@ File.open( logf, "a" ) do | logoutf |
           next   # Echoing, so just output the parsed PIFline-data... next line...
         end
 
-        # dpkg-query outputs on both stdout and stderr, so redirect stderr>stdout:
-        cmd = "dpkg-query --show --showformat='${Package} [${Version}] ${Status}' #{package} 2>&1"
-        is_installed = %x{ #{cmd} }
-        # dpkg-query returns (as Process::Status $? or English::$CHILD_STATUS)
-        #   exit status == 0 if package is installed (success),
-        #               == 1 if package is *not* found/installed (fail):
-        install_it = ( $?.success? ) ? false : true
-
         # Is this package not-yet-installed? If so, install it,
         # otherwise, report it as previously installed:
-        puts "is_installed: '#{is_installed}' (Process::Status: #{$?})" if options[:debug]
-
-        if install_it               # package not installed, so crank it in...
+        installed = package_installed?( package )
+        if not installed       # so crank it in...
           aptgetinstall( logoutf, package, ask, ppa, inqcomment, options )
         else
-          msg = "Installed --> '#{is_installed}'"
+          msg = "Installed (#{installed}) --> #{package} is already installed"
           STDOUT.puts msg if options[:verbose]
           logoutf.puts msg
         end
 
       end  # inf.lines
-
     end  # File.open inf
 
   else  # got command-line parameters...
@@ -310,7 +301,11 @@ File.open( logf, "a" ) do | logoutf |
       package, flags, ppa, inqcomment = Array.new( 4, "" )  # start sane each interation
       param = ARGV.shift
       package, flags, ppa, inqcomment = param.split(FIELDSYM).each { |fld| fld.strip! }
-      aptgetinstall( logoutf, package, false, ppa, inqcomment, options )
+      if not package_installed?( package )
+        aptgetinstall( logoutf, package, false, ppa, inqcomment, options )
+      else
+        STDOUT.puts "Installed --> #{package} is already installed"
+      end
     end while ARGV[0]
 
   end  # ! ARGV[0] ...No command-line parameters?
