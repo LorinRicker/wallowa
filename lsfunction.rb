@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.6 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.7 (12/24/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -22,6 +22,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # -----
 
 require 'optparse'
+require_relative 'lib/dpkg_utils'
 require_relative 'lib/Prompted'
 require_relative 'lib/TermChar'
 require_relative 'lib/ANSIseq'
@@ -165,7 +166,7 @@ end  # find_envar
 # ==========
 
 options = { :envar           => false,
-            :func            => false,
+            :func            => true,   # default is show functions
             :both            => false,
             :count           => false,
             :msize           => false,
@@ -181,7 +182,7 @@ optparse = OptionParser.new { |opts|
     options[:envar] = true
   end  # -e --envar --env --var
   opts.on( "-f", "--func", "--function",
-           "List function definition(s)" ) do |val|
+           "List function definition(s) (default)" ) do |val|
     options[:func] = true
   end  # -f --func --function
   opts.on( "-b", "--both", "List both function and environment variable definition(s)" ) do |val|
@@ -235,6 +236,9 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+# do both!...
+options[:func] = options[:envar] = true if options[:both]
+
 ARGV[0] ||= "\\w+"  # default (missing arg) means "any/all"
 
 # Global counters, not the best Ruby, but expedient and simple here:
@@ -250,8 +254,6 @@ ARGV.each do | arg |
   # We just echo these lines with minimal amendment:
   lines = %x{ bash -c set }.split( "\n" )  # an array of lines
 
-  # if neither -e nor -f is asserted, or -b is, do both!...
-  both = options[:both] || ( !options[:func] && !options[:envar] )
   find_func( lines, arg, options )  if options[:func]  || both
   find_envar( lines, arg, options ) if options[:envar] || both
 
