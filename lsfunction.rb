@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.7 (12/24/2014)"
+  PROGID = "#{PROGNAME} v1.8 (12/29/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -254,7 +254,7 @@ ARGV.each do | arg |
   # We just echo these lines with minimal amendment:
   lines = %x{ bash -c set }.split( "\n" )  # an array of lines
 
-  find_func( lines, arg, options )  if options[:func]  || both
-  find_envar( lines, arg, options ) if options[:envar] || both
+  find_func( lines, arg, options )  if options[:func]
+  find_envar( lines, arg, options ) if options[:envar]
 
 end  # ARGV.each
