@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.4 (12/30/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -102,6 +102,7 @@ end  # make_tree
 options = { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => nil,
+            :checksum   => nil,
             :itemize    => false,
             :recover    => false,
             :noop       => false,
@@ -133,7 +134,11 @@ optparse = OptionParser.new { |opts|
            "  #{DEFEXCLFILE}" ) do |val|
     options[:exclude] = val || DEFEXCLFILE
   end  # -e --exclude
-    opts.on( "-i", "--[no-]itemize",
+  opts.on( "-c", "--checksum",
+           "Use checksum for file differences (not mod-time & size)" ) do |val|
+    options[:checksum] = val
+  end  # -c --checksum
+  opts.on( "-i", "--[no-]itemize",
            "Itemize changes (output) during file transfer" ) do |val|
     options[:itemize] = val
   end  # -i --itemize
@@ -206,7 +211,9 @@ end                           #
 # note that --archive = --recursive --perms --links --times
 #                       --owner --group --devices --specials
 rcommon  = "-auh --stats"           # --archive --update --human-readable --stats
-rcommon += " -n" if options[:noop]  # --dry-run
+rcommon += " --checksum" if options[:checksum]
+rcommon += " --dry-run"  if options[:noop]
+
 # Turn on verbose/progress output?
 rverbose  = options[:verbose] ? " --progress" : ""
 rverbose += options[:itemize] ? " --itemize-changes" : ""
@@ -214,17 +221,17 @@ rverbose += options[:itemize] ? " --itemize-changes" : ""
 # If an exclude-from file is specified (or default) and exists, use it:
 exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
 
-# If a SourceDirectory is specified, us it rather than the default:
+# If a SourceDirectory is specified, use it rather than the default:
 sourcedir = dirspec( options[:sourcetree], DEFSOURCETREE )
 
 # If a BackupDirectory is specified, use it rather than the default;
-# the --backuptree spec, if given, trumps ARGV[0]:
+# if given, the --backuptree spec trumps ARGV[0]:
 options[:backuptree] ||= ARGV[0]
 backupdir = dirspec( options[:backuptree], DEFBACKUPTREE )
 
 # The full rsync command with options:
 rsync  = "#{options[:sudo]} rsync #{rcommon}#{rverbose}#{excloption} "
-# Operation:                 v-- Restoration ----------v   v-- Backup ---------------v
+# Operation:                 v-- Restore --------------v   v-- Backup ---------------v
 rsync += options[:recover] ? "#{backupdir} #{sourcedir}" : "#{sourcedir} #{backupdir}"
 
 # Update the config-file, at user's request:
