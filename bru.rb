@@ -3,7 +3,7 @@
 
 # bru.rb
 #
-# Copyright © 2012-14 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (12/30/2014)"
+  PROGID = "#{PROGNAME} v1.5 (01/02/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -102,8 +102,10 @@ end  # make_tree
 options = { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => nil,
-            :checksum   => nil,
+            :checksum   => false,
+            :stats      => false,
             :itemize    => false,
+            :progress   => false,
             :recover    => false,
             :noop       => false,
             :sudo       => "",
@@ -138,8 +140,16 @@ optparse = OptionParser.new { |opts|
            "Use checksum for file differences (not mod-time & size)" ) do |val|
     options[:checksum] = val
   end  # -c --checksum
+  opts.on( "-t", "--[no-]stats",
+           "display summary statistics at end of file transfer" ) do |val|
+    options[:stats] = val
+  end  # -t --stats
+  opts.on( "-p", "--[no-]progress",
+           "display file progress during file transfer" ) do |val|
+    options[:progress] = val
+  end  # -p --progress
   opts.on( "-i", "--[no-]itemize",
-           "Itemize changes (output) during file transfer" ) do |val|
+           "Itemize changes during file transfer" ) do |val|
     options[:itemize] = val
   end  # -i --itemize
   opts.separator ""
@@ -210,13 +220,14 @@ end                           #
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times
 #                       --owner --group --devices --specials
-rcommon  = "-auh --stats"           # --archive --update --human-readable --stats
+rcommon  = "-auh"     # --archive --update --human-readable
+rcommon += " --stats" if options[:stats] || options[:verbose]
 rcommon += " --checksum" if options[:checksum]
 rcommon += " --dry-run"  if options[:noop]
 
 # Turn on verbose/progress output?
-rverbose  = options[:verbose] ? " --progress" : ""
-rverbose += options[:itemize] ? " --itemize-changes" : ""
+rverbose  = options[:progress] ? " --progress" : ""
+rverbose += options[:itemize]  ? " --itemize-changes" : ""
 
 # If an exclude-from file is specified (or default) and exists, use it:
 exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
@@ -237,16 +248,18 @@ rsync += options[:recover] ? "#{backupdir} #{sourcedir}" : "#{sourcedir} #{backu
 # Update the config-file, at user's request:
 config_save( options ) if options[:update]
 
-if options[:debug] >= DBGLVL2
+if options[:verbose] || options[:debug] >= DBGLVL1
   op = options[:recover] ? "Recover <=" : "Backup =>"
+  $stderr.puts "\n           Operation:  #{op.underline.color(:blue)}"
+  $stderr.puts "  Full rsync command: '$#{rsync.color(:blue)}'\n\n"
+end
+if options[:debug] >= DBGLVL2
   $stderr.puts "\n           CONFIGDIR: '#{CONFIGDIR.color(:green)}'"
   $stderr.puts "          CONFIGFILE: '#{CONFIGFILE.color(:green)}'"
   $stderr.puts "         DEFEXCLFILE: '#{DEFEXCLFILE.color(:red)}'"
   $stderr.puts "  Actual excludefile: '#{exclfile.color(:red)}'"
   $stderr.puts "    Source directory: '#{sourcedir.color(:purple)}'"
   $stderr.puts "    Backup directory: '#{backupdir.color(:purple)}'"
-  $stderr.puts "           Operation:  #{op.underline.color(:blue)}"
-  $stderr.puts "  Full rsync command: '$#{rsync.color(:blue)}'\n\n"
 end
 
 if options[:recover]
