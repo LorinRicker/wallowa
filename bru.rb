@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (01/02/2015)"
+  PROGID = "#{PROGNAME} v1.6 (01/06/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -270,6 +270,18 @@ else
   make_tree( "Backup", backupdir, options ) if not File.exists?( backupdir )
 end
 
+# If it's a "short-list" of files to transfer, the %x{} method returns rsync
+# output lines at end-of-subprocess, works well enough.  But if the file-list
+# is long/big, rsync will work for "a long time" to completion before any
+# output is available for print here...
+# But what about:
+#  %x{ #{rsync} }  "Returns standard output of running command in subshell." (synchronous)
+#  exec( rsync )   "Replaces current process by running the given command."  (chains)     NOPE
+#  spawn( rsync )  "Executes command in subshell, returning immediately."    (asynchronous) ??
+#  system( rsync ) "Executes command in subshell..."                         (synchronous)  ??
 %x{ #{rsync} }.lines { |ln| $stdout.puts ln }
 
-exit true
+exitstatus = $?.exitstatus
+$stderr.puts "%#{PROGNAME}-i-status, rsync completion status: #{exitstatus}"
+
+exit exitstatus  # provide rsync's exit status to calling environment
