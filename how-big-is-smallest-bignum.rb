@@ -24,17 +24,20 @@ end  # bsprogress
 
 def binary_search( report, lo = 1, hi = 2**128 )
   iter = 0
-  while lo <= hi
+  while lo < hi
     iter += 1
     mid = ( hi - lo ).div( 2 ) + lo
     bsprogress( iter, lo, mid, hi ) if report && iter % report == 0
     return [ mid, iter ] if ( (mid-1).kind_of? Fixnum ) && ( mid.kind_of? Bignum )
     (mid-1).kind_of?( Bignum ) ? hi = mid : lo = mid
   end  # while
+  # Loop termination is lo == hi, so getting here means we didn't find the edge:
+  raise "%binary_search-F-failed, failed to find Fixnum/Bignum edge"
 end  # binary_search
 
-# require 'pry'   # This hangs around just in case
-# binding.pry     # we want to step through code...
+# This hangs around just in case we want to step through code...
+# require 'pry'
+# binding.pry
 
 # A non-nil ARGV[0] gives us a "stride" to report progress
 #   through the binary search (every 1 or every 10, etc.);
