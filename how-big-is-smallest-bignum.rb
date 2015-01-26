@@ -3,8 +3,8 @@
 
 # how-big-is-smallest-bignum.rb
 #
-# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version info: see PROGID below...
+# Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.1, 01/25/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -12,7 +12,7 @@
 
 # -----
 
-require_relative 'lib/StringEnhancements'
+require_relative 'lib/ppstrnum'
 
 def bsprogress( iter, lo, mid, hi )
   slo  = "l: #{lo.thousands} #{lo.class};"

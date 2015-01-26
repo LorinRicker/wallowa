@@ -3,7 +3,7 @@
 
 # dcl.rb
 #
-# Copyright © 2012-14 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-15 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.1 (11/19/2014)"
+  PROGID = "#{PROGNAME} v2.2 (01/25/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -126,6 +126,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'fileutils'
 require 'pp'
+require_relative 'lib/ppstrnum'
 require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'

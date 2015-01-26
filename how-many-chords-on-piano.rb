@@ -3,8 +3,8 @@
 
 # how-many-chords-on-piano.rb
 #
-# Copyright (C) 2012-2014 Lorin Ricker <lorin@rickernet.us>
-# Version: 1.0, 11/21/2014
+# Copyright (C) 2012-2015 Lorin Ricker <lorin@rickernet.us>
+# Version: 1.1, 01/25/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -65,7 +65,7 @@
 
 require 'pp'
 require_relative 'factorial'
-require_relative 'lib/StringEnhancements'
+require_relative 'lib/ppstrnum'
 
   PIANO_KEYS  = 88
   FACTORIAL88 = n!(PIANO_KEYS)  # value used many times, also doing this
