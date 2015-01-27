@@ -3,7 +3,7 @@
 
 # rel2bin.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.9 (11/19/2014)"
+  PROGID = "#{PROGNAME} v2.0 (01/26/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -127,12 +127,14 @@ ARGV.each do | sfile |
   # Determine whether or not to strip the filename's extension
   # based on whether the source file name is all lower-case
   # (it'll be a command-file name, so strip the file extension),
-  # or it's Mixed-Case (it's typically an include or require
-  # file, so don't strip the file extension)...
+  # or it's a library sub-dir (it's a require or include file,
+  # so do not(!) strip the file extension)...
   sflang   = File.parse_shebang( sffull )
   shellscr = [ '.sh', '.csh' ].index( sfext )
-  # Is this a library/require/include file? MixedCaseFileName is the tip-off --
-  libfile  = sfbase.isMixedCase?
+  # Is this a library/require/include file?
+  #   A trailing "/lib" is telltale, but
+  #   MixedCaseFileName is a tip-off, too --
+  libfile  = sfdir =~ /\/lib$/ || sfbase.isMixedCase?
   nameonly = ! libfile || shellscr || options[:strip]
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, sflang: '#{sflang}', nameonly: #{nameonly}" if options[:verbose]
 
