@@ -13,11 +13,12 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.7 (01/27/2015)"
+  PROGID = "#{PROGNAME} v1.8 (01/27/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
+  CONFIGTYPE = ".yaml.rc"
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
-  CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )
+  CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}#{CONFIGTYPE}" )
 
   DEFEXCLFILE   = File.join( CONFIGDIR, 'common_rsync.excl' )
   DEFSOURCETREE = File.join( '/home', ENV['USER'], "" )  # ensure a trailing '/'
@@ -46,19 +47,6 @@ require_relative 'lib/ANSIseq'
 require_relative 'lib/AskPrompted'
 
 # ==========
-
-def config_save( opt )
-  # opt is a local copy of options, so we can patch a few
-  # values without disrupting the original/global hash --
-  opt[:about]     = false
-  opt[:debug]     = DBGLVL0
-  opt[:recover]   = false
-  opt[:noop]      = false
-  opt[:sudo]      = ""
-  opt[:update]    = false
-  opt[:verbose]   = false
-  AppConfig.configuration_yaml( CONFIGFILE, opt, true )  # force the save/update
-end  # config_save
 
 def excludespec( optfile, deffile, opttext = "" )
   fil  = optfile ? File.expand_path( optfile ) : File.expand_path( deffile )
@@ -99,60 +87,65 @@ end  # make_tree
 
 # ==========
 
-options = { :sourcetree => nil,
+# params will always be saved/used to/from a config-file (YAML) --
+params =  { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => nil,
             :checksum   => false,
             :stats      => false,
             :itemize    => false,
-            :progress   => false,
-            :recover    => false,
+            :progress   => false
+          }
+
+# options are *never* saved/used to/from a config-file --
+options = { :recover    => false,
             :noop       => false,
             :sudo       => "",
-            :update     => false,
+            :use        => nil,
+            :write      => nil,
             :verbose    => false,
             :debug      => DBGLVL0,
             :about      => false
           }
 
 # Consume the *default* config-file --
-options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) ) if File.exist?( CONFIGFILE )
+params.merge!( AppConfig.configuration_yaml( CONFIGFILE, params ) ) if File.exist?( CONFIGFILE )
 
 # Parse the command line --
 optparse = OptionParser.new { |opts|
   opts.on( "-s", "--sourcetree", "=SourceDir", String,
            "Source directory tree" ) do |val|
-    options[:sourcetree] = val
+    params[:sourcetree] = val
   end  # -s --sourcetree
   opts.on( "-b", "--backuptree", "=BackupDir", String,
            "(optional) Backup directory tree - If specified, this",
            "value overrides any other backup directory given on",
            "the command line; this value will be saved in the",
            "configuration file if --update is also specified" ) do |val|
-    options[:backuptree] = val
+    params[:backuptree] = val
   end  # -b --backuptree
-  opts.on( "-e", "--exclude", "[=ExcludeFile]", String,
+  opts.on( "-e ExcludeFile", "--exclude", String,
            "Exclude-file containing files (patterns) to omit",
            "from this backup; if there is no exclude-file,",
            "your personal default exclude-file is used:",
            "  #{DEFEXCLFILE}" ) do |val|
-    options[:exclude] = val || DEFEXCLFILE
+    params[:exclude] = val || DEFEXCLFILE
   end  # -e --exclude
   opts.on( "-c", "--checksum",
            "Use checksum for file differences (not mod-time & size)" ) do |val|
-    options[:checksum] = val
+    params[:checksum] = val
   end  # -c --checksum
   opts.on( "-t", "--[no-]stats",
            "display summary statistics at end of file transfer" ) do |val|
-    options[:stats] = val
+    params[:stats] = val
   end  # -t --stats
   opts.on( "-p", "--[no-]progress",
            "display file progress during file transfer" ) do |val|
-    options[:progress] = val
+    params[:progress] = val
   end  # -p --progress
   opts.on( "-i", "--[no-]itemize",
            "Itemize changes during file transfer" ) do |val|
-    options[:itemize] = val
+    params[:itemize] = val
   end  # -i --itemize
   opts.separator ""   # ---------
   opts.separator "    The options below are always saved in the configuration file"
@@ -169,12 +162,24 @@ optparse = OptionParser.new { |opts|
            "Run this backup/restore with sudo" ) do |val|
     options[:sudo] = "sudo "
   end  # -S --sudo
-  opts.on( "-u", "--update", "--save",
-           "Update (save) the configuration file; a configuration",
-           "file is automatically created if it doesn't exist:",
-           "#{CONFIGFILE}" ) do |val|
-    options[:update] = true
-  end  # -u --update
+  opts.on( "-U ConfigFile", "--use", "--read", String,
+           "Use (read) a configuration file which was",
+           "previously saved in #{CONFIGDIR}/" ) do |val|
+    cfile = File.extname( val ) == '' ? val + CONFIGTYPE : val
+    if File.exist?( File.expand_path( cfile, CONFIGDIR ) )
+      options[:use] = cfile
+    else
+      $stderr.puts "%#{PROGNAME}-e-fnf, configuration file #{cfile} not found"
+      exit false
+    end
+  end  # -U --use --read
+  opts.on( "-C [ConfigFile]", "--write", "--save", String,
+           "Write (save) the configuration file from the current",
+           "command line options (default: #{CONFIGFILE})" ) do |val|
+    cfile = File.basename( val.to_s ) == '' ? CONFIGFILE : val.to_s
+    cfile = File.extname( cfile ) == '' ? cfile + CONFIGTYPE : cfile
+    options[:write]  = cfile || CONFIGFILE
+  end  # -C --write --save
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
@@ -219,38 +224,42 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+# If a BackupDirectory is specified, use it rather than the default;
+# if given, the --backuptree spec trumps ARGV[0]:
+params[:backuptree] ||= ARGV[0]
+backupdir = dirspec( params[:backuptree], DEFBACKUPTREE )
+
+# Use (read) a named config-file --
+AppConfig.configuration_yaml( options[:write], params, true ) if options[:write]
+# And (re)save a named config-file (might be a different filename than options[:write]) --
+options.merge!( AppConfig.configuration_yaml( options[:use], params ) ) if options[:use]
+
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times
 #                       --owner --group --devices --specials
 rcommon  = "-auhm"     # --archive --update --human-readable --prune-empty-dirs
-rcommon += " --stats" if options[:stats] || options[:verbose]
-rcommon += " --checksum" if options[:checksum]
+rcommon += " --stats" if params[:stats] || options[:verbose]
+rcommon += " --checksum" if params[:checksum]
 rcommon += " --dry-run"  if options[:noop]
 
 # Turn on progress output? Using --info=FLAGS rather than --progress (etc)
-# See man rsync and rsync --info=help for details:
-rverbose  = options[:progress] ? " --info=progress1,backup1" : ""
-rverbose += options[:itemize]  ? " --itemize-changes" : ""
+# See man rsync and rsync --info=help for details --
+rverbose  = params[:progress] ? " --info=progress1,backup1" : ""
+rverbose += params[:itemize]  ? " --itemize-changes" : ""
 
-# If an exclude-from file is specified (or default) and exists, use it:
-exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
+# If an exclude-from file is specified (or default) and exists, use it --
+exclfile, excloption = excludespec( params[:exclude], DEFEXCLFILE, " --exclude-from=" )
 
-# If a SourceDirectory is specified, use it rather than the default:
-sourcedir = dirspec( options[:sourcetree], DEFSOURCETREE )
+# If a SourceDirectory is specified, use it rather than the default --
+sourcedir = dirspec( params[:sourcetree], DEFSOURCETREE )
 
-# If a BackupDirectory is specified, use it rather than the default;
-# if given, the --backuptree spec trumps ARGV[0]:
-options[:backuptree] ||= ARGV[0]
-backupdir = dirspec( options[:backuptree], DEFBACKUPTREE )
-
-# Update the config-file, at user's request:
-config_save( options ) if options[:update]
-
-# The full rsync command with options:
+# Form the full rsync command with options --
+#   Here's where we swap sourcedir<-->backupdir for a restore, if needed --
 rsync  = " #{options[:sudo]}/usr/bin/rsync #{rcommon}#{rverbose}#{excloption} "
 # Operation:                 v-- Restore --------------v   v-- Backup ---------------v
 rsync += options[:recover] ? "#{backupdir} #{sourcedir}" : "#{sourcedir} #{backupdir}"
 
+# Sanity check/display if the user's asked for this --
 if options[:verbose] || options[:debug] >= DBGLVL1
   op = options[:recover] ? "Recover <=" : "Backup =>"
   $stderr.puts "\n           Operation:  #{op.underline.color(:blue)}"
@@ -265,6 +274,7 @@ if options[:debug] >= DBGLVL2
   $stderr.puts "    Backup directory: '#{backupdir.color(:purple)}'"
 end
 
+# Check directory-trees' existence, make the target dir-tree if its missing --
 if options[:recover]
   dir_error( "Backup", backupdir          ) if not File.exists?( backupdir )
   make_tree( "Source", sourcedir, options ) if not File.exists?( sourcedir )
@@ -279,20 +289,9 @@ end
 # output lines at end-of-subprocess, works well enough.  But if the file-list
 # is long/big, rsync will work for "a long time" to completion before any
 # output is available for print here...
-#  %x{ #{rsync} }  "Returns standard output of running command in subshell." (synchronous)
-#  exec( rsync )   "Replaces current process by running the given command."  (chains)
-if ! options[:progress] && ! options[:itemize]
-  # Quiet-mode, so just fork the child process and let it cook...
-  #   output any stat/summary lines (indented, just to show-off)
-  $stderr.puts "%#{PROGNAME}-i-subproc_working, wait..."
-  %x{ #{rsync} }.lines { |ln| $stdout.puts "    #{ln}" }
-  exitstatus = $?.exitstatus
-  $stderr.puts "\n%#{PROGNAME}-i-status, rsync completion status: #{exitstatus}"
-  exit exitstatus  # provide rsync's exit status to calling environment
-else
-  # Progress-verbose output requested, so chain rsync
-  #   so it dumps its output to terminal...
-  $stderr.puts "%#{PROGNAME}-i-exec_working, rsync output..."
-  exec( rsync )
-  # There is no return from exec() ...so we are done!
-end
+# This is now a job for IO.popen()...
+$stderr.puts "%#{PROGNAME}-i-popen_working, rsync output..."
+
+IO.popen( rsync ) { |p| p.readlines.each { |ln| $stdout.puts "  | #{ln}" } }
+
+exit true
