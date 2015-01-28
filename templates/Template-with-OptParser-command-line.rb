@@ -4,7 +4,7 @@
 # «·».rb
 #
 # Copyright © 2012-2015 Lorin Ricker <lorin@rickernet.us>
-# Version 0.1, «·»/«·»/2015
+# Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
