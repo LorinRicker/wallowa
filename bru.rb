@@ -3,7 +3,7 @@
 
 # bru.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.6 (12/14/2014)"
+  PROGID = "#{PROGNAME} v1.7 (01/27/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -275,9 +275,24 @@ end
 
 # === Execute the external command ===
 
-%x{ #{rsync} }.lines { |ln| $stdout.puts "    #{ln}" }
-
-exitstatus = $?.exitstatus
-$stderr.puts "\n%#{PROGNAME}-i-status, rsync completion status: #{exitstatus}"
-
-exit exitstatus  # provide rsync's exit status to calling environment
+# If it's a "short-list" of files to transfer, the %x{} method returns rsync
+# output lines at end-of-subprocess, works well enough.  But if the file-list
+# is long/big, rsync will work for "a long time" to completion before any
+# output is available for print here...
+#  %x{ #{rsync} }  "Returns standard output of running command in subshell." (synchronous)
+#  exec( rsync )   "Replaces current process by running the given command."  (chains)
+if ! options[:progress] && ! options[:itemize]
+  # Quiet-mode, so just fork the child process and let it cook...
+  #   output any stat/summary lines (indented, just to show-off)
+  $stderr.puts "%#{PROGNAME}-i-subproc_working, wait..."
+  %x{ #{rsync} }.lines { |ln| $stdout.puts "    #{ln}" }
+  exitstatus = $?.exitstatus
+  $stderr.puts "\n%#{PROGNAME}-i-status, rsync completion status: #{exitstatus}"
+  exit exitstatus  # provide rsync's exit status to calling environment
+else
+  # Progress-verbose output requested, so chain rsync
+  #   so it dumps its output to terminal...
+  $stderr.puts "%#{PROGNAME}-i-exec_working, rsync output..."
+  exec( rsync )
+  # There is no return from exec() ...so we are done!
+end
