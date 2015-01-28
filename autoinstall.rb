@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
 # autoinstall.rb
@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.0 (12/23/2014)"
+  PROGID = "#{PROGNAME} v2.1 (01/27/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0

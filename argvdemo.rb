@@ -1,9 +1,9 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
 # argvdemo.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2012-2015 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below
 #
 # This program is free software, under the terms and conditions of the
@@ -25,7 +25,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.5 (11/25/2014)"
+  PROGID = "#{PROGNAME} v0.6 (01/27/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
