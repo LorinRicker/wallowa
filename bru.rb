@@ -41,7 +41,6 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'fileutils'
 require 'pp'
-require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/AskPrompted'
@@ -174,8 +173,9 @@ optparse = OptionParser.new { |opts|
     end
   end  # -U --use --read
   opts.on( "-C [ConfigFile]", "--write", "--save", String,
-           "Write (save) the configuration file from the current",
-           "command line options (default: #{CONFIGFILE})" ) do |val|
+           "Write (save) the configuration file from",
+           "the current #{PROGNAME} command line's options",
+           "(default: #{CONFIGFILE})" ) do |val|
     cfile = File.basename( val.to_s ) == '' ? CONFIGFILE : val.to_s
     cfile = File.extname( cfile ) == '' ? cfile + CONFIGTYPE : cfile
     options[:write]  = cfile || CONFIGFILE
@@ -290,6 +290,7 @@ end
 # is long/big, rsync will work for "a long time" to completion before any
 # output is available for print here...
 # This is now a job for IO.popen()...
+$stderr.puts "\n%#{PROGNAME}-i-noop, ======= DRY-RUN MODE =======".color(:red) if options[:noop]
 $stderr.puts "%#{PROGNAME}-i-popen_working, rsync output..."
 
 IO.popen( rsync ) { |p| p.readlines.each { |ln| $stdout.puts "  | #{ln}" } }
