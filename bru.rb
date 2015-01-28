@@ -3,7 +3,7 @@
 
 # bru.rb
 #
-# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.6 (01/06/2015)"
+  PROGID = "#{PROGNAME} v1.6 (12/14/2014)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -115,8 +115,10 @@ options = { :sourcetree => nil,
             :about      => false
           }
 
-options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) )
+# Consume the *default* config-file --
+options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) ) if File.exist?( CONFIGFILE )
 
+# Parse the command line --
 optparse = OptionParser.new { |opts|
   opts.on( "-s", "--sourcetree", "=SourceDir", String,
            "Source directory tree" ) do |val|
@@ -132,7 +134,7 @@ optparse = OptionParser.new { |opts|
   opts.on( "-e", "--exclude", "[=ExcludeFile]", String,
            "Exclude-file containing files (patterns) to omit",
            "from this backup; if there is no exclude-file,",
-           "the default is used:",
+           "your personal default exclude-file is used:",
            "  #{DEFEXCLFILE}" ) do |val|
     options[:exclude] = val || DEFEXCLFILE
   end  # -e --exclude
@@ -152,7 +154,7 @@ optparse = OptionParser.new { |opts|
            "Itemize changes during file transfer" ) do |val|
     options[:itemize] = val
   end  # -i --itemize
-  opts.separator ""
+  opts.separator ""   # ---------
   opts.separator "    The options below are always saved in the configuration file"
   opts.separator "    in their 'off' or 'default' state:"
   opts.on( "-R", "--recover", "--restore",
@@ -165,19 +167,19 @@ optparse = OptionParser.new { |opts|
   end  # -R --recover
   opts.on( "-S", "--sudo",
            "Run this backup/restore with sudo" ) do |val|
-    options[:sudo] = "sudo"
+    options[:sudo] = "sudo "
   end  # -S --sudo
-  opts.on( "-n", "--noop", "--dryrun", "--test",
-           "Dry-run (test & display, no-op) mode" ) do |val|
-    options[:noop]  = true
-    options[:verbose] = true  # Dry-run implies verbose...
-  end  # -n --noop
   opts.on( "-u", "--update", "--save",
            "Update (save) the configuration file; a configuration",
            "file is automatically created if it doesn't exist:",
            "#{CONFIGFILE}" ) do |val|
     options[:update] = true
   end  # -u --update
+  opts.on( "-n", "--noop", "--dryrun", "--test",
+           "Dry-run (test & display, no-op) mode" ) do |val|
+    options[:noop]  = true
+    options[:verbose] = true  # Dry-run implies verbose...
+  end  # -n --noop
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
@@ -220,13 +222,14 @@ end                           #
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times
 #                       --owner --group --devices --specials
-rcommon  = "-auh"     # --archive --update --human-readable
+rcommon  = "-auhm"     # --archive --update --human-readable --prune-empty-dirs
 rcommon += " --stats" if options[:stats] || options[:verbose]
 rcommon += " --checksum" if options[:checksum]
 rcommon += " --dry-run"  if options[:noop]
 
-# Turn on verbose/progress output?
-rverbose  = options[:progress] ? " --progress" : ""
+# Turn on progress output? Using --info=FLAGS rather than --progress (etc)
+# See man rsync and rsync --info=help for details:
+rverbose  = options[:progress] ? " --info=progress1,backup1" : ""
 rverbose += options[:itemize]  ? " --itemize-changes" : ""
 
 # If an exclude-from file is specified (or default) and exists, use it:
@@ -240,13 +243,13 @@ sourcedir = dirspec( options[:sourcetree], DEFSOURCETREE )
 options[:backuptree] ||= ARGV[0]
 backupdir = dirspec( options[:backuptree], DEFBACKUPTREE )
 
-# The full rsync command with options:
-rsync  = "#{options[:sudo]} rsync #{rcommon}#{rverbose}#{excloption} "
-# Operation:                 v-- Restore --------------v   v-- Backup ---------------v
-rsync += options[:recover] ? "#{backupdir} #{sourcedir}" : "#{sourcedir} #{backupdir}"
-
 # Update the config-file, at user's request:
 config_save( options ) if options[:update]
+
+# The full rsync command with options:
+rsync  = " #{options[:sudo]}/usr/bin/rsync #{rcommon}#{rverbose}#{excloption} "
+# Operation:                 v-- Restore --------------v   v-- Backup ---------------v
+rsync += options[:recover] ? "#{backupdir} #{sourcedir}" : "#{sourcedir} #{backupdir}"
 
 if options[:verbose] || options[:debug] >= DBGLVL1
   op = options[:recover] ? "Recover <=" : "Backup =>"
@@ -270,18 +273,11 @@ else
   make_tree( "Backup", backupdir, options ) if not File.exists?( backupdir )
 end
 
-# If it's a "short-list" of files to transfer, the %x{} method returns rsync
-# output lines at end-of-subprocess, works well enough.  But if the file-list
-# is long/big, rsync will work for "a long time" to completion before any
-# output is available for print here...
-# But what about:
-#  %x{ #{rsync} }  "Returns standard output of running command in subshell." (synchronous)
-#  exec( rsync )   "Replaces current process by running the given command."  (chains)     NOPE
-#  spawn( rsync )  "Executes command in subshell, returning immediately."    (asynchronous) ??
-#  system( rsync ) "Executes command in subshell..."                         (synchronous)  ??
-%x{ #{rsync} }.lines { |ln| $stdout.puts ln }
+# === Execute the external command ===
+
+%x{ #{rsync} }.lines { |ln| $stdout.puts "    #{ln}" }
 
 exitstatus = $?.exitstatus
-$stderr.puts "%#{PROGNAME}-i-status, rsync completion status: #{exitstatus}"
+$stderr.puts "\n%#{PROGNAME}-i-status, rsync completion status: #{exitstatus}"
 
 exit exitstatus  # provide rsync's exit status to calling environment
