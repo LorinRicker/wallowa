@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (01/27/2015)"
+  PROGID = "#{PROGNAME} v1.9 (02/01/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -41,6 +41,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'fileutils'
 require 'pp'
+require_relative 'lib/appconfig'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/AskPrompted'

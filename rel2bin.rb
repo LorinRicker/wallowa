@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.0 (01/26/2015)"
+  PROGID = "#{PROGNAME} v2.1 (02/01/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -23,6 +23,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 require 'optparse'
 require 'fileutils'
+require_relative 'lib/filemagic'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/StringEnhancements'
@@ -129,7 +130,7 @@ ARGV.each do | sfile |
   # (it'll be a command-file name, so strip the file extension),
   # or it's a library sub-dir (it's a require or include file,
   # so do not(!) strip the file extension)...
-  sflang   = File.parse_shebang( sffull )
+  sflang   = sffull.parse_shebang
   shellscr = [ '.sh', '.csh' ].index( sfext )
   # Is this a library/require/include file?
   #   A trailing "/lib" is telltale, but
@@ -170,9 +171,9 @@ ARGV.each do | sfile |
 
   # Determine if over-copying another script with a different shebang;
   # warn if so... if same shebangs, then proceed...
-  # Note: File.parse_shebang returns nil if target file does not exists,
+  # Note: parse_shebang returns nil if target file does not exists,
   #       so this copy-test should succeed, not fail!
-  tflang = File.parse_shebang( tffull ) || sflang
+  tflang = tffull.parse_shebang || sflang
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, tflang: '#{tflang}'" if options[:verbose]
   if sflang != tflang
     $stderr.puts "#{bangprefix}mismatched shebang values in source and target files"
@@ -184,8 +185,8 @@ ARGV.each do | sfile |
   if tfexists   # Check digests only if the target file exists...
                 # otherwise, we're making the first copy to tfdir!
     # Check for identical contents... no need to copy if same file...
-    sfdigest = File.msgdigest( sffull )
-    tfdigest = File.msgdigest( tffull )
+    sfdigest = sffull.msgdigest
+    tfdigest = tffull.msgdigest
     if sfdigest == tfdigest
       $stderr.puts "#{testprefix}msg-digest source==target, no copy for #{sfbase}" if options[:test]
       next

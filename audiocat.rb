@@ -3,7 +3,7 @@
 
 # audiocat.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (11/30/2014)"
+  PROGID = "#{PROGNAME} v1.5 (02/01/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -83,6 +83,8 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'pp'
 require 'fileutils'
+require_relative 'lib/appconfig'
+require_relative 'lib/filemagic'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
 
@@ -272,10 +274,10 @@ infiles.each do | inf |   # Validate each input file...
   binf = File.basename(inf)
   if File.exists?( inf )
     $stderr.puts "%#{PROGNAME}-I-INFILE, '#{binf}'" if options[:verbose]
-    if ! File.verify_magicnumber( inf, options[:type] )
+    if ! inf.verify_magicnumber( options[:type] )
       $stderr.puts "%#{PROGNAME}-E-BADMAGIC, wrong file signature: #{binf}"
       badflag = true
-    end  # if ! File.verify_magicnumber( inf )
+    end  # if
     if inf.index( "'" )
       $stderr.puts "%#{PROGNAME}-E-BADCHAR, apostrophe == single-quote,"
       $stderr.puts " -W-RENAME, rename file to remove single-quote character(s)"

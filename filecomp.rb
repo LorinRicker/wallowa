@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.8 (11/19/2014)"
+  PROGID = "#{PROGNAME} v2.9 (02/01/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -44,6 +44,7 @@ CANDIDATE_TOOLS = %w{ cmp dhex diff fldiff kdiff3 kompare meld }
 
 require 'optparse'
 require_relative 'lib/FileComparison'
+require_relative 'lib/filemagic'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/Prompted'
 require_relative 'lib/ANSIseq'
