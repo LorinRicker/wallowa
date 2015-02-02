@@ -3,8 +3,8 @@
 
 # FileComparison.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.5, 10/08/2014
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 2.6, 02/01/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -24,12 +24,12 @@ def fileComparison( f1, f2, options )
 
   f1_mtime  = File.mtime(f1)
   f1_size   = File.size(f1)
-  # Method msgdigest is monkeypatch defined in FileEnhancements.rb --
-  f1_digest = File.msgdigest( f1, options[:digest] )
+  # Method msgdigest defined in lib/filemagic.rb --
+  f1_digest = f1.msgdigest( options[:digest] )
 
   f2_mtime  = File.mtime(f2)
   f2_size   = File.size(f2)
-  f2_digest = File.msgdigest( f2, options[:digest] )
+  f2_digest = f2.msgdigest( options[:digest] )
   if options[:dependency]
     # Files are mtime-dependent --
     # true: test that Src-file is _older_ than Tar-file
