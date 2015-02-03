@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.9 (02/01/2015)"
+  PROGID = "#{PROGNAME} v3.0 (02/02/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -50,70 +50,9 @@ require_relative 'lib/Prompted'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/TermChar'
 
-def is_app_installed?( app, options )
-  response = %x{ whereis #{app} }.chomp.split(' ')
-  puts "$ whereis #{app}: #{response}" if options[:verbose]
-  return response[1] != nil
-end  # is_app_installed?
-
-def which_diff( options )
-  # Test: is the candidate-app installed?  If so, add it to diffs array:
-  diffs = []
-  CANDIDATE_TOOLS.each { |c| diffs << c if is_app_installed?( c, options ) }
-  # Setup readline completions vocabulary, and prompt user for "Which app?"
-  difftools = app_cmd_completions( diffs )
-  # Prefer the user-spec'd options[:diff] as the default diff-tool,
-  # else just use kompare (if its installed) or diff (always installed)...
-  if not ( defdiff = difftools[options[:diff]] )  # assignment!!
-    defdiff = diffs.index('kompare') ? 'kompare' : 'diff'
-  end
-  diff = getprompted( "Diff-tool #{diffs.to_s.color(:dkgray)}", defdiff )
-  diff = difftools[diff]  # Get fully-expanded command from hash...
-  exit true if diff == "exit" || diff == "quit"
-  # User could have entered "foobar" for all we know...
-  # sanity-check the response -- is diff in diffs?
-  if not diffs.index( diff )
-    $stderr.puts "%#{PROGNAME}-e-unsupported, no such diff-tool '#{diff}'"
-    exit true
-  end
-  case diff.to_sym  # a couple of special cases...
-  when :cmp  then diff = "#{diff} -b --verbose"           # all bytes
-  when :dhex then diff = "#{diff} -f ~/.dhexrc"
-  when :diff then diff = "#{diff} -yW#{options[:width]}"  # parallel, width
-  end  # case
-  return [ diff, "/usr/bin/#{diff.downcase} 2>/dev/null" ]
-end  # which_diff
-
-def ask_diff( f1, f2, options )
-  if askprompted( "Launch a diff-tool on these files" )
-    progname, launchstr = which_diff( options )
-    cmd = "#{launchstr} '#{f1}' '#{f2}'"
-    msg = "launching #{progname.underline.color(:dkgray)}..."
-    sep = ('=' * options[:width]).color(:red)
-    if EXEC_TOOLS.index(progname.split(' ')[0])
-      # These com-line tools can run directly in same XTerm session/context --
-      puts "\n#{sep}\n#{msg}\n\n"
-      exec( cmd )
-    else
-      # Launch these tools as child/subproc and as independent windows
-      # (same as invoking from com-line, e.g.:  $ kompare & ) --
-      puts msg
-      spawn( cmd )
-    end
-  end
-end  # ask_diff
-
-def report( stat, f1, f2, options )
-  sep = stat ? "==".bold.color(:cyan) : "<>".bold.color(:red)
-  puts "'#{f1}' #{sep} '#{f2}'"
-  ask_diff( f1, f2, options ) if ! stat
-  # User will exit getprompted() with Ctrl-D or Ctrl-Z,
-  # which _always_exits_with_ status:0 ...
-end  # report
-
 # === Main ===
 
-options = { :diff    => nil,
+options = { :diff    => 'meld',
             :digest  => "SHA1",
             :width   => nil,
             :verbose => false,
@@ -194,19 +133,18 @@ f2 = ARGV[1] || ""
 # === The utility process itself: ===
 if f1 == ""
   # The prompt-loop-continuous mode:
-  while ( f1 = getprompted( "file 1", f1 ) )
-    f2 = getprompted( "file 2", f2 )
-    f2 = File.inherit_basename( f1, f2 )
-    stat = fileComparison( f1, f2, options )
-    report( stat, f1, f2, options )
+  while ( f1 = getprompted( "file1", f1 ) )
+    f2 = getprompted( "file2", f2 )
+    # In this interactive mode, >do not< replace the string that the user has
+    # entered with full filespec, so that f2 can be reused as next default:
+    fc = File.inherit_basename( f1, f2 )
+    stat = fileComparison( f1, fc, options )
   end # while
 else
   # The do-once-then-exit (command-line) mode:
-  # Got the first file f1, conditionally prompt for the second file f2:
-  f2 = getprompted( "file 2", f2 ) if f2 == ""
+  # Got the first file f1, prompt for the second file f2 if not provided:
+  f2 = getprompted( "file2", f2 ) if f2 == ""
   f2 = File.inherit_basename( f1, f2 )
   stat = fileComparison( f1, f2, options )
-  report( stat, f1, f2, options )
-  xstat = stat ? true : false    # don't hand nil to exit...
-  exit xstat  # true:0 (same) or false:1 (different)
+  exit stat ? true : false
 end  # if f1 == ""

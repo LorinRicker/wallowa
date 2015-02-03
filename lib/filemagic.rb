@@ -4,7 +4,7 @@
 # filemagic.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 02/01/2015
+# Version 1.1, 02/02/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -59,6 +59,41 @@ module FileMagic
       Digest::SHA1.hexdigest( File.binread( fname ) )
     end  # case
   end  # msgdigest
+
+  # Use standard file utility to determine file-type by magic number
+  def filemagic
+    fname = self
+    magic = Array.new
+    # The code specification (and man-page) for the file utility stipulate that
+    # its output *must* include one of the words 'text', 'executable' or 'data'
+    # for each file examined. However, it looks like this "standard" has been
+    # ignored for years, so any output which fails to include one of these key
+    # words has to be categorized as "unkn[own]", unless special cases can be
+    # determined --
+    cmd = "/usr/bin/file -bL #{fname}"
+                         # --brief, just the file-type text-report is output
+                         # --dereference, follow any symlink to file
+    magic[1] = %x{ #{cmd} }.chomp.strip
+    stat = $?.exitstatus
+    if stat == 0
+      case magic[1]
+      when /\btext\b/i
+        magic[0] = 'text'
+      when /\bexecutable\b/i, /\bbyte-compiled\b/i
+        magic[0] = 'exec'
+      when /\bdata\b/i, /\bdatabase\b/i, /\bdocument\b/i
+        magic[0] = 'data'
+      when /\bempty\b/i
+        magic[0] = 'empty'
+      else
+        magic[0] = 'unknown'
+      end  # case
+      return magic  # ['file-original-type-msg','category']
+    else
+      $stderr.puts "%file_magic-e-fnf, cannot do: '#{cmd}'"
+      return [nil,nil]
+    end
+  end  # filemagic
 
   # Verify & report the "Unix magic number" file identification signature
   def verify_magicnumber( fext = nil, echo = nil )
