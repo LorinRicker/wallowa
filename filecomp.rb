@@ -3,7 +3,7 @@
 
 # filecomp.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.0 (02/02/2015)"
+  PROGID = "#{PROGNAME} v3.1 (02/03/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -37,10 +37,10 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # >>> Update one or both of these constants if/when you add YADT!   <<<
 # >>> Also be sure to update the help-text for OptionParse's --help <<<
      EXEC_TOOLS = %w{ cmp dhex diff }
-CANDIDATE_TOOLS = %w{ cmp dhex diff fldiff kdiff3 kompare meld }
+CANDIDATE_TOOLS = EXEC_TOOLS + %w{ fldiff kdiff3 kompare meld }
 
   # Note: tried 'hexdiff', but found it too buggy to use...
-  #       but 'dhex' is very nice, both for hex diffing and editing.
+  #       but 'dhex' is usable for hex diffing (and editing).
 
 require 'optparse'
 require_relative 'lib/FileComparison'
@@ -52,7 +52,7 @@ require_relative 'lib/TermChar'
 
 # === Main ===
 
-options = { :diff    => 'meld',
+options = { :tool    => 'meld',
             :digest  => "SHA1",
             :width   => nil,
             :verbose => false,
@@ -62,8 +62,7 @@ options = { :diff    => 'meld',
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
-  opts.on( "-s", "--digest", "=[DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
-           ## %w{ SHA1 SHA256 SHA384 SHA512 MD5 sha1 sha256 sha385 sha512 md5 },
+  opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
            "Message digest type (SHA1 (d), SHA[256,384,512] or MD5)" ) do |val|
   options[:digest] = val || "SHA1"
   end  # -s --digest
@@ -73,10 +72,10 @@ optparse = OptionParser.new { |opts|
   opts.on( "-t", "--times", "Include file times (mtime, atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
-  opts.on( "-u", "--diff-tool", "=TOOL", "Which diff-tool to use" ) do |val|
-    options[:diff] = val.downcase
-  end  # -t --diff-tool
-  opts.on( "-w", "--width", "Terminal display width" ) do |val|
+  opts.on( "-u", "--tool=TOOL", "Which diff-tool to use" ) do |val|
+    options[:tool] = val.downcase
+  end  # -u --tool --diff-tool
+  opts.on( "-w", "--width=WIDTH", "Terminal display width" ) do |val|
     options[:width] = val.to_i
   end  # -w --width
   # --- Verbose option ---
@@ -102,17 +101,17 @@ optparse = OptionParser.new { |opts|
                 "\n\n   where file1 is compared to file2, and any differences can be reported.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
-    $stdout.puts "\n  --diff-tool (-u) let's you specify your favorite file comparison"
-    $stdout.puts "    tool for comparing two files or file-versions.  filecomp knows"
-    $stdout.puts "    about several *nix command-line and GUI/windows tools, including:"
+    $stdout.puts "\n    --tool (-u) let's you specify your favorite file comparison tool"
+    $stdout.puts "    for comparing two files or file-versions.  filecomp knows about"
+    $stdout.puts "    several *nix command-line and GUI/windows tools, including:"
     $stdout.puts "    #{CANDIDATE_TOOLS.to_s}."
     $stdout.puts "    Of these, #{EXEC_TOOLS.to_s} are command-line tools, while"
     $stdout.puts "    the remainder are GUI/windows tools."
-    $stdout.puts "\n    Nearly all of these tools (except \"diff\") are optional, and must"
-    $stdout.puts "    be specifically installed on your system.  Any tools not installed"
-    $stdout.puts "    will not appear in the prompt-line to invoke the diff-tool; the"
-    $stdout.puts "    program that you specify with the --diff-tool switch will appear"
-    $stdout.puts "    as the [default] in that prompt-line, ready for your use."
+    $stdout.puts "\n    Nearly all of these tools (except \"diff\") are optional, and must be"
+    $stdout.puts "    manually installed on your system.  Any diffie-tools not installed will"
+    $stdout.puts "    not appear in the prompt-line to invoke the diff-tool; the program that"
+    $stdout.puts "    you specify with the --tool option will appear as the [default] choice"
+    $stdout.puts "    in that prompt-line, ready for your use."
     exit true
   end  # -h --help
 }.parse!  # leave residue-args in ARGV
@@ -126,7 +125,6 @@ end                           #
 
 options[:width] ||= TermChar.terminal_width
 
-options[:digest] ||= "SHA1"
 f1 = ARGV[0] || ""  # completely empty args will be nil here, ensure "" instead
 f2 = ARGV[1] || ""
 

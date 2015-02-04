@@ -4,7 +4,7 @@
 # FileComparison.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 02/02/2015
+# Version 3.1, 02/03/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -53,92 +53,96 @@ def fileComparison( fname1, fname2, options )
   equalcksum = f1[:digest] == f2[:digest]
   fcompare   = ( equalmagic && equalsizes && equalcksum )
   fcompare   = ( equaltimes && fcompare ) if options[:times]
-  ftext      = ( f1[:type] == 'text' && f2[:type] == 'text' )  # binary files
+  textfiles  = ( f1[:type] == 'text' && f2[:type] == 'text' )  # binary files
 
   if options[:verbose]
-    printf "   f1: %-40s %2s  f2: %-40s\n", f1[:name], separator( equaltimes ), f2[:name]
+    $stdout.printf "   f1: %-40s %2s  f2: %-40s\n", f1[:name], diffsep( equaltimes ), f2[:name]
     if options[:times]
-      printf "    m| %-40s %2s   m| %-40s\n", f1[:mtime], separator( equaltimes ), f2[:mtime]
-      puts "   file1 is #{equaltimes ? 'older' : 'newer'} than file2" if options[:dependency]
-      printf "    a| %-40s --   a| %-40s\n", File.atime(f1[:name]), File.atime(f2[:name])
-      printf "    c| %-40s --   c| %-40s\n", File.ctime(f1[:name]), File.ctime(f2[:name])
+      $stdout.printf "    m| %-40s %2s   m| %-40s\n", f1[:mtime], diffsep( equaltimes ), f2[:mtime]
+      $stdout.puts "   file1 is #{equaltimes ? 'older' : 'newer'} than file2" if options[:dependency]
+      $stdout.printf "    a| %-40s --   a| %-40s\n", File.atime(f1[:name]), File.atime(f2[:name])
+      $stdout.printf "    c| %-40s --   c| %-40s\n", File.ctime(f1[:name]), File.ctime(f2[:name])
     end  # if times
-    printf "  typ| %-40s %2s typ| %-40s\n", f1[:type], separator( equalmagic ), f2[:type]
-    printf "  siz| %-40s %2s siz| %-40s\n", f1[:size], separator( equalsizes ), f2[:size]
+    $stdout.printf "  typ| %-40s %2s typ| %-40s\n", f1[:type], diffsep( equalmagic ), f2[:type]
+    $stdout.printf "  siz| %-40s %2s siz| %-40s\n", f1[:size], diffsep( equalsizes ), f2[:size]
     d = options[:digest][0..2].downcase
-    printf "  #{d}| %-40s %2s #{d}| %-40s\n", f1[:digest], separator( equalcksum ), f2[:digest]
+    $stdout.printf "  #{d}| %-40s %2s #{d}| %-40s\n", f1[:digest], diffsep( equalcksum ), f2[:digest]
   end  # if options[:verbose]
 
-  report( fname1, fname2, fcompare, ftext, options )
+  $stdout.puts "'#{fname1.bold}' #{diffsep( fcompare )} '#{fname2.bold}'"
+  interactive_launch( fname1, fname2, textfiles, options ) if ! fcompare
   return fcompare  # true means "same", false means "different"
 end  # fileComparison
 
+def diffsep( cond )
+  cond ? "==".bold.color(:green) : "<>".bold.color(:red)
+end  # diffsep
+
 # -----
 
-def separator( cond )
-  cond ? "==".bold.color(:green) : "<>".bold.color(:red)
-end  # separator
+def is_app_installed?( app, debug )
+  response = %x{ whereis #{app} }.chomp.split(' ')
+  $stdout.puts "$ whereis #{app}: #{response}" if debug >= DBGLVL2
+  return response[1] != nil
+end  # is_app_installed?
 
-def report( fname1, fname2, fcompare, ftext, options )
-  puts "'#{fname1}' #{separator( fcompare )} '#{fname2}'"
-  ask_diff( fname1, fname2, ftext, options ) if ! fcompare
-  # User will exit getprompted() with Ctrl-D or Ctrl-Z,
-  # which _always_exits_with_ status:0 ...
-end  # report
+def interactive_launch( fname1, fname2, textfiles, options )
+  tools = []
+  quitcommands = %w{ no exit quit }
+  # Setup readline completions vocabulary
+  CANDIDATE_TOOLS.each { |c| tools << c if is_app_installed?( c, options[:debug] ) }
+  availabletools = app_cmd_completions( tools, exitquit: true, yesno: true )
+  # Prompt user for "Which tool?" (or yes, continue)
+  response = getprompted( "  * Launch a diff-tool on these files", "Yes" )
+  response = availabletools[response.downcase]  # fully expand
+  exit true if response == 'no'  # ...done!
 
-def ask_diff( f1, f2, ftext, options )
-  if askprompted( "Launch a diff-tool on these files" )
-    progname, launchstr = which_diff( ftext, options )
-    cmd = "#{launchstr} '#{f1}' '#{f2}'"
-    msg = "launching #{progname.underline.color(:dkgray)}..."
-    sep = ('=' * options[:width]).color(:red)
-    if EXEC_TOOLS.index(progname.split(' ')[0])
-      # These com-line tools can run directly in same XTerm session/context --
-      puts "\n#{sep}\n#{msg}\n\n"
-      exec( cmd )
-    else
-      # Launch these tools as child/subproc and as independent windows
-      # (same as invoking from com-line, e.g.:  $ kompare & ) --
-      puts msg
-      spawn( cmd )
+  # Got an affirmative response or a tool name:
+  if textfiles           # both files are text?
+    difftool = response    # starting assumption: user has provided tool name?
+    if response == 'yes'   # ...but not a tool name, so figure defaults and ask:
+      # Prefer the user-specified options[:tool] as the default diff-tool,
+      # else just use kompare (if it's installed) or diff (always installed)
+      defaulttool = availabletools[options[:tool]]  # user's choice installed?
+      if ! defaulttool                              # nope: figure final default:
+        defaulttool = tools.find_index('kompare') ? 'kompare' : 'diff'
+      end
+      difftool = getprompted( "  * Diff-tool #{tools.to_s.color(:dkgray)}", defaulttool )
+      difftool = availabletools[difftool.downcase]  # fully expand
+      # User may have decided to quit here...
+      exit true if quitcommands.find_index( difftool )
     end
-  end
-end  # ask_diff
-
-def which_diff( ftext, options )
-  # Test: is the candidate-app installed?  If so, add it to diffs array:
-  diffs = []
-  if ftext
-    CANDIDATE_TOOLS.each { |c| diffs << c if is_app_installed?( c, options ) }
-    # Setup readline completions vocabulary, and prompt user for "Which app?"
-    difftools = app_cmd_completions( diffs )
-    # Prefer the user-spec'd options[:diff] as the default diff-tool,
-    # else just use kompare (if its installed) or diff (always installed)...
-    if not ( defdiff = difftools[options[:diff]] )  # assignment!!
-      defdiff = diffs.index('kompare') ? 'kompare' : 'diff'
-    end
-    diff = getprompted( "Diff-tool #{diffs.to_s.color(:dkgray)}", defdiff )
-    diff = difftools[diff]  # Get fully-expanded command from hash...
-    exit true if diff == "exit" || diff == "quit"
-    # User could have entered "foobar" for all we know...
-    # sanity-check the response -- is diff in diffs?
-    if not diffs.index( diff )
-      $stderr.puts "%#{PROGNAME}-e-unsupported, no such diff-tool '#{diff}'"
+    # Final sanity-check the response -- is finally-chosen difftool in tools?
+    if ! tools.find_index( difftool )
+      $stderr.puts "%#{PROGNAME}-e-unsupported, no such diff-tool '#{difftool}'"
       exit true
     end
   else
-    diff = 'dhex'  # the only current choice for binary/non-text files
+    difftool = 'dhex'  # the only current choice for binary/non-text files
   end
-  case diff.to_sym  # a couple of special cases...
-  when :cmp  then diff = "#{diff} -b --verbose"           # all bytes
-  when :dhex then diff = "#{diff} -f ~/.dhexrc"
-  when :diff then diff = "#{diff} -yW#{options[:width]}"  # parallel, width
-  end  # case
-  return [ diff, "/usr/bin/#{diff.downcase} 2>/dev/null" ]
-end  # which_diff
 
-def is_app_installed?( app, options )
-  response = %x{ whereis #{app} }.chomp.split(' ')
-  puts "$ whereis #{app}: #{response}" if options[:verbose]
-  return response[1] != nil
-end  # is_app_installed?
+  # Ready to execute something!  First, determine whether exec'ing or spawn'ing:
+  chain_exec = EXEC_TOOLS.find_index( difftool )
+
+  # Next, tweak a few special cases...
+  case difftool.to_sym
+  when :cmp  then difftool = "#{difftool} -b --verbose"           # all bytes
+  when :dhex then difftool = "#{difftool} -f ~/.dhexrc"           # use a config-file
+  when :diff then difftool = "#{difftool} -yW#{options[:width]}"  # parallel, width
+  end  # case
+
+  cmd = "/usr/bin/#{difftool} '#{fname1}' '#{fname2}' 2>/dev/null"
+  msg = "    launching #{difftool.underline.color(:blue)}..."
+
+  if chain_exec
+    # These com-line tools can run directly in same XTerm session/context --
+    sep = ('=' * options[:width]).color(:red)
+    $stdout.puts "\n#{sep}\n#{msg}\n\n"
+    exec( cmd )
+  else
+    # Launch these tools as child/subproc and as independent windows
+    # (same as invoking from com-line, e.g.:  $ kompare & ) --
+    $stdout.puts msg
+    spawn( cmd )
+  end
+end  # interactive_launch
