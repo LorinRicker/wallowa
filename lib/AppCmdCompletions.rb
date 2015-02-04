@@ -3,8 +3,8 @@
 
 # AppCmdCompletions.rb
 #
-# Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 10/08/2014
+# Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.1, 02/03/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -14,15 +14,22 @@
 # Define the readline command-completion vocabulary for this application.
 module AppCmdCompletions
 
-require 'abbrev'          # See "Pickaxe v1.9 & 2.0", p. 731
-require 'readline'        # See "Pickaxe v1.9 & 2.0", p. 795
-include Readline          #
+  class EmptyVocabulary < Exception; end
 
-  # Command vocabulary always includes "exit" and "quit".
-  def app_cmd_completions( commands  )
+  require 'abbrev'          # See "Pickaxe v1.9 & 2.0", p. 731
+  require 'readline'        # See "Pickaxe v1.9 & 2.0", p. 795
+  include Readline          #
+
+  # Parameter command can be a string of words, or an array of words:
+  #   "ant bear cat dog" or %w{ ant bear cat dog }
+  # Command vocabulary may conditionally include "exit" & "quit", "yes" & "no".
+  def app_cmd_completions( commands, exitquit: false, yesno: false  )
     # Establish the full set of command abbreviations:
-    vocab = commands + %w{ exit quit }
-    cmd   = vocab.abbrev
+    vocab  = commands.kind_of?( String) ? commands.split : commands
+    vocab += %w{ exit quit } if exitquit
+    vocab += %w{ yes no }    if yesno
+    raise EmptyVocabulary, "Command vocabulary for readline completion is empty" if vocab == []
+    cmd    = vocab.abbrev
     # Load these into Readline; now any invocation of the +readline+ method
     # will have these abbreviations available: ex<Tab> => exit (etc.)
     Readline.completion_proc = -> str { cmd[str] }
