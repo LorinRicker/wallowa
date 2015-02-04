@@ -3,14 +3,16 @@
 
 # GetPrompted.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 10/09/2014
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.2, 02/03/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
 
+# require and include done here as a courtesy, as nearly all uses
+# of prompting can benefit from readline completions:
 require_relative 'AppCmdCompletions'
 include AppCmdCompletions
 

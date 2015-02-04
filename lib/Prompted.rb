@@ -3,8 +3,8 @@
 
 # Prompted.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 10/08/2014
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.2, 02/03/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -14,8 +14,11 @@
 require 'pp'
 require_relative 'AskPrompted'
 require_relative 'GetPrompted'
-# require_relative 'AppCmdCompletions' (...done in Ask/GetPrompted)
-# include AppCmdCompletions
+
+# require and include done in [Ask|Get]Prompted as a courtesy, as nearly
+# all uses of prompting can benefit from readline completions --
+## require_relative 'AppCmdCompletions' (...done in [Ask|Get]Prompted)
+## include AppCmdCompletions
 
 def promptcycle( prompt, default, pat, promptions )
   goodval = nil
@@ -31,7 +34,7 @@ def promptcycle( prompt, default, pat, promptions )
         goodval = promptions[:validrange].cover?( response )
       end
     end
-    puts "\n#{promptions[:reprompt]}#{within}\n" if ! goodval
+    $stdout.puts "\n#{promptions[:reprompt]}#{within}\n" if ! goodval
   end  # while !goodval
   return [ goodval, goodval ? val : nil ]
 end  # promptcycle
@@ -61,7 +64,7 @@ def ultraprompted( prompt, default = "Y", promptions = {} )
     response = goodval ? val.to_f : nil
   else
     response = nil
-    puts "Unknown type #{resptype}"
+    $stderr.puts "%ultraprompted-e-unktyp, unknown type #{resptype}"
   end  # case dclass
   return response
 #~ rescue StandardError
