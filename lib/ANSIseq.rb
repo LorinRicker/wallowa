@@ -3,8 +3,8 @@
 
 # ANSIseq.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 10/09/2014
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 3.0, 02/04/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -35,6 +35,10 @@ class String
      RVRS = "[7m"  # reverse
 
    CLRSCR = "[H[2J"  # ANSI terminal clear-screen
+
+      SAVECURSOR = "7"  # same as "[s", but more widely supported
+   RESTORECURSOR = "8"  # same as "[u", ditto
+# POSITIONCURSOR = "[r;cH"
 
 # Colors:
     BLACK = "[0;30m"
@@ -103,7 +107,7 @@ def color( colour )
               when :ltcyan   then LTCYAN
               when :white    then WHITE
               else
-                $stderr.puts "%ANSIseq-W-nocolor, requested color not supported"
+                $stderr.puts "%ANSIseq-w-nocolor, requested color not supported"
                 BLACK
               end  # case colour
   self.render( rendition )
@@ -112,6 +116,12 @@ end  # color
 def clearscreen
   return $stdout.tty? ? CLRSCR : ""
 end  # clearscreen
+
+def atposition( row: 1, col: 1 )
+  row = [ row+1, TermChar.terminal_height ].min
+  str = SAVECURSOR + "[#{row};#{col}H" + self + RESTORECURSOR
+  $stdout.print str
+end  # atposition
 
 end  # class String
 

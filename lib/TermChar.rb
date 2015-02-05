@@ -3,14 +3,15 @@
 
 # TermChar.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 10/26/2012
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.1, 02/04/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 
 # Terminal Characteristics --
+
 module TermChar
 
   def self.terminal_dimensions( show = nil )
