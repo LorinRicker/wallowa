@@ -3,8 +3,8 @@
 
 # Rule.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 10/09/2014
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.1, 02/05/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -20,6 +20,7 @@
 #     .    |    .    |    .    |    .    |    .    |    .    |    .    |    .    |
 #          1         2         3         4         5         6         7         8
 # 12345678901234567890123456789012345678901234567890123456789012345678901234567890
+#     .    |    .    |    .    |    .    |    .    |    .    |    .    |    .    |
 #
 # A ruler's display expands (or shrinks) to horizontally-fill the current terminal's
 # width (number of columns).
@@ -28,43 +29,47 @@
 
 module Rule
 
-  ABSMAX = 256
+  ABSMAX = 256  # reasonable upper limit on ruler length
 
-  def self.fit_ruler( twidth, s )
-    w = [twidth,s.length,ABSMAX].min - 1
-    return s[0..w].rstrip
+  def self.fit_ruler( twidth, str )
+    w = [twidth,str.length,ABSMAX].min - 1
+    return str[0..w].rstrip
   end  # fit_ruler
 
-  def self.ruleline( twidth, str = '1234567890' )
-    s = str * (( twidth / 10 ) + 1)
-    return fit_ruler( twidth, s )
+  def self.ruleline( twidth, strlen, str = '1234567890' )
+    return fit_ruler( twidth, str * (( twidth / strlen ) + 1) )
   end  # ruleline
 
-  def self.decaline( twidth )
-    gap = ' ' * 9
-    m   = twidth / 10
-    s   = ''
-    (1..m).each { |i| s += gap + (i.to_s)[-1] }  # use last digit of value
-    return fit_ruler( twidth, s )
+  def self.decaline( twidth, strlen )
+    gap = ' ' * (strlen-1)
+    m   = twidth / strlen
+    str = ''
+    (1..m).each { |i| str += gap + (i.to_s)[-1] }  # use last digit of value
+    return fit_ruler( twidth, str )
   end  # decaline
 
-  def self.ruler( style = :default )
+  def self.ruler( style        = :default,
+                  unitsstr     = '1234567890',
+                  rulemarksstr = '    .    |' )
+    strlen = unitsstr.length
+    raise ArgumentError,   # unitsstr and rulemarksstr must be == length
+         "ruler components length mismatch" if strlen != rulemarksstr.length
     term_length, term_width = TermChar.terminal_dimensions
-    hashmarks = Rule.ruleline( term_width, '    .    |' )
-    decades   = Rule.decaline( term_width )
-    units     = Rule.ruleline( term_width, '1234567890' )
+    units     = Rule.ruleline( term_width, strlen, unitsstr )
+    rulemarks = Rule.ruleline( term_width, strlen, rulemarksstr )
+    decades   = Rule.decaline( term_width, strlen )
     ruler     = decades + $/ + units
     case style.to_sym
-    when :both, :default
-      ruler = hashmarks + $/ + ruler + $/ + hashmarks
+    when :both, :default  # $/ is "current" record (line) separator...
+      ruler = rulemarks + $/ + ruler + $/ + rulemarks
     when :before
-      ruler = hashmarks + $/ + ruler
+      ruler = rulemarks + $/ + ruler
     when :after
-      ruler = ruler + $/ + hashmarks
+      ruler = ruler + $/ + rulemarks
     when :none
       ruler # no change to ruler
     else
-      $stderr.puts "$%ruler-e-badvalue, error in style value '#{style}'"
+      raise ArgumentError, "error in style value '#{style}'"
       # note: returns nil as method's value...
     end
   end  # ruler

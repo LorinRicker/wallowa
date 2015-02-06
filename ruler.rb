@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (02/04/2015)"
+  PROGID = "#{PROGNAME} v1.1 (02/05/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -31,6 +31,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 #     .    |    .    |    .    |    .    |    .    |    .    |    .    |    .    |
 #          1         2         3         4         5         6         7         8
 # 12345678901234567890123456789012345678901234567890123456789012345678901234567890
+#     .    |    .    |    .    |    .    |    .    |    .    |    .    |    .    |
 #
 # A ruler's display expands (or shrinks) to horizontally-fill the current terminal's
 # width (number of columns).
@@ -61,7 +62,7 @@ optparse = OptionParser.new { |opts|
   end  # -l -@ --atline --@line
   opts.on( "-s", "--style=STYLE", /default|both|before|after|none/i,
            "Style for hash-marks (both (d), before, after, none)" ) do |val|
-  options[:style] = val || "default"
+  options[:style] = val || :default
   end  # -s --style
   opts.on( "-c", "--color=COLOR", /black|red|green|brown|blue|purple|cyan|yellow|white/i,
            "Ruler color (blue (d), black, red, green, brown, blue, purple, cyan, yellow, white" ) do |val|

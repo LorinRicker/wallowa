@@ -4,7 +4,7 @@
 # ANSIseq.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 02/04/2015
+# Version 3.1, 02/05/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -118,7 +118,7 @@ def clearscreen
 end  # clearscreen
 
 def atposition( row: 1, col: 1 )
-  row = [ row+1, TermChar.terminal_height ].min
+  row = [ row, TermChar.terminal_height ].min
   str = SAVECURSOR + "[#{row};#{col}H" + self + RESTORECURSOR
   $stdout.print str
 end  # atposition
