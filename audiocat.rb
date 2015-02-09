@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (02/01/2015)"
+  PROGID = "#{PROGNAME} v1.6 (02/08/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -308,7 +308,7 @@ when "ogg"
   cmd = "oggCat #{noise}'#{outfile}'"
   infiles.each { |inf| cmd += " '#{inf}'" }
   $stderr.puts "%#{PROGNAME}-I-ECHO, $ #{cmd}" if options[:debug] > DBGLVL0
-  $stdout.puts "%#{PROGNAME}-I-WORKING, be patient - oggCat converting (~15sec/Mb)"
+  $stdout.puts "%#{PROGNAME}-I-WORKING, be patient - oggCat converting (~2sec/Mb)"
   %x{ #{cmd} }
   stat = $?.exitstatus
   if stat == 0
