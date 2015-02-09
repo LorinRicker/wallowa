@@ -25,7 +25,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.6 (01/27/2015)"
+  PROGID = "#{PROGNAME} v0.7 (02/09/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -47,9 +47,10 @@ def message( phase, msg, render = :green )
 end  # message
 
 def cmdlinevalues( argv, options )
-  print '   ARGV => '
+  puts "    Number of ARGV parameters: #{ARGV.size}"
+  print '    ARGV => '
   pp argv
-  print 'options => '
+  print ' options => '
   pp options
 end  # cmdlinevalues
 
@@ -111,7 +112,7 @@ end                           #
 message( "After", "Cmd-line options have been removed..." )
 
 puts " -- Verbosity on..." if options[:verbose]
-puts " -- Ownership switch asserted, do ownership processing --" if options[:owner]
+puts " -- Ownership switch asserted, do ownership processing" if options[:owner]
 puts " -- Larger (size) switch asserted, integer value: #{options[:larger]}" if options[:larger]
 puts " -- Since (date) switch asserted, date value: '#{options[:since]}'" if options[:since]
 
