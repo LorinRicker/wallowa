@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.1 (02/03/2015)"
+  PROGID = "#{PROGNAME} v4.0 (02/10/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -97,8 +97,13 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] file1 file2" +
-                "\n\n   where file1 is compared to file2, and any differences can be reported.\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] file1 file2"        +
+                "\n     or: #{PROGNAME} [options] file [file...] dir" +
+                "\n\n   where file1 is compared to file2 --"          +
+                "\n     any differences can be reported and"          +
+                "\n     displayed with a GUI file-comp tool;"         +
+                "\n     any filespec can be wildcarded when"          +
+                "\n     the last argument is a directory.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     $stdout.puts "\n    --tool (-u) let's you specify your favorite file comparison tool"
@@ -124,25 +129,49 @@ end                           #
 ###############################
 
 options[:width] ||= TermChar.terminal_width
+stat = false
+lastarg = ARGV[-1] || ''
 
-f1 = ARGV[0] || ""  # completely empty args will be nil here, ensure "" instead
-f2 = ARGV[1] || ""
-
-# === The utility process itself: ===
-if f1 == ""
-  # The prompt-loop-continuous mode:
-  while ( f1 = getprompted( "file1", f1 ) )
-    f2 = getprompted( "file2", f2 )
-    # In this interactive mode, >do not< replace the string that the user has
-    # entered with full filespec, so that f2 can be reused as next default:
-    fc = File.inherit_basename( f1, f2 )
-    stat = fileComparison( f1, fc, options )
-  end # while
+if File.directory?( lastarg )
+  if ARGV.size == 1
+    $stderr.puts "%#{PROGNAME}-e-usage, first argument must be a file, not a directory"
+    exit false
+  end
+  # command form is: $ filecomp file [file...] dir/
+  dir = ARGV.pop
+  ARGV.each do | arg |
+    Dir.glob( arg ).each do | f |
+      d    = File.inherit_basename( f, dir )
+      stat = fileComparison( f, d, options )
+    end
+  end
 else
-  # The do-once-then-exit (command-line) mode:
-  # Got the first file f1, prompt for the second file f2 if not provided:
-  f2 = getprompted( "file2", f2 ) if f2 == ""
-  f2 = File.inherit_basename( f1, f2 )
-  stat = fileComparison( f1, f2, options )
-  exit stat ? true : false
-end  # if f1 == ""
+  if ARGV.size > 2
+    $stderr.puts "%#{PROGNAME}-e-usage, last argument must be a directory"
+    exit false
+  end
+  # command form is: $ filecomp file1 [file2]
+  f1 = ARGV[0] || ""  # completely empty args will be nil here, ensure "" instead
+  f2 = ARGV[1] || ""
+  if f1 == ""
+    # The prompt-loop-continuous mode:
+    while ( f1 = getprompted( "file1", f1 ) )
+      wildcarded?( f1 )
+      f2 = getprompted( "file2", f2 )
+      wildcarded?( f2 )
+      # In this interactive mode, >do not< replace the string that the user has
+      # entered with full filespec, so that f2 can be reused as next default:
+      fc   = File.inherit_basename( f1, f2 )
+      stat = fileComparison( f1, fc, options )
+    end # while
+  else
+    # The do-once-then-exit (command-line) mode:
+    # Got the first file f1, prompt for the second file f2 if not provided:
+    f2   = getprompted( "file2", f2 ) if f2 == ""
+    wildcarded?( f2 )
+    f2   = File.inherit_basename( f1, f2 )
+    stat = fileComparison( f1, f2, options )
+  end  # if f1 == ""
+end
+
+exit stat
