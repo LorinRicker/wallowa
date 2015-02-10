@@ -3,7 +3,7 @@
 
 # stripcomments.rb
 #
-# Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -22,7 +22,7 @@
 #         $ cat foo.rb | ./stripcomments | wc -l
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.00 07/10/2014"
+  PROGID = "#{PROGNAME} v1.2 02/10/2015"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 COMMENTMARK = '#'   # for Ruby, Perl, Python & bash (etc.) source files
@@ -36,8 +36,11 @@ def prepare( outfile )
   else
     outf = File.new( STDOUTFD, 'w' )
   end
+rescue Errno::ENOENT => e
+  STDERR.puts "%#{PROGNAME}-e-fnf, error opening output file (no such dir/path)"
+  exit false
 rescue IOError => e
-  STDERR.puts "%#{PROGNAME}-e-fnf, error opening output file or stream"
+  STDERR.puts "%#{PROGNAME}-e-errout, error opening output file or stream"
   exit false
 end
 
@@ -51,8 +54,8 @@ def process( inputf, outf )
       outf.puts line
     end
   end
-rescue IOError => e
-  STDERR.puts "%#{PROGNAME}-e-fnf, error opening input file or stream"
+rescue Errno::ENOENT => e
+  STDERR.puts "%#{PROGNAME}-e-fnf, error opening input file '#{inputf}'"
   exit false
 end
 
