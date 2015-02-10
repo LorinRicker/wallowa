@@ -4,7 +4,7 @@
 # filemagic.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 02/02/2015
+# Version 1.2, 02/10/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -70,7 +70,7 @@ module FileMagic
     # ignored for years, so any output which fails to include one of these key
     # words has to be categorized as "unkn[own]", unless special cases can be
     # determined --
-    cmd = "/usr/bin/file -bL #{fname}"
+    cmd = "/usr/bin/file -bL '#{fname}'"
                          # --brief, just the file-type text-report is output
                          # --dereference, follow any symlink to file
     magic[1] = %x{ #{cmd} }.chomp.strip
