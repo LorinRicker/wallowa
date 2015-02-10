@@ -4,7 +4,7 @@
 # FileEnhancements.rb
 #
 # Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.2, 02/01/2015
+# Version 1.3, 02/10/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -167,8 +167,9 @@ end  # open( "/etc/passwd" )
   # check the next filespec f2: if it is merely a directory-spec, then
   # inherit f1's basename to fill-out f2:
   def self.inherit_basename( f1, f2 )
-    f = File.directory?( f2 ) ? File.join( f2, File.basename( f1 ) ) : f2
-    g = parse( f2, f1 )
+    f = File.expand_path( f2 )
+    f = File.directory?( f ) ? File.join( f, File.basename( f1 ) ) : f
+    g = parse( f, f1 )
     #~ puts "f: '#{f}' -- g: '#{g}'"
     return f
   end  # inherit_basename
