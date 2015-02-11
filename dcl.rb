@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.4 (02/11/2015)"
+  PROGID = "#{PROGNAME} v2.5 (02/11/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -211,8 +211,8 @@ def parse_dcl_qualifiers( argvector )
   end
   return case argvl
          when 0 then [ nil,           nil,        quals ]
-         when 1 then [ fspecs[0],     nil,        quals ]
-         when 2 then [ fspecs[0],     fspecs[1],  quals ]
+         when 1 then [ [ fspecs[0] ], nil,        quals ]
+         when 2 then [ [ fspecs[0] ], fspecs[1],  quals ]
                 else [ fspecs[0..-2], fspecs[-1], quals ]
          end  # case
 end  # parse_dcl_qualifiers
