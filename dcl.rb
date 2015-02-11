@@ -3,7 +3,7 @@
 
 # dcl.rb
 #
-# Copyright © 2012-15 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -13,10 +13,10 @@
 # -----
 
     PATH = File.dirname $0
- DCLNAME = File.join( PATH, "DCL" )             # hard-wire this name...
+ DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.2 (01/25/2015)"
+  PROGID = "#{PROGNAME} v2.3 (02/11/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -31,13 +31,21 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # ==========
 
+# dcl is an emulator environment for selected VMS (OpenVMS) DCL commands
+# and lexical functions. It provides a transitional working environment
+# between VMS and Linux command line syntaxes, while also providing
+# extended com-line lexical functions borrowed from VMS into Linux.
+
+# dcl is extended (v2.xx) to provide DCL file operation command emulations
+# for several common file commands:
+# COPY:cp, DELETE:rm, RENAME:mv,
+# CREATE:touch, PURGE:??, DIRECTORY:ls,
+# SEARCH:grep, SHOW:set.
+
 # dcl provides command line (shell) access to a small library of string-
 # transformational routines which are reminiscent of those found in the
 # VMS/DCL repertory of F$* functions, callable as if these were bash
-# "built-in" functions (v1.xx).  It also is extended (v2.xx) to provide
-# DCL file operation command emulations for several common file commands:
-# COPY:cp, DELETE:rm, RENAME:mv, CREATE:touch, PURGE:??, DIRECTORY:ls and
-# SHOW:set.
+# "built-in" functions (v1.xx).
 
 # Access (calls) to these functions are implemented by creating named symlinks
 # for each function; these symlinks point (refer to) this dcl script itself,
@@ -159,16 +167,16 @@ def dclsymlink( syms )
       # See http://ruby.runpaint.org/ref/file for documentation of new methods
       # File.readlink (used here) and File.realpath...
       if File.readlink( slnk ) == DCLNAME
-        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})"
+        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})".color(:green)
       else
-        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})"
+        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})".color(:red)
       end  # if File.identical?( DCLNAME, slnk )
     else
       if ! File.file?( slnk )  # no ordinary file collision?
         File.symlink( DCLNAME, slnk )
-        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})"
+        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})".color(:blue)
       else
-        $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created"
+        $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created".color(:red)
       end  # if ! File.file?( slnk )
     end  # if File.symlink( slnk )
   end  # syms.each
@@ -233,6 +241,7 @@ ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = { :interactive => false,
             :noop        => false,
+            :pager       => false,
             :preserve    => false,
             :links       => false,
             :verbose     => false,
@@ -250,6 +259,10 @@ optparse = OptionParser.new { |opts|
            "Interactive mode (/CONFIRM)" ) do |val|
     options[:interactive] = true
   end  # -i --interactive
+  opts.on( "-m", "--pager", "--less", "--more",
+           "Use pager (less) for long output" ) do |val|
+    options[:pager] = true
+  end  # -m --pager
   opts.on( "-p", "--preserve",
            "Preserves file metadata (owner, permissions, datetimes)" ) do |val|
     options[:preserve] = true
@@ -342,8 +355,16 @@ else
       end
     # when :purge
     # when :directory
-    # when :search  # grep
     # when :show
+    when :search
+    # 'SEARCH files pattern' --> 'grep pattern files'
+    # This 'SEARCH' command is more powerful than VMS/DCL's, since it uses
+    # general regular expressions (regexps) rather than 'simple wildcarded'
+    # search-strings...
+      cmd = "/bin/grep --color=always --ignore-case -e '#{dst}' "
+      src.each { |s| cmd << " '#{s}'" }
+      cmd += " | less" if options[:pager]
+      exec( cmd )  # chains, no return...
     else
       $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"
       exit false
