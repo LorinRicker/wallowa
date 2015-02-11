@@ -4,7 +4,7 @@
 # FileComparison.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.1, 02/10/2015
+# Version 4.2, 02/10/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -96,7 +96,7 @@ def interactive_launch( fname1, fname2, textfiles, options )
   # Prompt user for "Which tool?" (or yes, continue)
   response = getprompted( "  * Launch a diff-tool on these files", "Yes" )
   response = availabletools[response.downcase]  # fully expand
-  exit true if response == 'no'  # ...done!
+  return true if response == 'no'  # ...done!
 
   # Got an affirmative response or a tool name:
   if textfiles           # both files are text?
