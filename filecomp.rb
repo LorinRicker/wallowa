@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.0 (02/10/2015)"
+  PROGID = "#{PROGNAME} v4.1 (02/10/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -130,7 +130,7 @@ end                           #
 
 options[:width] ||= TermChar.terminal_width
 stat = false
-lastarg = ARGV[-1] || ''
+lastarg = ARGV[-1] || ''  # completely empty args will be nil, ensure "" instead
 
 if File.directory?( lastarg )
   if ARGV.size == 1
@@ -151,14 +151,15 @@ else
     exit false
   end
   # command form is: $ filecomp file1 [file2]
-  f1 = ARGV[0] || ""  # completely empty args will be nil here, ensure "" instead
+  f1 = ARGV[0] || ""
   f2 = ARGV[1] || ""
+  wilderr = "%#{PROGNAME}-e-wildcards, no wildcards allowed"
   if f1 == ""
     # The prompt-loop-continuous mode:
     while ( f1 = getprompted( "file1", f1 ) )
-      wildcarded?( f1 )
+      exit false if File.wildcarded?( f1, wilderr )
       f2 = getprompted( "file2", f2 )
-      wildcarded?( f2 )
+      exit false if File.wildcarded?( f2, wilderr )
       # In this interactive mode, >do not< replace the string that the user has
       # entered with full filespec, so that f2 can be reused as next default:
       fc   = File.inherit_basename( f1, f2 )
@@ -168,7 +169,7 @@ else
     # The do-once-then-exit (command-line) mode:
     # Got the first file f1, prompt for the second file f2 if not provided:
     f2   = getprompted( "file2", f2 ) if f2 == ""
-    wildcarded?( f2 )
+    exit false if File.wildcarded?( f2, wilderr )
     f2   = File.inherit_basename( f1, f2 )
     stat = fileComparison( f1, f2, options )
   end  # if f1 == ""

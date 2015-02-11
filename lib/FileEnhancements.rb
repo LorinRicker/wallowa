@@ -4,7 +4,7 @@
 # FileEnhancements.rb
 #
 # Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.3, 02/10/2015
+# Version 1.4, 02/10/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -174,7 +174,21 @@ end  # open( "/etc/passwd" )
     return f
   end  # inherit_basename
 
-  # While File.readlink behaves like the analogous shell command,
+ # Given a filespec (typically user-entered), check if it
+ # includes any of the characters * - ? - [] - {} which can
+ # be used with File.glob.  If wildcards not found, just
+ # return false, else return true, and optionally annunciate
+ # error message, and optionally exit with error status.
+ def self.wildcarded?( f, errmsg = nil, abort = false )
+  any_wild = f.match( /[\*\?\[\]\{\}]/ )
+  if any_wild
+    $stderr.puts errmsg if errmsg.kind_of?( String )
+    exit false if abort
+  end
+  return any_wild
+end  # wildcarded?
+
+ # While File.readlink behaves like the analogous shell command,
   # File.readlink! behaves like 'readlink --canonicalize (-f)',
   # i.e., follow every symlink recursively; all but the last file
   # component must exist:

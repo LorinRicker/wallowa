@@ -4,7 +4,7 @@
 # FileComparison.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.0, 02/10/2015
+# Version 4.1, 02/10/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -80,13 +80,6 @@ def diffsep( cond )
 end  # diffsep
 
 # -----
-
-def wildcarded?( f )
-  if f.match( /[\*\?\[\]\{\}]/ )  # filespec includes any of * - ? - [] - {}
-    $stderr.puts "%#{PROGNAME}-e-wildcards, no wildcards allowed in prompt mode"
-    exit false
-  end
-end  # wildcarded?
 
 def is_app_installed?( app, debug )
   response = %x{ whereis #{app} }.chomp.split(' ')
