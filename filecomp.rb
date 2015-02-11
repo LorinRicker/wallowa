@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.1 (02/10/2015)"
+  PROGID = "#{PROGNAME} v4.2 (02/10/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -141,6 +141,7 @@ if File.directory?( lastarg )
   dir = ARGV.pop
   ARGV.each do | arg |
     Dir.glob( arg ).each do | f |
+      next if File.directory?( f )
       d    = File.inherit_basename( f, dir )
       stat = fileComparison( f, d, options )
     end
