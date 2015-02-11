@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.3 (02/11/2015)"
+  PROGID = "#{PROGNAME} v2.4 (02/11/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -196,12 +196,14 @@ def parse_dcl_qualifiers( argvector )
   argvl  = argvector.length
   quals  = Hash.new
   fspecs = []
-  pat    = /^\/(LOG|CONF[IRM]*)$/i
+  pat    = /^\/(LOG|CONF[IRM]*|PAG[E]*)$/i
   argvector.each do | a |
     if pat.match( a )
-      # A DCL qualifier /LOG or /CONF[IRM]: record it...
-      quals[:verbose] = true if $1 == "log"
-      quals[:confirm] = true if $1[0..3] == "conf"
+      # A DCL qualifier /LOG or /CONF[IRM] or /PAG[E]: record it...
+      p1 = $1.downcase
+      quals[:verbose] = true if p1       == "log"
+      quals[:confirm] = true if p1[0..3] == "conf"
+      quals[:pager]   = true if p1[0..2] == "pag"
     else
       # A file-spec, copy it...
       fspecs << a
@@ -363,7 +365,8 @@ else
     # search-strings...
       cmd = "/bin/grep --color=always --ignore-case -e '#{dst}' "
       src.each { |s| cmd << " '#{s}'" }
-      cmd += " | less" if options[:pager]
+      # for less, honor grep's color output with --raw-control-chars:
+      cmd += " | /bin/less --raw-control-chars" if options[:pager] or quals[:pager]
       exec( cmd )  # chains, no return...
     else
       $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"
