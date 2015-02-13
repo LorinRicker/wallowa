@@ -4,12 +4,14 @@
 # AppCmdCompletions.rb
 #
 # Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 02/03/2015
+# Version 1.2, 02/13/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
+
+# Ruby Version Dependency: uses Ruby v2.x keyword arguments syntax
 
 # Define the readline command-completion vocabulary for this application.
 module AppCmdCompletions
