@@ -4,7 +4,7 @@
 # StringUpdater.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 02/16/2015
+# Version 1.2, 02/16/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -27,11 +27,17 @@ class String
       updtoyear = DateTime.now.year.to_s
     end
     centuries = '19|20|21'
-    copypat = /(Copyright(\s+©)?|©)\s+((?<xxxx>(#{centuries})\d\d)  # 'Copyright © 1986'
-                (-(?<yyyy>(#{centuries})\d\d)?)?)\s/x               #  '-2015'
+    # Match: 'Copyright' 'Copyright ©' 'Copyright (C)' and '©' [but not just plain '(C)']
+    #   followed by 'XXXX' (year) or 'XXXX-YYYY' or 'XXXX-YY' (year ranges)
+    copypat = /(Copyright(                              # 'Copyright '
+                  \s+(©|\([Cc]\))?)                     # ' ©' or ' (C)' or ' (c)'
+               |©)\s+                                   # or just '© '
+                ((?<xxxx>(#{centuries})\d\d)            # ' 2001'
+                (-(?<yyyy>(#{centuries})?\d\d)?)?)\s    # '-2014 ' or '-14 '
+              /x
     # Interesting match groups in this cpat regexp (using named match-groups):
-    #   ?<xxxx>, #4: always the first/beginning year 'XXXX'
-    #   ?<yyyy>, #7: if present, the last/ending year 'YYYY'
+    #   ?<xxxx>, #5: always the first/beginning year 'XXXX'
+    #   ?<yyyy>, #8: if present, the last/ending year 'YYYY'
     matched = copypat.match( line )
     return line unless matched        # no match?  done... return unaltered line
     # Two cases: matched[:xxxx] == 'XXXX', and matched[:yyyy] == nil or == 'YYYY' --
