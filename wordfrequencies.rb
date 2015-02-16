@@ -3,7 +3,7 @@
 
 # wordfrequencies.rb
 #
-# Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.9 (02/15/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -80,7 +80,7 @@ end
 def process( inputf, outf )
   wordfreq = Hash.new( 0 )
   wordpat  = /[^a-zA-Z0-9'-]/   # Non-word character(s)
-  File.open( inputf ? inputf : STDINFD, "r") do | inf |
+  File.open( inputf ? inputf : STDINFD, "r" ) do | inf |
     while line = inf.gets
       line = line.chomp
       next if line.lstrip == ''
@@ -88,7 +88,7 @@ def process( inputf, outf )
         # Don't even count tiny-words like "a":
         wordfreq[word.downcase] += 1 if word.length > 1
       end
-    end
+    end  # while
   end
   wordfreq
 rescue Errno::ENOENT => e
@@ -130,8 +130,8 @@ end
 # ============
 
 # === Main ===
-options = { :limit => DEFAULT_LIMIT,
-            :size  => 1,
+options = { :limit   => DEFAULT_LIMIT,
+            :size    => 1,
             :verbose => false,
             :debug   => DBGLVL0,
             :about   => false
