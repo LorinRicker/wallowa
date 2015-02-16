@@ -3,7 +3,7 @@
 
 # adoptdirtree.rb  -- called by adopt[.sh] in order to wrap with sudo
 #
-# Copyright © 2012-14 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = "adopt"  # File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.6 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -37,6 +37,8 @@ options = { :verbose => false,
             :debug   => DBGLVL0,
             :about   => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-m", "--mode", "=MODE", String,

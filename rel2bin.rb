@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.1 (02/01/2015)"
+  PROGID = "#{PROGNAME} v2.2 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -51,6 +51,8 @@ options = { :bin     => nil,
             :debug   => DBGLVL0,
             :about   => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-b", "--bin", "=PATH_TO_BIN",

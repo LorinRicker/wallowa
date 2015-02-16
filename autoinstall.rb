@@ -26,7 +26,7 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.1 (01/27/2015)"
+  PROGID = "#{PROGNAME} v2.2 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -128,6 +128,8 @@ options = { :pif      => "#{defpif}",
             :debug    => DBGLVL0,
             :about    => nil
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---

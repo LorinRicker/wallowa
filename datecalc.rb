@@ -11,7 +11,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.5 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -31,6 +31,8 @@ options = { :verbose => false,
             :debug   => DBGLVL0,
             :about   => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-a", "--after", "=N", Integer, "N".underline + " days after " + "date".underline + " is " + "<DATE>".bold ) do |val|

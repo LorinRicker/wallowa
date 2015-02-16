@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.8 (11/22/2014)"
+  PROGID = "#{PROGNAME} v2.9 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -151,6 +151,8 @@ options = { :signal   => "KILL",
             :debug    => DBGLVL0,
             :about    => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-k", "--kill", "Kill a process" ) do |val|

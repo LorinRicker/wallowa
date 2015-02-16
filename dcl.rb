@@ -251,6 +251,8 @@ options = { :interactive => false,
             :about       => false
           }
 
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
+
 optparse = OptionParser.new { |opts|
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|

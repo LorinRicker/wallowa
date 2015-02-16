@@ -155,6 +155,7 @@ options = { :help    => false,
           }
 
 options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) )
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-t", "--type", "=AUDIO", /mp3|ogg|wav/i,
