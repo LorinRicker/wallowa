@@ -10,18 +10,10 @@
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 
-# Tallies word frequencies in a source-code file.
-# Uses STDIN and STDOUT, filenames on com-line, including redirection,
-#   so this program can be used as a filter in a pipeline...
-#
-# Usage:  $ ./fixCopyright` [infile] [outfile]
-#         $ ./fixCopyright` foo.rb                  # output to STDOUT
-#         $ ./fixCopyright` foo.rb foo.nocomments
-#         $ ./fixCopyright` <foo.rb >foo.nocomments
-#         $ cat foo.rb | ./fixCopyright`
+# Update the last Copyright © date in file(s) to current year.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (02/16/2015)"
+  PROGID = "#{PROGNAME} v1.1 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -61,10 +53,12 @@ def process( inputf, outf, options )
   File.open( inputf ? inputf : STDINFD, "r" ) do | inf |
     while ln = inf.gets
       ln = ln.chomp
-      # Simple optimization: don't bother siccing full pattern match on
-      # the line unless it actually contains the string 'Copyright'...
-      ln = ln.updateCopyright( updtoyear: options[:copyrightyear],
-                                verbose: options[:verbose] ) if ln.index( 'Copyright' )
+      # Simple optimization: don't bother siccing full pattern match on the
+      # line unless it actually contains the string 'Copyright' or '©'...
+      if ln.index( 'Copyright' ) || ln.index( '©' )
+        ln = ln.updateCopyright( updtoyear: options[:copyrightyear],
+                                   verbose: options[:verbose] )
+      end
       outf << "#{ln}\n"
     end  # while
   end
@@ -121,7 +115,7 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "\n  Usage: #{PROGNAME} [options] file [...file]" +
-                "\n\n     Tallies the frequencies of words in a document.\n\n"
+                "\n\n     Update the last Copyright © date in file(s) to current year.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     options[:help] = true
@@ -137,13 +131,12 @@ end                           #
 ###############################
 
 options[:verbose] = options[:debug] if options[:debug]
-foptions = { :verbose => options[:verbose], :noop => options[:noop] }
-tmpext   = '.tmp~'
-bckext   = '.backup'
+tmpext    = '.tmp~'
+bckext    = '.backup'
 
 ARGV.each do | arg |
   f = arg + ( options[:backup] ? bckext : tmpext )
-  FileUtils.cp( arg, f, foptions )
+  FileUtils.cp( arg, f )
   process( f, prepare( arg ), options )
-  FileUtils.rm( f, options ) if File.extname( f ) == tmpext  # delete temp-file
+  FileUtils.rm( f ) if File.extname( f ) == tmpext  # delete temp-file
 end
