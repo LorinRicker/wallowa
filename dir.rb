@@ -3,7 +3,7 @@
 
 # dir.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.7 (11/19/2014)"
+  PROGID = "#{PROGNAME} v4.8 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -48,6 +48,8 @@ options = { :bytesize => false,
             :debug    => DBGLVL0,
             :about    => false
           }
+
+ARGV[0] = './*' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-b", "--bytesize", "List file sizes in bytes (default is K, M, G, etc.)" ) do |val|

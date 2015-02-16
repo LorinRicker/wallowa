@@ -3,7 +3,7 @@
 
 # DirectoryVMS.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version 4.7, 11/19/2014
 #
 # This program is free software, under the terms and conditions of the
