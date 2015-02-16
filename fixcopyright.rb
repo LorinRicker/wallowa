@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./fixCopyright`
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (02/15/2015)"
+  PROGID = "#{PROGNAME} v1.0 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -42,11 +42,7 @@ require_relative 'lib/StringUpdater'
 
 # ============
 
-def prepare( outfile, options )
-  if options[:backup]
-    bckfile = outfile + '.backup'
-    FileUtils.cp( outfile, bckfile, options[:verbose] )
-  end
+def prepare( outfile )
   if outfile
     outf = File.open( outfile, 'w' )
   else
@@ -67,9 +63,9 @@ def process( inputf, outf, options )
       ln = ln.chomp
       # Simple optimization: don't bother siccing full pattern match on
       # the line unless it actually contains the string 'Copyright'...
-      ln = ln.updateCopyright( uptoyear: options[:copyrightyear],
+      ln = ln.updateCopyright( updtoyear: options[:copyrightyear],
                                 verbose: options[:verbose] ) if ln.index( 'Copyright' )
-      outf << ln
+      outf << "#{ln}\n"
     end  # while
   end
 rescue Errno::ENOENT => e
@@ -82,10 +78,13 @@ end
 # === Main ===
 options = { :copyrightyear => nil,
             :backup        => nil,
+            :noop          => nil,
             :verbose       => false,
             :debug         => DBGLVL0,
             :about         => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-c", "--copyrightyear", "=YEAR", String,
@@ -96,6 +95,11 @@ optparse = OptionParser.new { |opts|
            "Create backup file before updating source" ) do |val|
     options[:backup] = val
   end  # -b --backup
+  opts.on( "-n", "--noop", "--dryrun", "--test",
+           "Dry-run (test & display, no-op) mode" ) do |val|
+    options[:noop]  = true
+    options[:verbose] = true  # Dry-run implies verbose...
+  end  # -n --noop
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
@@ -116,7 +120,7 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options]" +
+  opts.banner = "\n  Usage: #{PROGNAME} [options] file [...file]" +
                 "\n\n     Tallies the frequencies of words in a document.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
@@ -133,5 +137,13 @@ end                           #
 ###############################
 
 options[:verbose] = options[:debug] if options[:debug]
+foptions = { :verbose => options[:verbose], :noop => options[:noop] }
+tmpext   = '.tmp~'
+bckext   = '.backup'
 
-process( ARGV[0], prepare( ARGV[1], options[:backup] ), options )
+ARGV.each do | arg |
+  f = arg + ( options[:backup] ? bckext : tmpext )
+  FileUtils.cp( arg, f, foptions )
+  process( f, prepare( arg ), options )
+  FileUtils.rm( f, options ) if File.extname( f ) == tmpext  # delete temp-file
+end
