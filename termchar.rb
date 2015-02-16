@@ -3,7 +3,7 @@
 
 # termchar.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
