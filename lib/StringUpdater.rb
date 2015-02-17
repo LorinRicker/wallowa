@@ -4,7 +4,7 @@
 # StringUpdater.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 02/13/2015
+# Version 1.2, 02/16/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -26,22 +26,33 @@ class String
       require 'date'
       updtoyear = DateTime.now.year.to_s
     end
-    decades = '19|20|21'
-    copypat = /Copyright( ©)? (((#{decades})\d\d)(-((#{decades})\d\d)?)?)\s/
-    # Interesting match groups in this cpat regexp:
-    #   #3: always the first/beginning year XXXX
-    #   #5: if present, the dash-range and year YYYY
-    #   #6: if present, the last/ending year YYYY
+    centuries = '19|20|21'
+    # Match: 'Copyright' 'Copyright ©' 'Copyright (C)' and '©' [but not just plain '(C)']
+    #   followed by 'XXXX' (year) or 'XXXX-YYYY' or 'XXXX-YY' (year ranges)
+    copypat = /(Copyright(                              # 'Copyright '
+                  \s+(©|\([Cc]\))?)                     # ' ©' or ' (C)' or ' (c)'
+               |©)\s+                                   # or just '© '
+                ((?<xxxx>(#{centuries})\d\d)            # ' 2001'
+                (-(?<yyyy>(#{centuries})?\d\d)?)?)\s    # '-2014 ' or '-14 '
+              /x
+    # Interesting match groups in this cpat regexp (using named match-groups):
+    #   ?<xxxx>, #5: always the first/beginning year 'XXXX'
+    #   ?<yyyy>, #8: if present, the last/ending year 'YYYY'
     matched = copypat.match( line )
-    return line unless matched      # no match?  done... return unaltered line
-    if matched[6]
-      if matched[6] >= updtoyear    # current? or also accept future date...
+    return line unless matched        # no match?  done... return unaltered line
+    # Two cases: matched[:xxxx] == 'XXXX', and matched[:yyyy] == nil or == 'YYYY' --
+    if matched[:xxxx]
+      # Is either 'XXXX' or 'YYYY' current year? Also accept future date(s)...
+      current = matched[:xxxx] >= updtoyear
+      # Separate tests because match[:yyyy] can be nil...
+      current = matched[:yyyy] >= updtoyear if matched[:yyyy]
+      if current
         $stderr.puts "%upd©-current: #{line}" if verbose
         return line
       end
     end
     #       Copyright © XXXX         -YYYY
-    line = "Copyright © #{matched[3]}-#{updtoyear} "
+    line = "Copyright © #{matched[:xxxx]}-#{updtoyear} "
     line = matched.pre_match + line + matched.post_match
     $stderr.puts "%upd@-updated: #{line}" if verbose
     return line

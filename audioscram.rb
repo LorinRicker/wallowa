@@ -3,7 +3,7 @@
 
 # audioscram.rb ("Audio Scramble")
 #
-# Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -108,7 +108,7 @@
 
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.6 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -137,6 +137,8 @@ options = { :keep    => false,
             :debug   => DBGLVL0,
             :about   => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---

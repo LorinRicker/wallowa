@@ -21,7 +21,7 @@
 #         $ cat foo.rb | ./wordfrequencies
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.9 (02/15/2015)"
+  PROGID = "#{PROGNAME} v2.0 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -137,6 +137,8 @@ options = { :limit   => DEFAULT_LIMIT,
             :about   => false
           }
 
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
+
 optparse = OptionParser.new { |opts|
   opts.on( "-l", "--limit", "=N", Integer, "Top N words to report" ) do |val|
     options[:limit] = val.to_i
@@ -167,7 +169,7 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options]" +
+  opts.banner = "\n  Usage: #{PROGNAME} [options] [file]" +
                 "\n\n     Tallies the frequencies of words in a document.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts

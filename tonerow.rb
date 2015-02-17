@@ -41,7 +41,7 @@
 #      where Д: 10 and ξ: 11
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.7 (11/19/2014)"
+  PROGID = "#{PROGNAME} v1.8 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -197,6 +197,8 @@ options = { :rowsize  => 12,
             :debug    => DBGLVL0,
             :about    => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-d", "--diagonal", "Invoke diagonal check" ) do |val|

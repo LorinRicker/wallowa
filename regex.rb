@@ -4,7 +4,7 @@
 # regex.rb
 # (renamed from 'RegexRevealed.rb' to conform to rel2bin.rb conventions)
 #
-# Copyright © 2011-2014 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2011-2015 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the

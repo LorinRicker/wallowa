@@ -15,7 +15,7 @@
 # book (ISBN 978-1-59327-527-3, No Starch Press, 2014).
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.0 (12/23/2014)"
+  PROGID = "#{PROGNAME} v2.1 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -92,6 +92,8 @@ options = { :start    => false,
             :debug    => DBGLVL0,
             :about    => false
           }
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-b", "--start", "=N", Integer, "Start/begin-line to analyze" ) do |val|

@@ -3,7 +3,7 @@
 
 # stringenhance.rb
 #
-# Copyright © 2011-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
 # Version 0.7, 10/15/2014
 #
 # This program is free software, under the terms and conditions of the

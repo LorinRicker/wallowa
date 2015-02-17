@@ -3,7 +3,7 @@
 
 # factorial.rb
 #
-# Copyright (C) 2011-2015 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2011-2015 Lorin Ricker <lorin@rickernet.us>
 # Version: 0.5, 06/04/2014
 # Version: 0.6, 06/24/2014, adds Permutation and Combination
 # Version: 0.8, 12/21/2014, adds "Main -- test driver" test-case

@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.9 (02/01/2015)"
+  PROGID = "#{PROGNAME} v2.0 (02/16/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -110,6 +110,8 @@ options = { :recover    => false,
 
 # Consume the *default* config-file --
 params.merge!( AppConfig.configuration_yaml( CONFIGFILE, params ) ) if File.exist?( CONFIGFILE )
+
+ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 # Parse the command line --
 optparse = OptionParser.new { |opts|
