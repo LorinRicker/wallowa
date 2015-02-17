@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.3 (02/17/2015)"
+  PROGID = "#{PROGNAME} v4.4 (02/17/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -38,6 +38,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # >>> Also be sure to update the help-text for OptionParse's --help <<<
      EXEC_TOOLS = %w{ cmp dhex diff }
 CANDIDATE_TOOLS = EXEC_TOOLS + %w{ diffuse fldiff kdiff3 kompare meld }
+  DIRDIFF_TOOLS = %w{ dirdiff }
 
   # Note: tried 'hexdiff', but found it too buggy to use...
   #       but 'dhex' is usable for hex diffing (and editing).
@@ -53,6 +54,7 @@ require_relative 'lib/TermChar'
 # === Main ===
 
 options = { :tool    => 'meld',
+            :dirdiff => nil,
             :digest  => "SHA1",
             :width   => nil,
             :verbose => false,
@@ -63,7 +65,7 @@ options = { :tool    => 'meld',
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
   opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
-           "Message digest type (SHA1 (d), SHA[256,384,512] or MD5)" ) do |val|
+           "Message digest (SHA1 (d), SHA[256,384,512] or MD5)" ) do |val|
   options[:digest] = val || "SHA1"
   end  # -s --digest
   opts.on( "-m", "--dependency", "Dependency (files' mtimes) mode" ) do |val|
@@ -72,9 +74,13 @@ optparse = OptionParser.new { |opts|
   opts.on( "-t", "--times", "Include file times (mtime, atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
-  opts.on( "-u", "--tool=TOOL", "Which diff-tool to use" ) do |val|
+  opts.on( "-D", "--dirdiff", "Launch the \"dirdiff\" tool (displayed in a separate",
+                              "window before file comparison operations)" ) do |val|
+    options[:dirdiff] = true
+  end  # -D --dirdiff
+  opts.on( "-u", "--tool=TOOL", "--use", "Which diff-tool to use" ) do |val|
     options[:tool] = val.downcase
-  end  # -u --tool --diff-tool
+  end  # -u --use --tool
   opts.on( "-w", "--width=WIDTH", "Terminal display width" ) do |val|
     options[:width] = val.to_i
   end  # -w --width
@@ -97,26 +103,27 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] file1 file2"        +
-                "\n     or: #{PROGNAME} [options] file [file...] dir" +
-                "\n\n   where file1 is compared to file2 --"          +
-                "\n     any differences can be reported and"          +
-                "\n     displayed with a GUI file-comp tool;"         +
-                "\n     any filespec can be wildcarded when"          +
-                "\n     the last argument is a directory.\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] file1 file2           (form #1)"   +
+                "\n         where file1 is compared to file2."                       +
+                "\n\n     or: #{PROGNAME} [options] file [file...] dir    (form #2)" +
+                "\n         where any filespec can be wildcarded"                    +
+                "\n         when the last argument is a directory."                  +
+                "\n\n     Differences can be reported and displayed with a GUI file-comp tool.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
-    $stdout.puts "\n    --tool (-u) let's you specify your favorite file comparison tool"
-    $stdout.puts "    for comparing two files or file-versions.  filecomp knows about"
-    $stdout.puts "    several *nix command-line and GUI/windows tools, including:"
+    $stdout.puts "\n    --dirdiff (-D) optionally launches the \"dirdiff\" GUI application to display"
+    $stdout.puts "    differences between the (different) file1 and file2 directories.  To launch"
+    $stdout.puts "    dirdiff, the last command-line argument must be a directory."
+    $stdout.puts "\n    --use=TOOL (--tool=TOOL or -u) let's you specify your favorite file comparison"
+    $stdout.puts "    tool for comparing two files or file-versions."
+    $stdout.puts "\n    filecomp knows about several *nix command-line and GUI/windows tools, including:"
     $stdout.puts "    #{CANDIDATE_TOOLS.to_s}."
-    $stdout.puts "    Of these, #{EXEC_TOOLS.to_s} are command-line tools, while"
-    $stdout.puts "    the remainder are GUI/windows tools."
-    $stdout.puts "\n    Nearly all of these tools (except \"diff\") are optional, and must be"
-    $stdout.puts "    manually installed on your system.  Any diffie-tools not installed will"
-    $stdout.puts "    not appear in the prompt-line to invoke the diff-tool; the program that"
-    $stdout.puts "    you specify with the --tool option will appear as the [default] choice"
-    $stdout.puts "    in that prompt-line, ready for your use."
+    $stdout.puts "\n    Of these, #{EXEC_TOOLS.to_s} are command-line tools; the remainder are"
+    $stdout.puts "    GUI/windows tools."
+    $stdout.puts "\n    Nearly all of these tools (except \"diff\") are optional, and must be manually"
+    $stdout.puts "    installed on your system.  Any diffie-tools not installed will not appear in"
+    $stdout.puts "    the prompt-line to invoke the diff-tool; the program that you specify with the"
+    $stdout.puts "    --tool option will appear as the [default] choice in that prompt, ready for use."
     exit true
   end  # -h --help
 }.parse!  # leave residue-args in ARGV
@@ -137,7 +144,12 @@ if File.directory?( lastarg )
     $stderr.puts "%#{PROGNAME}-e-usage, first argument must be a file, not a directory"
     exit false
   end
-  # command form is: $ filecomp file [file...] dir/
+  # Command form is: $ filecomp file [file...] dir/
+  # Optionally launch directory-diff tool against directory of first arg and lastarg:
+  if options[:dirdiff]
+    dir1 = File.expand_path( File.dirname( ARGV[0] ) )
+    launch_dirdiff( dir1, lastarg, options )
+  end
   dir = ARGV.pop
   ARGV.each do | arg |
     Dir.glob( arg ).each do | f |
@@ -151,7 +163,7 @@ else
     $stderr.puts "%#{PROGNAME}-e-usage, last argument must be a directory"
     exit false
   end
-  # command form is: $ filecomp file1 [file2]
+  # Command form is: $ filecomp file1 [file2]
   f1 = ARGV[0] || ""
   f2 = ARGV[1] || ""
   wilderr = "%#{PROGNAME}-e-wildcards, no wildcards allowed"
