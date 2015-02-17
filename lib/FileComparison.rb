@@ -141,8 +141,8 @@ def interactive_launch( fname1, fname2, textfiles, options )
     end
     # Final sanity-check the response -- is finally-chosen difftool in tools?
     if ! toolkeys.find_index( difftool )
-      $stderr.puts "%#{PROGNAME}-e-unsupported, no such diff-tool '#{difftool}'"
-      exit true
+      $stderr.puts "%#{PROGNAME}-f-unsupported, no such diff-tool '#{difftool}'"
+      exit false
     end
   else
     difftool = 'dhex'  # the only current choice for binary/non-text files
