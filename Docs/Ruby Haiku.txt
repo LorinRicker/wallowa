@@ -1,4 +1,7 @@
-Ruby Haiku (5,7,5) --
+Ruby Haiku (5,7,5)
+-- Lorin Ricker --
+Copyright © 2012-2015 by the author. All Rights Reserved.
+-----
 
 Even old geeks find
   the wonder in this language.
@@ -14,7 +17,7 @@ No Windows; no Gates!
 
 require 'a_gem'
   the_joy.in the_beauty
-"Ruby.new" breathed Matz
+"Ruby.new" breathed Matz.
 
 -----
 
@@ -39,6 +42,12 @@ Metaprogramming.
 Need to count something?
   Iterate. Enumerate.
 Ruby tallies all.
+
+-----
+
+"This wire's a nanosec,"
+asserted Amazing Grace,
+"Now, make it snappy!"
 
 -----
 
