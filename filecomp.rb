@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.2 (02/10/2015)"
+  PROGID = "#{PROGNAME} v4.3 (02/17/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -37,7 +37,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # >>> Update one or both of these constants if/when you add YADT!   <<<
 # >>> Also be sure to update the help-text for OptionParse's --help <<<
      EXEC_TOOLS = %w{ cmp dhex diff }
-CANDIDATE_TOOLS = EXEC_TOOLS + %w{ fldiff kdiff3 kompare meld }
+CANDIDATE_TOOLS = EXEC_TOOLS + %w{ diffuse fldiff kdiff3 kompare meld }
 
   # Note: tried 'hexdiff', but found it too buggy to use...
   #       but 'dhex' is usable for hex diffing (and editing).
