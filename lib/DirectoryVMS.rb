@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.7, 11/19/2014
+# Version 5.0, 03/04/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -122,6 +122,14 @@ class DirectoryVMS
   end  # printgrand
 
   # ------------------------------------------
+  def filterAfter( fspecs, fdate )
+    nspecs = []
+    fspecs.each do |f|
+      nspecs << f if File.lstat(f).mtime >= fdate
+    end
+    nspecs
+  end  # filterAfter
+
   def filterBefore( fspecs, fdate )
     nspecs = []
     fspecs.each do |f|
@@ -129,14 +137,6 @@ class DirectoryVMS
     end
     nspecs
   end  # filterBefore
-
-  def filterSince( fspecs, fdate )
-    nspecs = []
-    fspecs.each do |f|
-      nspecs << f if File.lstat(f).mtime >= fdate
-    end
-    nspecs
-  end  # filterSince
 
   def filterLarger( fspecs, fsize )
     nspecs = []
@@ -174,8 +174,8 @@ class DirectoryVMS
 
     # Filter for user-specified dates &/or sizes...
     # direntries is same or smaller after each filter:
+    direntries = filterAfter(   direntries, @options[:after]   ) if @options[:after]
     direntries = filterBefore(  direntries, @options[:before]  ) if @options[:before]
-    direntries = filterSince(   direntries, @options[:since]   ) if @options[:since]
     direntries = filterLarger(  direntries, @options[:larger]  ) if @options[:larger]
     direntries = filterSmaller( direntries, @options[:smaller] ) if @options[:smaller]
     direntries.sort_caseblind!( @options[:reverse] )

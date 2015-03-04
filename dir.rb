@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.8 (02/16/2015)"
+  PROGID = "#{PROGNAME} v5.0 (03/04/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
 DBGLVL0 = 0
@@ -33,6 +33,7 @@ require_relative 'lib/DateCalc'
 
 # === Main ===
 options = { :bytesize => false,
+            :after    => false,
             :before   => false,
             :full     => false,
             :grand    => false,
@@ -40,7 +41,6 @@ options = { :bytesize => false,
             :larger   => false,
             :owner    => false,
             :smaller  => false,
-            :since    => false,
             :recurse  => false,
             :reverse  => false,
             :times    => false,
@@ -55,7 +55,11 @@ optparse = OptionParser.new { |opts|
   opts.on( "-b", "--bytesize", "List file sizes in bytes (default is K, M, G, etc.)" ) do |val|
     options[:bytesize] = true
   end  # -b --bytesize
-  opts.on( "-B", "--before [DATE]", "List files modified before date" ) do |val|
+  opts.on( "-A", "--since", "--after[=DATE]", "List files modified after (since) date" ) do |val|
+    val = "today" if ! val
+    options[:after] = DateCalc.thisday( val )
+  end  # -A --after --since
+  opts.on( "-B", "--before[=DATE]", "List files modified before date" ) do |val|
     val = "today" if ! val
     options[:before] = DateCalc.thisday( val )
   end  # -B --before
@@ -68,26 +72,23 @@ optparse = OptionParser.new { |opts|
   opts.on( "-H", "--hidden", "Display hidden files (filenames beginning with '.')" ) do |val|
     options[:hidden] = true
   end  # -H --hidden
-  opts.on( "-l", "--larger SIZE", "List files larger than size",
+  opts.on( "-l", "--larger=SIZE", "List files larger than size",
            Integer ) do |val|
     options[:larger] = val
   end  # -l --larger
   opts.on( "-o", "--owner", "List file ownership 'User:Group (uid,gid)'" ) do |val|
     options[:owner] = true
   end  # -o --full
-  opts.on( "-s", "--smaller SIZE", "List files smaller than size",
+  opts.on( "-s", "--smaller=SIZE", "List files smaller than size",
            Integer ) do |val|
     options[:smaller] = val
   end  # -s --smaller
-  opts.on( "-S", "--since [DATE]", "List files modified since date" ) do |val|
-    val = "today" if ! val
-    options[:since] = DateCalc.thisday( val )
-  end  # -S --since
   opts.on( "-r", "--reverse", "Display listing in reverse-sorted order" ) do |val|
     options[:reverse] = true
   end  # -r --reverse
-  opts.on( "-R", "--recurse", "Recurse the listing into subdirectories" ) do |val|
-    options[:recurse] = true
+  opts.on( "-R", "--recurse[=GLOB]", "Recurse the listing into subdirectories, optionally",
+                                     "listing files which match 'GLOB' ('*.rb', etc.)" ) do |val|
+    options[:recurse] = val || '*'   # either --recurse or --recurse=b*.rb (etc.)
   end  # -R --recurse
   opts.on( "-t", "--times", "List file access and create times (atime, ctime)" ) do |val|
     options[:times] = true
