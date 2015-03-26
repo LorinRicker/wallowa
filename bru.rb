@@ -294,7 +294,7 @@ end
 # is long/big, rsync will work for "a long time" to completion before any
 # output is available for print here...
 $stderr.puts "\n%#{PROGNAME}-i-noop, ======= DRY-RUN MODE =======".color(:red) if options[:noop]
-$stderr.puts "%#{PROGNAME}-i-popen_working, rsync output..."
+$stderr.puts "%#{PROGNAME}-i-popen2e_working, rsync output..."
 xstat = 0
 
 # This is now a job for Open3.popen2e()...
