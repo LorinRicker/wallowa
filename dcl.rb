@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.5 (02/11/2015)"
+  PROGID = "#{PROGNAME} v2.6 (03/26/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -227,7 +227,7 @@ end  # blend
 
 # ==========
 
-CMD_LINKS = %w{ copy create rename
+CMD_LINKS = %w{ copy create        # rename : see rename.rb
                 delete purge search
                 directory show }   # "set" conflicts with bash 'set' command
 FNC_LINKS = %w{ capcase locase upcase titlecase
@@ -345,11 +345,12 @@ else
     # when :create
     when :rename
       # See ri FileUtils[::mv]
-      begin
-        FileUtils.mv( src, dst, fuoptions )
-      rescue StandardError => e
-        bad_fucmd_params( e, options[:debug] )
-      end
+      ## see rename.rb -- may just exec() this here ???
+      ## begin
+      ##   FileUtils.mv( src, dst, fuoptions )
+      ## rescue StandardError => e
+      ##   bad_fucmd_params( e, options[:debug] )
+      ## end
     when :delete
       # See ri FileUtils[::rm]
       begin

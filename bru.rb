@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.0 (02/16/2015)"
+  PROGID = "#{PROGNAME} v2.1 (03/26/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -40,6 +40,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 require 'optparse'
 require 'fileutils'
+require 'open3'
 require 'pp'
 require_relative 'lib/appconfig'
 require_relative 'lib/FileEnhancements'
@@ -292,10 +293,14 @@ end
 # output lines at end-of-subprocess, works well enough.  But if the file-list
 # is long/big, rsync will work for "a long time" to completion before any
 # output is available for print here...
-# This is now a job for IO.popen()...
 $stderr.puts "\n%#{PROGNAME}-i-noop, ======= DRY-RUN MODE =======".color(:red) if options[:noop]
 $stderr.puts "%#{PROGNAME}-i-popen_working, rsync output..."
+xstat = 0
 
-IO.popen( rsync ) { |p| p.readlines.each { |ln| $stdout.puts "  | #{ln}" } }
+# This is now a job for Open3.popen2e()...
+Open3.popen2e( rsync ) do | in, outerr, thrd |
+  outerr.each { |ln| $stdout.puts "  | #{ln}" }
+  xstat = thrd.value  # Process::Status
+end
 
-exit true
+exit xstat
