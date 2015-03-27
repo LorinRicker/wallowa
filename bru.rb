@@ -298,9 +298,9 @@ $stderr.puts "%#{PROGNAME}-i-popen2e_working, rsync output..."
 xstat = 0
 
 # This is now a job for Open3.popen2e()...
-Open3.popen2e( rsync ) do | in, outerr, thrd |
-  outerr.each { |ln| $stdout.puts "  | #{ln}" }
-  xstat = thrd.value  # Process::Status
+Open3.popen2e( rsync ) do | stdin, stdouterr, thrd |
+  stdouterr.each { |ln| $stdout.puts "  | #{ln}" }
+  xstat = thrd.value.exitstatus  # Process::Status
 end
 
 exit xstat
