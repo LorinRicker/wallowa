@@ -17,11 +17,14 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (03/20/2015)"
+  PROGID = "#{PROGNAME} v0.2 (03/27/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )
+
+WILDSPLAT = '*'
+WILDQUEST = '?'
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -120,21 +123,35 @@ if ARGV.length < 2
   exit false
 end
 
-rename_pat = ARGV.pop  # last argument is the rename pattern
+# decompose the rename pattern
+repat     = File.expand_path( ARGV.pop )  # last argument is the rename pattern
+repatdirn = File.dirname( repat )
+repattype = File.extname( repat )
+repatfnam = File.basename( repat, repattype )
+options[:namewild] = repatfnam.index( WILDSPLAT ) == 0
+options[:typewild] = repattype.index( WILDSPLAT ) == 0
 # TODO: parse any '*.ext' or 'fname.*' and
 #       set options[:namewild] &/or options[:typewild]
 #       accordingly...
 #       OR? This can be a pattern -> gsub() ???
 
-# BE SURE not to clobber existing files (filenames), unless :force !!!
+# TODO: do not clobber existing files (filenames), unless :force !!!
 
-# BE SURE to handle options[:sudo]  !!!
+# TODO: handle options[:sudo]  !!!
 
-ARGV.each do | f |
-  puts "file: '#{f}'"
-  # TODO: use options[:namewild] &/or options[:typewild]
-  #       to figure out what to do...
-  ## mv_f( orgfs, renfs )
+ARGV.each_with_index do | f, idx |
+  fspec = File.expand_path( f )
+  fdirn = File.dirname( fspec )
+  ftype = File.extname( fspec )
+  fname = File.basename( fspec, ftype )
+
+  newfname  = options[:namewild] ? fname : repatfnam
+  newfname += options[:typewild] ? ftype : repattype
+  newfspec  = File.join( repatdirn, newfname )
+  puts "file \##{idx}: '#{fspec}'    --> '#{newfspec}'"
+  ## mv_f( fspec, newfspec )
 end  # ARGV.each
+
+puts "\nrename-pattern: '#{repat}'"
 
 exit true
