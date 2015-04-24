@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v2.6 (03/26/2015)"
+  PROGID = "#{PROGNAME} v3.0 (04/24/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -160,37 +160,7 @@ def help_available( tag, links, perline )
   puts "\n#{hlp}"
 end  # help_available
 
-def dclsymlink( syms )
-  syms.each do |s|
-    slnk = File.join( PATH, s )
-    if File.symlink?( slnk )
-      # See http://ruby.runpaint.org/ref/file for documentation of new methods
-      # File.readlink (used here) and File.realpath...
-      if File.readlink( slnk ) == DCLNAME
-        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})".color(:green)
-      else
-        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})".color(:red)
-      end  # if File.identical?( DCLNAME, slnk )
-    else
-      if ! File.file?( slnk )  # no ordinary file collision?
-        File.symlink( DCLNAME, slnk )
-        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})".color(:blue)
-      else
-        $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created".color(:red)
-      end  # if ! File.file?( slnk )
-    end  # if File.symlink( slnk )
-  end  # syms.each
-end  # dclsymlink
-
-def getargs( options )
-  args = ''
-  if ARGV[0]                             # Not: ARGF !=== ARGV.join(" ")
-    args = ARGV.join( " " )              # All args into one big sentence...
-  else                                   # ...or from std-input
-    args = $stdin.readline.chomp if !options[:symlinks]
-  end  # if ARGV[0]
-  return args
-end  # getargs
+# ==========
 
 def parse_dcl_qualifiers( argvector )
   argvl  = argvector.length
@@ -224,6 +194,242 @@ def blend( options, quals )
   fuopts[:preserve] = options[:preserve]
   return fuopts
 end  # blend
+
+# ==========
+
+def dclSymlink( syms )
+  syms.each do |s|
+    slnk = File.join( PATH, s )
+    if File.symlink?( slnk )
+      # See http://ruby.runpaint.org/ref/file for documentation of new methods
+      # File.readlink (used here) and File.realpath...
+      if File.readlink( slnk ) == DCLNAME
+        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})".color(:green)
+      else
+        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})".color(:red)
+      end  # if File.identical?( DCLNAME, slnk )
+    else
+      if ! File.file?( slnk )  # no ordinary file collision?
+        File.symlink( DCLNAME, slnk )
+        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})".color(:blue)
+      else
+        $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created".color(:red)
+      end  # if ! File.file?( slnk )
+    end  # if File.symlink( slnk )
+  end  # syms.each
+end  # dclSymlink
+
+# ==========
+
+def dclCommand( action, operands, options )
+  src, dst, quals = parse_dcl_qualifiers( operands )
+  fuoptions = blend( options, quals )
+  if options[:debug] >= DBGLVL2
+    pp src
+    pp dst
+    pp quals
+    pp fuoptions
+  end
+
+  # Commands:
+  case action.to_sym              # Dispatch the command-line action;
+                                  # invoking symlink's name is $0 ...
+  when :copy
+    # See ri FileUtils[::cp]
+    begin
+      FileUtils.cp( src, dst, fuoptions )
+    rescue StandardError => e
+      bad_fucmd_params( e, options[:debug] )
+    end
+  # when :create
+  when :rename
+    # See ri FileUtils[::mv]
+    ## see rename.rb -- may just exec() this here ???
+    ## begin
+    ##   FileUtils.mv( src, dst, fuoptions )
+    ## rescue StandardError => e
+    ##   bad_fucmd_params( e, options[:debug] )
+    ## end
+  when :delete
+    # See ri FileUtils[::rm]
+    begin
+      FileUtils.rm( src, fuoptions )
+    rescue StandardError => e
+      bad_fucmd_params( e, options[:debug] )
+    end
+  # when :purge
+  # when :directory
+  # when :show
+  when :search
+  # 'SEARCH files pattern' --> 'grep pattern files'
+  # This 'SEARCH' command is more powerful than VMS/DCL's, since it uses
+  # general regular expressions (regexps) rather than 'simple wildcarded'
+  # search-strings...
+    cmd = "/bin/grep --color=always --ignore-case -e '#{dst}' "
+    src.each { |s| cmd << " '#{s}'" }
+    # for less, honor grep's color output with --raw-control-chars:
+    cmd += " | /bin/less --raw-control-chars" if options[:pager] or quals[:pager]
+    exec( cmd )  # chains, no return...
+  else
+    $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"
+    exit false
+  end  # case action.to_sym
+
+end  # dclCommand
+
+# ==========
+
+def getOps( operands, options )
+  ops = ''
+  if operands[0]
+    ops = operands.join( " " )           # All operands into one big sentence...
+  else                                   # ...or from std-input
+    ops = $stdin.readline.chomp if !options[:symlinks]
+  end  # if operands[0]
+  return ops
+end  # getOps
+
+def dclFunction( action, operands, options )
+  # Functions:
+  case action.to_sym              # Dispatch the command-line action;
+                                  # invoking symlink's name is $0 ...
+  when :capcase
+    ops = getOps( operands, options )
+    result = ops.capcase
+
+  when :collapse
+    ops = getOps( operands, options )
+    result = ops.collapse
+
+  when :compress
+    ops = getOps( operands, options )
+    result = ops.compress
+
+  when :length
+    ops = getOps( operands, options )
+    result = ops.length         # String class does this one directly
+
+  when :locase
+    ops = getOps( operands, options )
+    result = ops.locase         # String class does this one directly
+
+  when :numbernames
+    # $ numbernames number
+    ops = getOps( operands, options )
+    # Stanza-per-line output:
+    #    call as: ops.numbernames( '\n' )
+    # for use as: $ echo -e $( numbernames <num> )
+    result = ops.numbernames.split( ', ' )
+    result.each { |s| $stdout.puts s }
+    exit true
+
+  when :thousands
+    # $ thousands number
+    ops = getOps( operands, options )
+    result = ops.thousands
+
+  when :titlecase
+    ops = getOps( operands, options )
+    result = ops.titlecase
+
+  when :trim
+    ops = getOps( operands, options )
+    result = ops.strip          # String class does this one directly
+
+  when :trim_leading
+    ops = getOps( operands, options )
+    result = ops.lstrip         # String class does this one directly
+
+  when :trim_trailing
+    ops = getOps( operands, options )
+    result = ops.rstrip         # String class does this one directly
+
+  when :uncomment
+    ops = getOps( operands, options )
+    result = ops.uncomment
+
+  when :upcase
+    ops = getOps( operands, options )
+    result = ops.upcase         # String class does this one directly
+
+  # when :«+»
+  #   ops = getOps( operands, options )
+  #   result = ops.«+»
+
+  when :cjust
+    # $ cjust width "String to center-justify..."
+    ## >> How to default width to terminal-width, and how to specify padchr? Syntax?
+    width  = ops.shift.to_i
+    # padchr = ops.shift
+    ops = getOps( operands, options )
+    result = ops.center( width )
+
+  when :ljust
+    # $ ljust width "String to center-justify..."
+    width  = ops.shift.to_i
+    # padchr = ops.shift
+    ops = getOps( operands, options )
+    result = ops.ljust( width )
+
+  when :rjust
+    # $ rjust width "String to center-justify..."
+    width  = ops.shift.to_i
+    # padchr = ops.shift
+    ops = getOps( operands, options )
+    result = ops.rjust( width )
+
+  when :edit
+    # $ edit "func1,func2[,...]" "String to filter"
+    #   where "func1,funct2[,...]" -- the editlist -- is required
+    editlist = ops.shift            # assign and remove arg [0]
+    ops = getOps( operands, options )
+    result = ops.edit( editlist, '#' )  # assume bash-style comments
+
+  when :element
+    # $ element 2 [","] "String,to,extract,an,element,from:
+    #   where first arg is the element-number (zero-based) to extract,
+    #   and second arg is (optional) element separator (default ",");
+    #   note that if length of second arg is > 1, it defaults, and
+    #   remainder of string is the string to filter
+    elem = ops.shift.to_i           # assign and remove arg [0]
+    sep  = ops[0].length == 1 ? ops.shift : ","  # and arg [1]
+    ops = getOps( operands, options )
+    result = ops.element( elem, sep )
+
+  when :pluralize
+    # $ pluralize word howmany [irregular]
+    word      = ops.shift                  # assign and remove arg [0]
+    howmany   = ops.shift.to_i             # and arg [1]
+    irregular = ops[0] ? ops.shift : nil  # and (optional) arg [2]
+    # ops = getOps( operands, options )             # ...ignore rest of com-line
+    result = word.pluralize( howmany, irregular )
+
+  when :substr, :extract
+    # $ substr start len "String to extract/substring from..."
+    start = ops.shift.to_i
+    len   = ops.shift.to_i
+    ops  = getOps( operands, options )
+    result = ops[start,len]      # String class does this one directly
+
+  when :dclsymlink
+    # $ dclsymlink action [action]...
+    dclsymlink( ops )            # Set &/or verify this action verb symlink
+    exit true
+
+  else
+    $stderr.puts "%#{PROGNAME}-e-nyi, DCL function '#{action}' not yet implemented"
+    exit false
+
+  end  # case action.to_sym
+
+  if options[:verbose]
+    $stderr.puts "%#{PROGNAME}-I-echo,   $ " + "#{action}".underline + " '#{ops}'"
+    $stderr.puts "%#{PROGNAME}-I-result, " + "'#{result}'".bold
+  end  # if options[:verbose]
+
+  $stdout.print result  # Print filtered result to std-output
+
+end  # dclFunction
 
 # ==========
 
@@ -319,206 +525,15 @@ end                           #
 action = File.basename( $0 ).downcase  # $0 is name of invoking symlink...
 
 if options[:symlinks]
-  dclsymlink( ALL_LINKS )       # set &/or verify ALL_LINKS symlinks
-  exit true
+  dclSymlink( ALL_LINKS )       # set &/or verify ALL_LINKS symlinks
 else
   # Dispatch/processing for each sym-linked command begins here...
   if CMD_LINKS.find( action )   # one of the Command actions?
-    src, dst, quals = parse_dcl_qualifiers( ARGV )
-    fuoptions = blend( options, quals )
-    if options[:debug] >= DBGLVL2
-      pp src
-      pp dst
-      pp quals
-      pp fuoptions
-    end
-
-    # Commands:
-    case action.to_sym
-    when :copy
-      # See ri FileUtils[::cp]
-      begin
-        FileUtils.cp( src, dst, fuoptions )
-      rescue StandardError => e
-        bad_fucmd_params( e, options[:debug] )
-      end
-    # when :create
-    when :rename
-      # See ri FileUtils[::mv]
-      ## see rename.rb -- may just exec() this here ???
-      ## begin
-      ##   FileUtils.mv( src, dst, fuoptions )
-      ## rescue StandardError => e
-      ##   bad_fucmd_params( e, options[:debug] )
-      ## end
-    when :delete
-      # See ri FileUtils[::rm]
-      begin
-        FileUtils.rm( src, fuoptions )
-      rescue StandardError => e
-        bad_fucmd_params( e, options[:debug] )
-      end
-    # when :purge
-    # when :directory
-    # when :show
-    when :search
-    # 'SEARCH files pattern' --> 'grep pattern files'
-    # This 'SEARCH' command is more powerful than VMS/DCL's, since it uses
-    # general regular expressions (regexps) rather than 'simple wildcarded'
-    # search-strings...
-      cmd = "/bin/grep --color=always --ignore-case -e '#{dst}' "
-      src.each { |s| cmd << " '#{s}'" }
-      # for less, honor grep's color output with --raw-control-chars:
-      cmd += " | /bin/less --raw-control-chars" if options[:pager] or quals[:pager]
-      exec( cmd )  # chains, no return...
-    else
-      $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"
-      exit false
-    end
-    exit true
-
+  then
+    dclCommand( action, ARGV, options )
   else
-    # Functions:
-    case action.to_sym              # Dispatch the command-line action;
-                                    # invoking symlink's name is $0 ...
-    when :capcase
-      args = getargs( options )
-      result = args.capcase
+    dclFunction( action, ARGV, options )
+  end
+end  # if options[:symlinks]
 
-    when :collapse
-      args = getargs( options )
-      result = args.collapse
-
-    when :compress
-      args = getargs( options )
-      result = args.compress
-
-    when :length
-      args = getargs( options )
-      result = args.length         # String class does this one directly
-
-    when :locase
-      args = getargs( options )
-      result = args.locase         # String class does this one directly
-
-    when :numbernames
-      # $ numbernames number
-      args = getargs( options )
-      # Stanza-per-line output:
-      #    call as: args.numbernames( '\n' )
-      # for use as: $ echo -e $( numbernames <num> )
-      result = args.numbernames.split( ', ' )
-      result.each { |s| $stdout.puts s }
-      exit true
-
-    when :thousands
-      # $ thousands number
-      args = getargs( options )
-      result = args.thousands
-
-    when :titlecase
-      args = getargs( options )
-      result = args.titlecase
-
-    when :trim
-      args = getargs( options )
-      result = args.strip          # String class does this one directly
-
-    when :trim_leading
-      args = getargs( options )
-      result = args.lstrip         # String class does this one directly
-
-    when :trim_trailing
-      args = getargs( options )
-      result = args.rstrip         # String class does this one directly
-
-    when :uncomment
-      args = getargs( options )
-      result = args.uncomment
-
-    when :upcase
-      args = getargs( options )
-      result = args.upcase         # String class does this one directly
-
-    # when :«+»
-    #   args = getargs( options )
-    #   result = args.«+»
-
-    when :cjust
-      # $ cjust width "String to center-justify..."
-      ## >> How to default width to terminal-width, and how to specify padchr? Syntax?
-      width  = ARGV.shift.to_i
-      # padchr = ARGV.shift
-      args = getargs( options )
-      result = args.center( width )
-
-    when :ljust
-      # $ ljust width "String to center-justify..."
-      width  = ARGV.shift.to_i
-      # padchr = ARGV.shift
-      args = getargs( options )
-      result = args.ljust( width )
-
-    when :rjust
-      # $ rjust width "String to center-justify..."
-      width  = ARGV.shift.to_i
-      # padchr = ARGV.shift
-      args = getargs( options )
-      result = args.rjust( width )
-
-    when :edit
-      # $ edit "func1,func2[,...]" "String to filter"
-      #   where "func1,funct2[,...]" -- the editlist -- is required
-      editlist = ARGV.shift            # assign and remove arg [0]
-      args = getargs( options )
-      result = args.edit( editlist, '#' )  # assume bash-style comments
-
-    when :element
-      # $ element 2 [","] "String,to,extract,an,element,from:
-      #   where first arg is the element-number (zero-based) to extract,
-      #   and second arg is (optional) element separator (default ",");
-      #   note that if length of second arg is > 1, it defaults, and
-      #   remainder of string is the string to filter
-      elem = ARGV.shift.to_i           # assign and remove arg [0]
-      sep  = ARGV[0].length == 1 ? ARGV.shift : ","  # and arg [1]
-      args = getargs( options )
-      result = args.element( elem, sep )
-
-    when :pluralize
-      # $ pluralize word howmany [irregular]
-      word      = ARGV.shift                  # assign and remove arg [0]
-      howmany   = ARGV.shift.to_i             # and arg [1]
-      irregular = ARGV[0] ? ARGV.shift : nil  # and (optional) arg [2]
-      # args = getargs( options )             # ...ignore rest of com-line
-      result = word.pluralize( howmany, irregular )
-
-    when :substr, :extract
-      # $ substr start len "String to extract/substring from..."
-      start = ARGV.shift.to_i
-      len   = ARGV.shift.to_i
-      args  = getargs( options )
-      result = args[start,len]      # String class does this one directly
-
-    when :dclsymlink
-      # $ dclsymlink action [action]...
-      dclsymlink( ARGV )            # Set &/or verify this action verb symlink
-      exit true
-
-    else
-      $stderr.puts "%#{PROGNAME}-e-nyi, DCL function '#{action}' not yet implemented"
-      exit false
-
-    end  # case
-
-    if options[:verbose]
-      $stderr.puts "%#{PROGNAME}-I-echo,   $ " + "#{action}".underline + " '#{args}'"
-      $stderr.puts "%#{PROGNAME}-I-result, " + "'#{result}'".bold
-    end  # if options[:verbose]
-
-    $stdout.print result  # Print filtered result to std-output
-
-  end  # case action.to_sym
-
-  exit true
-
-end  # if options[:symlink]
+exit true
