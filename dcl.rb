@@ -150,9 +150,9 @@ end  # bad_fucmd_params
 def help_available( tag, links, perline )
   hlp    = tag
   hlplen = hlp.length
-  i      = 0                        # counter
+  i      = 0
   links.each do | c |  # concatenate c ,-sep & measured list of commands
-    i += 1
+    i   += 1
     hlp += c
     hlp += ", " if i < links.size
     hlp += "\n" + " "*hlplen if i % perline == 0 && i < links.size
