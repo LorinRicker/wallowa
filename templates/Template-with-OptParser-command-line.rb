@@ -13,7 +13,7 @@
 
 PROGNAME = File.basename $0
   PROGID = "#{PROGNAME} v0.«·» («·»/«·»/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )

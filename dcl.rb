@@ -17,7 +17,7 @@
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
   PROGID = "#{PROGNAME} v3.0 (04/24/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )

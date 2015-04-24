@@ -17,8 +17,8 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.2 (03/27/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v0.3 (04/24/2015)"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )
@@ -40,6 +40,40 @@ require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # ==========
+
+def cmdRename( operands, options )
+  # decompose the rename pattern
+  repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
+  repatdirn = File.dirname( repat )
+  repattype = File.extname( repat )
+  repatname = File.basename( repat, repattype )
+  options[:namewild] = repatname.index( WILDSPLAT ) == 0
+  options[:typewild] = repattype.index( WILDSPLAT ) == 0
+  # TODO: parse any '*.ext' or 'fname.*' and
+  #       set options[:namewild] &/or options[:typewild]
+  #       accordingly...
+  #       OR? This can be a pattern -> gsub() ???
+
+  # TODO: do not clobber existing files (filenames), unless :force !!!
+
+  # TODO: handle options[:sudo]  !!!
+
+  operands.each_with_index do | f, idx |
+    src     = File.expand_path( f )
+    srcdirn = File.dirname( src )
+    srctype = File.extname( src )
+    srcname = File.basename( src, srctype )
+
+    dstname  = options[:namewild] ? srcname : repatname
+    dstname += options[:typewild] ? srctype : repattype
+    dst      = File.join( repatdirn, dstname )
+    puts "file \##{idx}: '#{src}' --> '#{dst}'"
+    ## mv_f( src, dst )
+  end  # operands.each
+
+  puts "\nrename-pattern: '#{repat}'"
+
+end  # cmdRename
 
 # === Main ===
 options = { :namewild => false,
@@ -123,35 +157,6 @@ if ARGV.length < 2
   exit false
 end
 
-# decompose the rename pattern
-repat     = File.expand_path( ARGV.pop )  # last argument is the rename pattern
-repatdirn = File.dirname( repat )
-repattype = File.extname( repat )
-repatfnam = File.basename( repat, repattype )
-options[:namewild] = repatfnam.index( WILDSPLAT ) == 0
-options[:typewild] = repattype.index( WILDSPLAT ) == 0
-# TODO: parse any '*.ext' or 'fname.*' and
-#       set options[:namewild] &/or options[:typewild]
-#       accordingly...
-#       OR? This can be a pattern -> gsub() ???
-
-# TODO: do not clobber existing files (filenames), unless :force !!!
-
-# TODO: handle options[:sudo]  !!!
-
-ARGV.each_with_index do | f, idx |
-  fspec = File.expand_path( f )
-  fdirn = File.dirname( fspec )
-  ftype = File.extname( fspec )
-  fname = File.basename( fspec, ftype )
-
-  newfname  = options[:namewild] ? fname : repatfnam
-  newfname += options[:typewild] ? ftype : repattype
-  newfspec  = File.join( repatdirn, newfname )
-  puts "file \##{idx}: '#{fspec}'    --> '#{newfspec}'"
-  ## mv_f( fspec, newfspec )
-end  # ARGV.each
-
-puts "\nrename-pattern: '#{repat}'"
+cmdRename( ARGV, options )
 
 exit true
