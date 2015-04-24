@@ -141,8 +141,8 @@ require_relative 'lib/ANSIseq'
 
 # ==========
 
-def bad_fucmd_params( e, debug )
-  $stderr.puts "%#{PROGNAME}-e-notdir, destination path must be a directory"
+def bad_fucmd_params( e, debug, errmsg = "notdir, destination path must be a directory" )
+  $stderr.puts "%#{PROGNAME}-e-#{errmsg}"
   pp e if debug > DBGLVL0
   exit false
 end  # bad_fucmd_params
