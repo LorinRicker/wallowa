@@ -163,72 +163,50 @@ end  # help_available
 # ==========
 
 def parse_dcl_qualifiers( argvector )
-  argvl  = argvector.length
-  quals  = Hash.new
-  fspecs = []
-  pat    = /^\/(LOG|CONF[IRM]*|PAG[E]*)$/i
+  dcloptions = Hash.new
+  fspecs     = []
+  pat        = /^\/(LOG|CON[FIRM]*|PAG[E]*)$/i
+  argvl      = argvector.length
   argvector.each do | a |
     if pat.match( a )
-      # A DCL qualifier /LOG or /CONF[IRM] or /PAG[E]: record it...
-      p1 = $1.downcase
-      quals[:verbose] = true if p1       == "log"
-      quals[:confirm] = true if p1[0..3] == "conf"
-      quals[:pager]   = true if p1[0..2] == "pag"
+      # A DCL qualifier /LOG or /CON[FIRM] or /PAG[E]: record it...
+      case $1[0..2].downcase
+      when 'log' then dcloptions[:verbose] = true
+      when 'con' then dcloptions[:confirm] = true
+      when 'pag' then dcloptions[:pager]   = true
+      end  # case
     else
       # A file-spec, copy it...
       fspecs << a
     end
   end
   return case argvl
-         when 0 then [ nil,           nil,        quals ]
-         when 1 then [ [ fspecs[0] ], nil,        quals ]
-         when 2 then [ [ fspecs[0] ], fspecs[1],  quals ]
-                else [ fspecs[0..-2], fspecs[-1], quals ]
+         when 0 then [ nil,           nil,        dcloptions ]
+         when 1 then [ [ fspecs[0] ], nil,        dcloptions ]
+         when 2 then [ [ fspecs[0] ], fspecs[1],  dcloptions ]
+                else [ fspecs[0..-2], fspecs[-1], dcloptions ]
          end  # case
 end  # parse_dcl_qualifiers
 
-def blend( options, quals )
-  fuopts = Hash.new
-  fuopts[:verbose]  = options[:verbose] || quals[:verbose]
-  fuopts[:noop]     = options[:noop]
-  fuopts[:preserve] = options[:preserve]
-  return fuopts
+def blend( options, dcloptions )
+  opts = Hash.new
+  opts[:verbose]  = options[:verbose] || dcloptions[:verbose]
+  opts[:page]     = options[:page]    || dcloptions[:page]
+  opts[:preserve] = options[:preserve]
+  opts[:noop]     = options[:noop]
+  return opts
 end  # blend
 
 # ==========
 
-def dclSymlink( syms )
-  syms.each do |s|
-    slnk = File.join( PATH, s )
-    if File.symlink?( slnk )
-      # See http://ruby.runpaint.org/ref/file for documentation of new methods
-      # File.readlink (used here) and File.realpath...
-      if File.readlink( slnk ) == DCLNAME
-        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})".color(:green)
-      else
-        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})".color(:red)
-      end  # if File.identical?( DCLNAME, slnk )
-    else
-      if ! File.file?( slnk )  # no ordinary file collision?
-        File.symlink( DCLNAME, slnk )
-        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})".color(:blue)
-      else
-        $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created".color(:red)
-      end  # if ! File.file?( slnk )
-    end  # if File.symlink( slnk )
-  end  # syms.each
-end  # dclSymlink
-
-# ==========
-
 def dclCommand( action, operands, options )
-  src, dst, quals = parse_dcl_qualifiers( operands )
-  fuoptions = blend( options, quals )
+  src, dst, dcloptions = parse_dcl_qualifiers( operands )
+  alloptions = blend( options, dcloptions )
   if options[:debug] >= DBGLVL2
     pp src
     pp dst
-    pp quals
-    pp fuoptions
+    pp dcloptions
+    pp alloptions
   end
 
   # Commands:
@@ -237,7 +215,7 @@ def dclCommand( action, operands, options )
   when :copy
     # See ri FileUtils[::cp]
     begin
-      FileUtils.cp( src, dst, fuoptions )
+      FileUtils.cp( src, dst, alloptions )
     rescue StandardError => e
       bad_fucmd_params( e, options[:debug] )
     end
@@ -246,14 +224,14 @@ def dclCommand( action, operands, options )
     # See ri FileUtils[::mv]
     ## see rename.rb -- may just exec() this here ???
     ## begin
-    ##   FileUtils.mv( src, dst, fuoptions )
+    ##   FileUtils.mv( src, dst, alloptions )
     ## rescue StandardError => e
     ##   bad_fucmd_params( e, options[:debug] )
     ## end
   when :delete
     # See ri FileUtils[::rm]
     begin
-      FileUtils.rm( src, fuoptions )
+      FileUtils.rm( src, alloptions )
     rescue StandardError => e
       bad_fucmd_params( e, options[:debug] )
     end
@@ -268,7 +246,7 @@ def dclCommand( action, operands, options )
     cmd = "/bin/grep --color=always --ignore-case -e '#{dst}' "
     src.each { |s| cmd << " '#{s}'" }
     # for less, honor grep's color output with --raw-control-chars:
-    cmd += " | /bin/less --raw-control-chars" if options[:pager] or quals[:pager]
+    cmd += " | /bin/less --raw-control-chars" if options[:pager] or alloptions[:pager]
     exec( cmd )  # chains, no return...
   else
     $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"
@@ -430,6 +408,30 @@ def dclFunction( action, operands, options )
   $stdout.print result  # Print filtered result to std-output
 
 end  # dclFunction
+
+# ==========
+
+def dclSymlink( syms )
+  syms.each do |s|
+    slnk = File.join( PATH, s )
+    if File.symlink?( slnk )
+      # See http://ruby.runpaint.org/ref/file for documentation of new methods
+      # File.readlink (used here) and File.realpath...
+      if File.readlink( slnk ) == DCLNAME
+        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})".color(:green)
+      else
+        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})".color(:red)
+      end  # if File.identical?( DCLNAME, slnk )
+    else
+      if ! File.file?( slnk )  # no ordinary file collision?
+        File.symlink( DCLNAME, slnk )
+        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})".color(:blue)
+      else
+        $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created".color(:red)
+      end  # if ! File.file?( slnk )
+    end  # if File.symlink( slnk )
+  end  # syms.each
+end  # dclSymlink
 
 # ==========
 
