@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.3 (04/24/2015)"
+  PROGID = "#{PROGNAME} v0.4 (04/28/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -35,6 +35,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 require 'optparse'
 require 'fileutils'
+require 'pp'
 
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
@@ -42,13 +43,23 @@ require_relative 'lib/FileEnhancements'  # includes AppConfig class
 # ==========
 
 def cmdRename( operands, options )
+  # operands is an array, e.g. ARGV (or a derived subset thereof)
+
+  opts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
+  pp opts
+
   # decompose the rename pattern
   repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
   repatdirn = File.dirname( repat )
   repattype = File.extname( repat )
   repatname = File.basename( repat, repattype )
-  options[:namewild] = repatname.index( WILDSPLAT ) == 0
-  options[:typewild] = repattype.index( WILDSPLAT ) == 0
+  options[:namewild] = repatname.index( WILDSPLAT ) # >= 0
+  options[:typewild] = repattype.index( WILDSPLAT ) # >= 0
+  begin
+    $stdout.puts "\nrename-pattern: '#{repat}'"
+    pp( options, $stdout )
+  end if options[:debug] > DBGLVL0
+
   # TODO: parse any '*.ext' or 'fname.*' and
   #       set options[:namewild] &/or options[:typewild]
   #       accordingly...
@@ -67,15 +78,14 @@ def cmdRename( operands, options )
     dstname  = options[:namewild] ? srcname : repatname
     dstname += options[:typewild] ? srctype : repattype
     dst      = File.join( repatdirn, dstname )
-    puts "file \##{idx}: '#{src}' --> '#{dst}'"
-    ## mv_f( src, dst )
+    $stdout.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
+    FileUtils.mv( src, dst, opts )
   end  # operands.each
-
-  puts "\nrename-pattern: '#{repat}'"
 
 end  # cmdRename
 
 # === Main ===
+FUOPTS  = [ :force, :noop, :preserve, :verbose ]
 options = { :namewild => false,
             :typewild => false,
             :noop     => false,

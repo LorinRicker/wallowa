@@ -16,7 +16,7 @@
  DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
       DN = "-> #{DCLNAME}"
 PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v3.0 (04/24/2015)"
+  PROGID = "#{PROGNAME} v3.1 (04/28/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -202,12 +202,12 @@ end  # blend
 def dclCommand( action, operands, options )
   src, dst, dcloptions = parse_dcl_qualifiers( operands )
   alloptions = blend( options, dcloptions )
-  if options[:debug] >= DBGLVL2
-    pp src
-    pp dst
-    pp dcloptions
-    pp alloptions
-  end
+  begin
+    pp( src, $stdout )
+    pp( dst, $stdout )
+    pp( dcloptions, $stdout )
+    pp( alloptions, $stdout )
+  end if options[:debug] >= DBGLVL2
 
   # Commands:
   case action.to_sym              # Dispatch the command-line action;
@@ -228,6 +228,7 @@ def dclCommand( action, operands, options )
     ## rescue StandardError => e
     ##   bad_fucmd_params( e, options[:debug] )
     ## end
+    cmdRename( operands, options )
   when :delete
     # See ri FileUtils[::rm]
     begin
