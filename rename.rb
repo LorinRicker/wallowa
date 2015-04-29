@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.5 (04/29/2015)"
+  PROGID = "#{PROGNAME} v0.6 (04/29/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -35,7 +35,7 @@ require 'fileutils'
 require 'pp'
 
 require_relative 'lib/ANSIseq'
-require_relative 'lib/TermChar'
+require_relative 'lib/ErrorMsg'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # ==========
@@ -44,8 +44,6 @@ def cmdRename( operands, options )
   # operands is an array, e.g. ARGV (or a derived subset thereof)
 
   opts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
-
-  termwidth = TermChar.terminal_width
 
   # decompose the rename pattern
   repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
@@ -80,17 +78,11 @@ def cmdRename( operands, options )
       dst = File.join( repatdirn, dstname )
     end
     if File.exists?( dst ) && ! options[:force]
-      m1 = "%#{PROGNAME}-e-noclobber, "
-      m2 = "file '#{dst}' already exists;"
-      m3 = "use --force (-F) to supersede it"
-      if m1.size + m2.size + m3.size < termwidth
-        msg = m1 + m2 + ' ' + m3
-      else
-        msg = m1 + m2 + "\n" + ' '*m1.size + m3
-      end
-      $stderr.puts msg
+      ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber,",
+                       msgtext     = "file '#{dst}' already exists;",
+                       msgline2    = "use --force (-F) to supersede it" )
     else
-      $stdout.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
+      $stderr.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
       FileUtils.mv( src, dst, opts )
     end
   end  # operands.each
