@@ -17,11 +17,8 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.4 (04/28/2015)"
+  PROGID = "#{PROGNAME} v0.5 (04/29/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
-
-   CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
-  CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )
 
 WILDSPLAT = '*'
 WILDQUEST = '?'
@@ -38,6 +35,7 @@ require 'fileutils'
 require 'pp'
 
 require_relative 'lib/ANSIseq'
+require_relative 'lib/TermChar'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # ==========
@@ -46,17 +44,20 @@ def cmdRename( operands, options )
   # operands is an array, e.g. ARGV (or a derived subset thereof)
 
   opts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
-  pp opts
+
+  termwidth = TermChar.terminal_width
 
   # decompose the rename pattern
   repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
-  repatdirn = File.dirname( repat )
+  repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
   repattype = File.extname( repat )
   repatname = File.basename( repat, repattype )
-  options[:namewild] = repatname.index( WILDSPLAT ) # >= 0
-  options[:typewild] = repattype.index( WILDSPLAT ) # >= 0
+  options[:namewild] = repatname.index( WILDSPLAT )
+  options[:typewild] = repattype.index( WILDSPLAT )
   begin
     $stdout.puts "\nrename-pattern: '#{repat}'"
+    pp( operands, $stdout )
+    pp( opts, $stdout )
     pp( options, $stdout )
   end if options[:debug] > DBGLVL0
 
@@ -64,10 +65,6 @@ def cmdRename( operands, options )
   #       set options[:namewild] &/or options[:typewild]
   #       accordingly...
   #       OR? This can be a pattern -> gsub() ???
-
-  # TODO: do not clobber existing files (filenames), unless :force !!!
-
-  # TODO: handle options[:sudo]  !!!
 
   operands.each_with_index do | f, idx |
     src     = File.expand_path( f )
@@ -77,20 +74,35 @@ def cmdRename( operands, options )
 
     dstname  = options[:namewild] ? srcname : repatname
     dstname += options[:typewild] ? srctype : repattype
-    dst      = File.join( repatdirn, dstname )
-    $stdout.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
-    FileUtils.mv( src, dst, opts )
+    if File.directory?( repat )
+      dst = File.join( repatdirn, "#{srcname + srctype}" )
+    else
+      dst = File.join( repatdirn, dstname )
+    end
+    if File.exists?( dst ) && ! options[:force]
+      m1 = "%#{PROGNAME}-e-noclobber, "
+      m2 = "file '#{dst}' already exists;"
+      m3 = "use --force (-F) to supersede it"
+      if m1.size + m2.size + m3.size < termwidth
+        msg = m1 + m2 + ' ' + m3
+      else
+        msg = m1 + m2 + "\n" + ' '*m1.size + m3
+      end
+      $stderr.puts msg
+    else
+      $stdout.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
+      FileUtils.mv( src, dst, opts )
+    end
   end  # operands.each
 
 end  # cmdRename
 
 # === Main ===
-FUOPTS  = [ :force, :noop, :preserve, :verbose ]
+FUOPTS  = [ :force, :noop, :preserve, :verbose ] # options-set for FileUtils...
 options = { :namewild => false,
             :typewild => false,
             :noop     => false,
-            :sudo     => "",
-            :update   => false,
+            :force    => false,
             :verbose  => false,
             :debug    => DBGLVL0,
             :about    => false
@@ -101,29 +113,23 @@ usage = "    Usage: $ #{PROGNAME} [options] file [file...] " +
 
 optparse = OptionParser.new { |opts|
   opts.on( "-f", "--filenamewild", "--namewild",
-           "File#{"name".bold} is wildcarded, keep this part" ) do |val|
+           "Retain the file#{"name".underline} part of the source filespec" ) do |val|
     options[:namewild] = true
   end  # -f --filenamewild
   opts.on( "-t",  "--typewild","--filetypewild",
-           "File#{"type".bold} is wildcarded, keep this part" ) do |val|
+           "Retain the file#{"type".underline} part of the source filespec" ) do |val|
     options[:typewild] = true
   end  # -t --typewild
   opts.separator ""
- opts.on( "-S", "--sudo",
-           "Run this backup/restore with sudo" ) do |val|
-    options[:sudo] = "sudo"
-  end  # -S --sudo
+  opts.on( "-F", "--force",
+           "Force rename to replace existing files" ) do |val|
+    options[:force] = true
+  end  # -F --force
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
     options[:verbose] = true  # Dry-run implies verbose...
   end  # -n --noop
-  opts.on( "-u", "--update", "--save",
-           "Update (save) the configuration file; a configuration",
-           "file is automatically created if it doesn't exist:",
-           "#{CONFIGFILE}" ) do |val|
-    options[:update] = true
-  end  # -u --update
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
@@ -145,7 +151,9 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "\n#{usage}" +
-                "\n\n   where «+»\n\n"
+                "\n\n    where 'rename_pattern' is either a destination directory or a" +
+                "\n    wildcard pattern such as '.../path/*.*', 'fname.*' or '*.ext';" +
+                "\n    quotes '' may be needed to prevent globbing.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -167,6 +175,7 @@ if ARGV.length < 2
   exit false
 end
 
+$stdout.puts "%#{PROGNAME}-i-noop, dry-run..."
 cmdRename( ARGV, options )
 
 exit true
