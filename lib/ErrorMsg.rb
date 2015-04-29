@@ -18,14 +18,14 @@ module ErrorMsg
 
   SPC = ' '
 
-  def putmsg( msgpreamble, msgtext, msgline2 = '' )
+  def self.putmsg( msgpreamble, msgtext, msgline2 = '' )
     msgtext  = SPC + msgtext  if msgtext[0] != SPC
     msgline2 = SPC + msgline2 if msgline2 != '' && msgline2[0] != SPC
     msg      =  msgpreamble + msgtext
     if msgpreamble.size + msgtext.size + msgline2.size < TermChar.terminal_width
       msg += msgline2
     else
-      msg += SPC*(msgpreamble.size-1) + msgline2
+      msg += "\n#{SPC*msgpreamble.size}" + msgline2
     end
     $stderr.puts msg
   end  # putmsg
