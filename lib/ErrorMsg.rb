@@ -10,24 +10,38 @@
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 
-# Intelligently formatted error messages --
-
-require_relative '../lib/TermChar'
-
 module ErrorMsg
 
-  SPC = ' '
+  COMMA = ','
+  SPC   = ' '
 
-  def self.putmsg( msgpreamble, msgtext, msgline2 = '' )
-    msgtext  = SPC + msgtext  if msgtext[0] != SPC
-    msgline2 = SPC + msgline2 if msgline2 != '' && msgline2[0] != SPC
-    msg      =  msgpreamble + msgtext
-    if msgpreamble.size + msgtext.size + msgline2.size < TermChar.terminal_width
-      msg += msgline2
-    else
-      msg += "\n#{SPC*msgpreamble.size}" + msgline2
+  # Intelligently formatted error messages -- for example:
+  #
+  # %PROGNAME-i-abbr, message text
+  #
+  # or:
+  #
+  # %PROGNAME-i-abbr, main message text
+  #                   extra line of message #1
+  #                   [ extra line of message #2
+  #                     extra line of message #3 ]...
+  #
+  def self.putmsg( msgpreamble, msgtext, extralines = '' )
+    msgpreamble.strip!
+    msgpreamble += COMMA if msgpreamble[-1] != COMMA
+    msgpreamble += SPC
+    msgtext.strip!
+
+    msg = msgpreamble + msgtext
+
+    mlines = extralines.respond_to?( :each ) ? extralines : [ extralines ]
+    mlines.each do | ml |
+      ml.strip if ml != ''
+      msg += "\n#{SPC*(msgpreamble.size+1)}" + ml
     end
+
     $stderr.puts msg
+
   end  # putmsg
 
 end  # module ErrorMsg

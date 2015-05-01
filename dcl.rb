@@ -133,20 +133,11 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 #   %dcl-S-created, symlink ~/bin/dclsymlink created
 
 require 'optparse'
-require 'fileutils'
 require 'pp'
-require_relative 'lib/ppstrnum'
-require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
 
 # ==========
-
-def bad_fucmd_params( e, debug, errmsg = "notdir, destination path must be a directory" )
-  $stderr.puts "%#{PROGNAME}-e-#{errmsg}"
-  pp e if debug > DBGLVL0
-  exit false
-end  # bad_fucmd_params
 
 def help_available( tag, links, perline )
   hlp    = tag
@@ -201,6 +192,11 @@ end  # blend
 # ==========
 
 def dclCommand( action, operands, options )
+
+  # Conditional: needed only for these file commands --
+  require 'fileutils'
+  require_relative 'lib/DCLcommand'
+
   src, dst, dcloptions = parse_dcl_qualifiers( operands )
   alloptions = blend( options, dcloptions )
   begin
@@ -210,48 +206,37 @@ def dclCommand( action, operands, options )
     pp( alloptions, $stdout )
   end if options[:debug] >= DBGLVL2
 
+  fuopts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
+
   # Commands:
   case action.to_sym              # Dispatch the command-line action;
                                   # invoking symlink's name is $0 ...
   when :copy
-    # See ri FileUtils[::cp]
-    begin
-      FileUtils.cp( src, dst, alloptions )
-    rescue StandardError => e
-      bad_fucmd_params( e, options[:debug] )
-    end
-  # when :create
-  when :rename
-    # See ri FileUtils[::mv]
-    ## see rename.rb -- may just exec() this here ???
-    ## begin
-    ##   FileUtils.mv( src, dst, alloptions )
-    ## rescue StandardError => e
-    ##   bad_fucmd_params( e, options[:debug] )
-    ## end
-    cmdRename( operands, options )
+    DCLcommand.copy( operands, options, fuopts )
+
+  when :create
+    DCLcommand.create( src, options, fuopts )
+
   when :delete
-    # See ri FileUtils[::rm]
-    begin
-      FileUtils.rm( src, alloptions )
-    rescue StandardError => e
-      bad_fucmd_params( e, options[:debug] )
-    end
-  # when :purge
-  # when :directory
-  # when :show
+    DCLcommand.rename( src, dst, options, fuopts )
+
+  when :directory
+    DCLcommand.directory( src, options, fuopts )
+
+  when :purge
+    DCLcommand.purge( src, options, fuopts )
+
+  when :rename
+    DCLcommand.rename( operands, options, fuopts )
+
   when :search
-  # 'SEARCH files pattern' --> 'grep pattern files'
-  # This 'SEARCH' command is more powerful than VMS/DCL's, since it uses
-  # general regular expressions (regexps) rather than 'simple wildcarded'
-  # search-strings...
-    cmd = "/bin/grep --color=always --ignore-case -e '#{dst}' "
-    src.each { |s| cmd << " '#{s}'" }
-    # for less, honor grep's color output with --raw-control-chars:
-    cmd += " | /bin/less --raw-control-chars" if options[:pager] or alloptions[:pager]
-    exec( cmd )  # chains, no return...
+    DCLcommand.search( src, options, alloptions )
+
+  when :show
+    DCLcommand.show( src, options, fuopts )
+
   else
-    $stderr.puts "%#{PROGNAME}-e-nyi, DCL command '#{action}' not yet implemented"
+    $stderr.puts "%#{PROGNAME}-e-badcommand, not a DCL command: '#{action}'"
     exit false
   end  # case action.to_sym
 
@@ -270,6 +255,11 @@ def getOps( operands, options )
 end  # getOps
 
 def dclFunction( action, operands, options )
+
+  # Conditional: needed only for these functional commands --
+  require_relative 'lib/ppstrnum'
+  require_relative 'lib/StringEnhancements'
+
   # Functions:
   case action.to_sym              # Dispatch the command-line action;
                                   # invoking symlink's name is $0 ...
@@ -289,7 +279,7 @@ def dclFunction( action, operands, options )
     ops = getOps( operands, options )
     result = ops.length         # String class does this one directly
 
-  when :locase
+  when :locase, :lowercase
     ops = getOps( operands, options )
     result = ops.locase         # String class does this one directly
 
@@ -328,7 +318,7 @@ def dclFunction( action, operands, options )
     ops = getOps( operands, options )
     result = ops.uncomment
 
-  when :upcase
+  when :upcase, :uppercase
     ops = getOps( operands, options )
     result = ops.upcase         # String class does this one directly
 
@@ -440,10 +430,13 @@ end  # dclSymlink
 # ==========
 
                 # See also dclrename.rb; "set" conflicts with bash 'set' command
-CMD_LINKS = %w{ copy create rename
-                delete purge search
-                directory show }
-FNC_LINKS = %w{ capcase locase upcase titlecase
+CMD_LINKS = %w{ copy create
+                delete directory
+                purge rename
+                search show }
+FNC_LINKS = %w{ locase lowercase
+                upcase uppercase
+                capcase titlecase
                 collapse compress
                 cjust ljust rjust
                 edit element extract substr
@@ -453,6 +446,8 @@ FNC_LINKS = %w{ capcase locase upcase titlecase
                 uncomment
                 dclsymlink }
 ALL_LINKS = CMD_LINKS + FNC_LINKS
+
+FUOPTS = [ :force, :noop, :preserve, :verbose ]  # options-set for FileUtils
 
 options = { :interactive => false,
             :noop        => false,
