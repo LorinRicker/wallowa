@@ -13,10 +13,11 @@
 # -----
 
     PATH = File.dirname $0
- DCLNAME = File.join( PATH, "DCL" ).downcase    # hard-wire this name...
-      DN = "-> #{DCLNAME}"
-PROGNAME = File.basename DCLNAME                # not "$0" here!...
-  PROGID = "#{PROGNAME} v3.1 (04/28/2015)"
+ DCLNAME = File.join( PATH, "dcl" )          # hard-wire this name...
+LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
+
+PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
+  PROGID = "#{PROGNAME} v4.0 (05/01/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -113,8 +114,8 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # function(s) what the --symlinks option (below) does for all functions.
 #
 #   $ dclsymlink capcase locase [...]
-#   %dcl-S-created, symlink ~/bin/capcase created
-#   %dcl-S-created, symlink ~/bin/locase created
+#   %dcl-S-created, symlink ~/bin/dcllinks/capcase created
+#   %dcl-S-created, symlink ~/bin/dcllinks/locase created
 
 # The --symlinks (-s) option checks &/or verifies each function in FNC_LINKS
 # (including itself), and either creates a symlink to the dcl script if it does
@@ -125,9 +126,9 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # as a periodic &/or troubleshooting verification step; e.g.:
 #
 #   $ dcl [--verbose] --symlinks   # verify &/or install all function symlinks
-#   %dcl-S-created, symlink ~/bin/capcase created
-#   %dcl-S-verified, symlink ~/bin/collapse verified
-#   %dcl-S-verified, symlink ~/bin/compress verified
+#   %dcl-S-created, symlink ~/bin/dcllinks/capcase created
+#   %dcl-S-verified, symlink ~/bin/dcllinks/collapse verified
+#   %dcl-S-verified, symlink ~/bin/dcllinks/compress verified
 #   ...
 #   %dcl-S-created, symlink ~/bin/dclsymlink created
 
@@ -413,20 +414,22 @@ end  # dclFunction
 # ==========
 
 def dclSymlink( syms )
+  dn = "-> #{DCLNAME}"
+  FileUtils.mkdir_p( LINKPATH ) if ! File.exists?( LINKPATH )
   syms.each do |s|
-    slnk = File.join( PATH, s )
+    slnk = File.join( LINKPATH, s )
     if File.symlink?( slnk )
       # See http://ruby.runpaint.org/ref/file for documentation of new methods
       # File.readlink (used here) and File.realpath...
       if File.readlink( slnk ) == DCLNAME
-        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{DN})".color(:green)
+        $stderr.puts "%#{PROGNAME}-I-verified, symlink #{slnk} is verified (#{dn})".color(:green)
       else
-        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{DN})".color(:red)
+        $stderr.puts "%#{PROGNAME}-E-badlink,  symlink #{slnk} is wrong (not #{dn})".color(:red)
       end  # if File.identical?( DCLNAME, slnk )
     else
       if ! File.file?( slnk )  # no ordinary file collision?
         File.symlink( DCLNAME, slnk )
-        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{DN})".color(:blue)
+        $stderr.puts "%#{PROGNAME}-S-created,  symlink #{slnk} created (#{dn})".color(:blue)
       else
         $stderr.puts "%#{PROGNAME}-E-conflict, file #{slnk} exists, no symlink created".color(:red)
       end  # if ! File.file?( slnk )
