@@ -116,7 +116,9 @@ if ARGV.length < 2
   exit false
 end
 
-$stdout.puts "%#{PROGNAME}-i-noop, dry-run..."
-DCLcommand.rename( ARGV, options )
+$stdout.puts "%#{PROGNAME}-i-noop, dry-run..." if options[:noop]
+
+fuopts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
+DCLcommand.rename( ARGV, options, fuopts )
 
 exit true

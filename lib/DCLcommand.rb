@@ -21,6 +21,9 @@ require 'fileutils'
 
 require_relative '../lib/ErrorMsg'
 
+WILDSPLAT = '*'
+WILDQUEST = '?'
+
 # ==========
 
   # See ri FileUtils::cp
@@ -147,7 +150,7 @@ require_relative '../lib/ErrorMsg'
     exit false
   end  # nyi
 
-  def bad_fucmd_params( e, debug, errmsg = "notdir, destination path must be a directory" )
+  def self.bad_fucmd_params( e, debug, errmsg = "notdir, destination path must be a directory" )
     $stderr.puts "%#{PROGNAME}-e-#{errmsg}"
     pp e if debug > DBGLVL0
     exit false

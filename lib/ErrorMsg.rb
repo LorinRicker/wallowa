@@ -26,7 +26,7 @@ module ErrorMsg
   #                   [ extra line of message #2
   #                     extra line of message #3 ]...
   #
-  def self.putmsg( msgpreamble, msgtext, extralines = '' )
+  def self.putmsg( msgpreamble, msgtext, *extralines )
     msgpreamble.strip!
     msgpreamble += COMMA if msgpreamble[-1] != COMMA
     msgpreamble += SPC
@@ -34,10 +34,12 @@ module ErrorMsg
 
     msg = msgpreamble + msgtext
 
-    mlines = extralines.respond_to?( :each ) ? extralines : [ extralines ]
-    mlines.each do | ml |
-      ml.strip if ml != ''
-      msg += "\n#{SPC*(msgpreamble.size+1)}" + ml
+    if extralines  # is not nil
+      # mlines = extralines.respond_to?( :each ) ? extralines : [ extralines ]
+      mlines.each do | ml |
+        ml.strip if ml != ''
+        msg += "\n#{SPC*(msgpreamble.size+1)}" + ml
+      end
     end
 
     $stderr.puts msg
@@ -45,3 +47,8 @@ module ErrorMsg
   end  # putmsg
 
 end  # module ErrorMsg
+
+# === Main/test/demo ===
+if $0 == __FILE__
+  ErrorMsg.putmsg( "%ERRORMSGTEST-i-test", "this is a test" )
+end
