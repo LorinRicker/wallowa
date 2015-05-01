@@ -16,6 +16,8 @@
 
 module DCLcommand
 
+require 'fileutils'
+
 def self.rename( operands, options )
   # operands is an array, e.g. ARGV (or a derived subset thereof)
 

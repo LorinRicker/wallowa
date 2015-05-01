@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
-# rename.rb
+# dclrename.rb
 #
 # Copyright © 2015 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.6 (04/29/2015)"
+  PROGID = "#{PROGNAME} v1.0 (05/01/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -31,63 +31,12 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # -----
 
 require 'optparse'
-require 'fileutils'
 require 'pp'
 
+require_relative 'lib/DCLcommand'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/ErrorMsg'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
-
-# ==========
-
-def cmdRename( operands, options )
-  # operands is an array, e.g. ARGV (or a derived subset thereof)
-
-  opts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
-
-  # decompose the rename pattern
-  repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
-  repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
-  repattype = File.extname( repat )
-  repatname = File.basename( repat, repattype )
-  options[:namewild] = repatname.index( WILDSPLAT )
-  options[:typewild] = repattype.index( WILDSPLAT )
-  begin
-    $stdout.puts "\nrename-pattern: '#{repat}'"
-    pp( operands, $stdout )
-    pp( opts, $stdout )
-    pp( options, $stdout )
-  end if options[:debug] > DBGLVL0
-
-  # TODO: parse any '*.ext' or 'fname.*' and
-  #       set options[:namewild] &/or options[:typewild]
-  #       accordingly...
-  #       OR? This can be a pattern -> gsub() ???
-
-  operands.each_with_index do | f, idx |
-    src     = File.expand_path( f )
-    srcdirn = File.dirname( src )
-    srctype = File.extname( src )
-    srcname = File.basename( src, srctype )
-
-    dstname  = options[:namewild] ? srcname : repatname
-    dstname += options[:typewild] ? srctype : repattype
-    if File.directory?( repat )
-      dst = File.join( repatdirn, "#{srcname + srctype}" )
-    else
-      dst = File.join( repatdirn, dstname )
-    end
-    if File.exists?( dst ) && ! options[:force]
-      ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber,",
-                       msgtext     = "file '#{dst}' already exists;",
-                       msgline2    = "use --force (-F) to supersede it" )
-    else
-      $stderr.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
-      FileUtils.mv( src, dst, opts )
-    end
-  end  # operands.each
-
-end  # cmdRename
 
 # === Main ===
 FUOPTS  = [ :force, :noop, :preserve, :verbose ] # options-set for FileUtils...
@@ -168,6 +117,6 @@ if ARGV.length < 2
 end
 
 $stdout.puts "%#{PROGNAME}-i-noop, dry-run..."
-cmdRename( ARGV, options )
+DCLcommand.rename( ARGV, options )
 
 exit true

@@ -439,9 +439,10 @@ end  # dclSymlink
 
 # ==========
 
-CMD_LINKS = %w{ copy create        # rename : see rename.rb
+                # See also dclrename.rb; "set" conflicts with bash 'set' command
+CMD_LINKS = %w{ copy create rename
                 delete purge search
-                directory show }   # "set" conflicts with bash 'set' command
+                directory show }
 FNC_LINKS = %w{ capcase locase upcase titlecase
                 collapse compress
                 cjust ljust rjust
@@ -512,7 +513,7 @@ optparse = OptionParser.new { |opts|
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     help_available( '  Available commands: ', CMD_LINKS, 8 )
-    help_available( ' Available functions: ', FNC_LINKS, 4 )
+    help_available( ' Available functions: ', FNC_LINKS, 6 )
     options[:help] = true
     exit true
   end  # -? --help
