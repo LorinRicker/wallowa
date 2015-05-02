@@ -4,7 +4,7 @@
 # ErrorMsg.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 04/29/2015
+# Version 1.1, 05/01/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -36,9 +36,9 @@ module ErrorMsg
 
     if extralines  # is not nil
       # mlines = extralines.respond_to?( :each ) ? extralines : [ extralines ]
-      mlines.each do | ml |
-        ml.strip if ml != ''
-        msg += "\n#{SPC*(msgpreamble.size+1)}" + ml
+      extralines.each do | el |
+        el.strip if el != ''
+        msg += "\n#{SPC*(msgpreamble.size+1)}" + el
       end
     end
 
