@@ -77,8 +77,8 @@ WILDQUEST = '?'
     repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
     repattype = File.extname( repat )
     repatname = File.basename( repat, repattype )
-    options[:namewild] = repatname.index( WILDSPLAT )
-    options[:typewild] = repattype.index( WILDSPLAT )
+    namewild = repatname.index( WILDSPLAT )
+    typewild = repattype.index( WILDSPLAT )
     begin
       $stdout.puts "\nrename-pattern: '#{repat}'"
       pp( operands, $stdout )
@@ -86,7 +86,7 @@ WILDQUEST = '?'
     end if options[:debug] > DBGLVL0
 
     # TODO: parse any '*.ext' or 'fname.*' and
-    #       set options[:namewild] &/or options[:typewild]
+    #       set namewild &/or typewild
     #       accordingly...
     #       OR? This can be a pattern -> gsub() ???
 
@@ -96,8 +96,8 @@ WILDQUEST = '?'
       srctype = File.extname( src )
       srcname = File.basename( src, srctype )
 
-      dstname  = options[:namewild] ? srcname : repatname
-      dstname += options[:typewild] ? srctype : repattype
+      dstname  = namewild ? srcname : repatname
+      dstname += typewild ? srctype : repattype
       if File.directory?( repat )
         dst = File.join( repatdirn, "#{srcname + srctype}" )
       else
