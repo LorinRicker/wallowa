@@ -124,8 +124,10 @@ private
     ##       set namewild &/or typewild
     ##       accordingly...
     ##       OR? This can be a pattern -> gsub() ???
-    # decompose the rename pattern
-    repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
+    ##
+    # Decompose the wildcarded rename pattern --
+    #   the Last Argument is the pattern ---v
+    repat     = File.expand_path( operands.pop )
     repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
     repattype = File.extname( repat )
     repatname = File.basename( repat, repattype )
