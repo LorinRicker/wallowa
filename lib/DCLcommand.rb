@@ -104,7 +104,7 @@ WILDQUEST = '?'
         dst = File.join( repatdirn, dstname )
       end
 
-      if not File.exists?( dst ) || options[:force]
+      if ! File.exists?( dst ) || options[:force]
         $stderr.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
         begin
           FileUtils.mv( src, dst,
