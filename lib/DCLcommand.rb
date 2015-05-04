@@ -71,55 +71,14 @@ WILDQUEST = '?'
   # See ri FileUtils::mv
   ## Also see $rby/dclrename.rb
   def self.rename( operands, options )
-    # operands is an array, e.g. ARGV (or a derived subset thereof)
-    # decompose the rename pattern
-    repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
-    repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
-    repattype = File.extname( repat )
-    repatname = File.basename( repat, repattype )
-    namewild = repatname.index( WILDSPLAT )
-    typewild = repattype.index( WILDSPLAT )
-    begin
-      $stdout.puts "\nrename-pattern: '#{repat}'"
-      pp( operands, $stdout )
-      pp( options, $stdout )
-    end if options[:debug] > DBGLVL0
-
-    # TODO: parse any '*.ext' or 'fname.*' and
-    #       set namewild &/or typewild
-    #       accordingly...
-    #       OR? This can be a pattern -> gsub() ???
-
-    operands.each_with_index do | f, idx |
-      src     = File.expand_path( f )
-      srcdirn = File.dirname( src )
-      srctype = File.extname( src )
-      srcname = File.basename( src, srctype )
-
-      dstname  = namewild ? srcname : repatname
-      dstname += typewild ? srctype : repattype
-      if File.directory?( repat )
-        dst = File.join( repatdirn, "#{srcname + srctype}" )
-      else
-        dst = File.join( repatdirn, dstname )
+    DCLcommand.parseops( operands, options) do | src, dst |
+      begin
+        FileUtils.mv( src, dst,
+                      filter( options, [ :force, :noop, :verbose ] ) )
+      rescue StandardError => e
+        fu_rescue( e )
       end
-
-      if ! File.exists?( dst ) || options[:force]
-        $stderr.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
-        begin
-          FileUtils.mv( src, dst,
-                        filter( options, [ :force, :noop, :verbose ] ) )
-        rescue StandardError => e
-          fu_rescue( e )
-        end
-      else
-        ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber",
-                         msgtext     = "file '#{dst}' already exists;",
-                         msgline2    = "use --force (-F) to supersede it" )
-      end
-
-    end  # operands.each
-
+    end
   end  # rename
 
 # ==========
@@ -160,6 +119,48 @@ private
     return options.dup.delete_if { |k,v| legalopts.find_index(k).nil? }
   end  # filter
 
+  def self.parseops( operands, options )
+    ## TODO: parse any '*.ext' or 'fname.*' and
+    ##       set namewild &/or typewild
+    ##       accordingly...
+    ##       OR? This can be a pattern -> gsub() ???
+    # decompose the rename pattern
+    repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
+    repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
+    repattype = File.extname( repat )
+    repatname = File.basename( repat, repattype )
+    namewild = repatname.index( WILDSPLAT )
+    typewild = repattype.index( WILDSPLAT )
+    begin
+      $stdout.puts "\nrename-pattern: '#{repat}'"
+      pp( operands, $stdout )
+      pp( options, $stdout )
+    end if options[:debug] > DBGLVL0
+
+    operands.each_with_index do | f, idx |
+      src     = File.expand_path( f )
+      srcdirn = File.dirname( src )
+      srctype = File.extname( src )
+      srcname = File.basename( src, srctype )
+
+      dstname  = namewild ? srcname : repatname
+      dstname += typewild ? srctype : repattype
+      if File.directory?( repat )
+        dst = File.join( repatdirn, "#{srcname + srctype}" )
+      else
+        dst = File.join( repatdirn, dstname )
+      end
+
+      if ! File.exists?( dst ) || options[:force]
+        $stderr.puts "\##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
+        yield src, dst
+      else
+        ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber",
+                         msgtext     = "file '#{dst}' already exists;",
+                         msgline2    = "use --force (-F) to supersede it" )
+      end
+    end  # operands.each
+  end  # parseops
 
   def self.fu_rescue( e )
     ErrorMsg.putmsg( "%#{PROGNAME}-e-rescued, #{e}", e.to_s )
