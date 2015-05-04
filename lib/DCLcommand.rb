@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 05/01/2015
+# Version 4.1, 05/04/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -27,40 +27,42 @@ WILDQUEST = '?'
 # ==========
 
   # See ri FileUtils::cp
-  def self.copy( operands, options, fuopts )
+  def self.copy( operands, options )
     begin
-      FileUtils.cp( src, dst, fuopts )
+      FileUtils.cp( src, dst,
+                    filter( options, [ :preserve, :noop, :verbose ] ) )
     rescue StandardError => e
-      bad_fucmd_params( e, options[:debug] )
+      fu_rescue( e )
     end
   end  # copy
 
 # ==========
 
-  def self.create( src, options, fuopts )
+  def self.create( src, options )
     DCLcommand.nyi( "CREATE" )
   end  # create
 
 # ==========
 
   # See ri FileUtils::rm
-  def self.delete( src, options, fuopts )
+  def self.delete( src, options )
     begin
-      FileUtils.rm( src, dst, fuopts )
+      FileUtils.rm( src, dst,
+                    filter( options, [ :force, :noop, :verbose ] ) )
     rescue StandardError => e
-      bad_fucmd_params( e, options[:debug] )
+      fu_rescue( e )
     end
   end  # delete
 
 # ==========
 
-  def self.directory( src, options, fuopts )
+  def self.directory( src, options )
     DCLcommand.nyi( "DIRECTORY" )
   end  # directory
 
 # ==========
 
-  def self.purge( src, options, fuopts )
+  def self.purge( src, options )
     DCLcommand.nyi( "PURGE" )
   end  # purge
 
@@ -68,7 +70,7 @@ WILDQUEST = '?'
 
   # See ri FileUtils::mv
   ## Also see $rby/dclrename.rb
-  def self.rename( operands, options, fuopts )
+  def self.rename( operands, options )
     # operands is an array, e.g. ARGV (or a derived subset thereof)
     # decompose the rename pattern
     repat     = File.expand_path( operands.pop )  # last argument is the rename pattern
@@ -80,7 +82,6 @@ WILDQUEST = '?'
     begin
       $stdout.puts "\nrename-pattern: '#{repat}'"
       pp( operands, $stdout )
-      pp( fuopts, $stdout )
       pp( options, $stdout )
     end if options[:debug] > DBGLVL0
 
@@ -103,17 +104,18 @@ WILDQUEST = '?'
         dst = File.join( repatdirn, dstname )
       end
 
-      if File.exists?( dst ) && ! options[:force]
+      if not File.exists?( dst ) || options[:force]
+        $stderr.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
+        begin
+          FileUtils.mv( src, dst,
+                        filter( options, [ :force, :noop, :verbose ] ) )
+        rescue StandardError => e
+          fu_rescue( e )
+        end
+      else
         ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber",
                          msgtext     = "file '#{dst}' already exists;",
                          msgline2    = "use --force (-F) to supersede it" )
-      else
-        $stderr.puts "file \##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
-        begin
-          FileUtils.mv( src, dst, fuopts )
-        rescue StandardError => e
-          bad_fucmd_params( e, options[:debug] )
-        end
       end
 
     end  # operands.each
@@ -126,7 +128,7 @@ WILDQUEST = '?'
   #
   # This 'SEARCH' command is more powerful than VMS/DCL's, since it uses
   # general regular expressions (regexps) rather than 'simple wildcarded'
-  # search-strings...
+  # search-strings... Do quote your '\w(star(get|)|regexp)\w' !!!
   #
   def self.search( src, starget, options, alloptions )
     cmd = "/bin/grep --color=always --ignore-case -e '#{starget}' "
@@ -138,11 +140,13 @@ WILDQUEST = '?'
 
 # ==========
 
-  def self.show( src, options, fuopts )
+  def self.show( src, options )
     DCLcommand.nyi( "SHOW" )
   end  # show
 
 # ==========
+
+private
 
   def self.nyi( cmd )
     ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-nyi",
@@ -150,10 +154,16 @@ WILDQUEST = '?'
     exit false
   end  # nyi
 
-  def self.bad_fucmd_params( e, debug, errmsg = "notdir, destination path must be a directory" )
-    $stderr.puts "%#{PROGNAME}-e-#{errmsg}"
-    pp e if debug > DBGLVL0
+  def self.filter( options, legalopts )
+    # FileUtils options can be [ :force, :noop, :preserve, :verbose ],
+    # but it's different for each method cp, mv, rm, etc. --
+    return options.dup.delete_if { |k,v| legalopts.find_index(k).nil? }
+  end  # filter
+
+
+  def self.fu_rescue( e )
+    ErrorMsg.putmsg( "%#{PROGNAME}-e-rescued, #{e}", e.to_s )
     exit false
-  end  # bad_fucmd_params
+  end  # fu_rescue
 
 end  # module DCLcommand

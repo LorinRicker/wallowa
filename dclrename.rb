@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (05/01/2015)"
+  PROGID = "#{PROGNAME} v1.1 (05/04/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -39,7 +39,6 @@ require_relative 'lib/ErrorMsg'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # === Main ===
-FUOPTS  = [ :force, :noop, :preserve, :verbose ] # options-set for FileUtils...
 options = { :namewild => false,
             :typewild => false,
             :noop     => false,
@@ -118,7 +117,6 @@ end
 
 $stdout.puts "%#{PROGNAME}-i-noop, dry-run..." if options[:noop]
 
-fuopts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
-DCLcommand.rename( ARGV, options, fuopts )
+DCLcommand.rename( ARGV, options )
 
 exit true

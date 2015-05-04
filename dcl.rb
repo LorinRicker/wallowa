@@ -17,11 +17,8 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.0 (05/01/2015)"
+  PROGID = "#{PROGNAME} v4.1 (05/04/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
-
-   CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
-  CONFIGFILE = File.join( CONFIGDIR, ".#{PROGNAME}.yaml.rc" )
 
 # -----
 
@@ -206,34 +203,32 @@ def dclCommand( action, operands, options )
     pp( alloptions, $stdout )
   end if options[:debug] >= DBGLVL2
 
-  fuopts = options.dup.delete_if { |k,v| FUOPTS.find_index(k).nil? }
-
   # Commands:
   case action.to_sym              # Dispatch the command-line action;
                                   # invoking symlink's name is $0 ...
   when :copy
-    DCLcommand.copy( operands, options, fuopts )
+    DCLcommand.copy( operands, options )
 
   when :create
-    DCLcommand.create( src, options, fuopts )
+    DCLcommand.create( src, options )
 
   when :delete
-    DCLcommand.rename( src, dst, options, fuopts )
+    DCLcommand.rename( src, dst, options )
 
   when :directory
-    DCLcommand.directory( src, options, fuopts )
+    DCLcommand.directory( src, options )
 
   when :purge
-    DCLcommand.purge( src, options, fuopts )
+    DCLcommand.purge( src, options )
 
   when :rename
-    DCLcommand.rename( operands, options, fuopts )
+    DCLcommand.rename( operands, options )
 
   when :search
     DCLcommand.search( src, options, alloptions )
 
   when :show
-    DCLcommand.show( src, options, fuopts )
+    DCLcommand.show( src, options )
 
   else
     $stderr.puts "%#{PROGNAME}-e-badcommand, not a DCL command: '#{action}'"
@@ -447,8 +442,6 @@ FNC_LINKS = %w{ locase lowercase
                 dclsymlink }
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
-FUOPTS = [ :force, :noop, :preserve, :verbose ]  # options-set for FileUtils
-
 options = { :interactive => false,
             :noop        => false,
             :pager       => false,
@@ -520,9 +513,6 @@ if options[:debug] >= DBGLVL3 #
   binding.pry                 #
 end                           #
 ###############################
-
-## File.check_yaml_dir( CONFIGDIR )
-## File.configuration_yaml( «+», «+» )
 
 action = File.basename( $0 ).downcase  # $0 is name of invoking symlink...
 
