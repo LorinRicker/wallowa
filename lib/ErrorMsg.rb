@@ -4,7 +4,7 @@
 # ErrorMsg.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 05/01/2015
+# Version 1.2, 05/04/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -38,7 +38,7 @@ module ErrorMsg
       # mlines = extralines.respond_to?( :each ) ? extralines : [ extralines ]
       extralines.each do | el |
         el.strip if el != ''
-        msg += "\n#{SPC*(msgpreamble.size+1)}" + el
+        msg += "\n#{SPC*(msgpreamble.size)}" + el
       end
     end
 
@@ -50,5 +50,20 @@ end  # module ErrorMsg
 
 # === Main/test/demo ===
 if $0 == __FILE__
+  puts ""
   ErrorMsg.putmsg( "%ERRORMSGTEST-i-test", "this is a test" )
+  puts ""
+  ErrorMsg.putmsg( "%ERRORMSGTEST-i-test2, ", "a two-line info message",
+                   "info line 2" )
+  puts ""
+  ErrorMsg.putmsg( "%ERRORMSGTEST-i-t3,", "a three-line info message:",
+                   "info line 2",
+                   "info line 3" )
+  puts ""
+  ErrorMsg.putmsg( "%ERRORMSGTEST-i-multiples", "a multiple-line info message:",
+                   "info line 2",
+                   "info line 3",
+                   "info line 4",
+                   "info line 5",
+                   "info line 6..." )
 end
