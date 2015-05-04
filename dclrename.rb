@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (05/04/2015)"
+  PROGID = "#{PROGNAME} v1.2 (05/04/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -39,9 +39,7 @@ require_relative 'lib/ErrorMsg'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # === Main ===
-options = { :namewild => false,
-            :typewild => false,
-            :noop     => false,
+options = { :noop     => false,
             :force    => false,
             :verbose  => false,
             :debug    => DBGLVL0,
@@ -52,15 +50,6 @@ usage = "    Usage: $ #{PROGNAME} [options] file [file...] " +
         "'rename_pattern'".bold
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-f", "--filenamewild", "--namewild",
-           "Retain the file#{"name".underline} part of the source filespec" ) do |val|
-    options[:namewild] = true
-  end  # -f --filenamewild
-  opts.on( "-t",  "--typewild","--filetypewild",
-           "Retain the file#{"type".underline} part of the source filespec" ) do |val|
-    options[:typewild] = true
-  end  # -t --typewild
-  opts.separator ""
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true
