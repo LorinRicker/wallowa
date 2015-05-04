@@ -443,10 +443,11 @@ FNC_LINKS = %w{ locase lowercase
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = { :interactive => false,
-            :noop        => false,
             :pager       => false,
             :preserve    => false,
             :links       => false,
+            :noop        => false,
+            :force       => false,
             :verbose     => false,
             :debug       => DBGLVL0,
             :about       => false
@@ -455,6 +456,10 @@ options = { :interactive => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-F", "--force",
+           "Force rename to replace existing files" ) do |val|
+    options[:force] = true
+  end  # -F --force
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
