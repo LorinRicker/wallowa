@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.1, 05/04/2015
+# Version 4.2, 05/05/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -28,11 +28,13 @@ WILDQUEST = '?'
 
   # See ri FileUtils::cp
   def self.copy( operands, options )
-    begin
-      FileUtils.cp( src, dst,
-                    filter( options, [ :preserve, :noop, :verbose ] ) )
-    rescue StandardError => e
-      fu_rescue( e )
+    DCLcommand.parseops( operands, options) do | src, dst |
+      begin
+        FileUtils.cp( src, dst,
+                      filter( options, [ :preserve, :noop, :verbose ] ) )
+      rescue StandardError => e
+        fu_rescue( e )
+      end
     end
   end  # copy
 
