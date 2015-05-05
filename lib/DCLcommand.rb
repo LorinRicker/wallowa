@@ -128,45 +128,59 @@ private
     ##       accordingly...
     ##       OR? This can be a pattern -> gsub() ???
     ##
+    # Determine who called me --
+    cb = /:in `([a-z]+)'/.match( caller(1)[0] )
+    calledby = cb[1]
+
+    wildpat = /[\*\?\[\{]+/  # glob wildcard characters
+    patname = pattype = ''
+
     # Decompose the wildcarded rename pattern --
     #   the Last Argument is the pattern ---v
-    repat     = File.expand_path( operands.pop )
-    dironly   = File.directory?( repat )
-    repatdirn = File.dirname( repat ) if dironly
-    repatdirn = repatdirn + '/' if repatdirn[-1] != '/'
-    repattype = File.extname( repat )
+    pat      = File.expand_path( operands.pop )
+    dironly  = File.directory?( pat )
+    if dironly
+      patdirn  = pat
+      patdirn += '/' if patdirn[-1] != '/'
+    else
+      patdirn  = File.dirname( pat )
+      pattype  = File.extname( pat )
+      patname  = File.basename( pat, pattype )
+      namewild = wildpat =~ patname
+      typewild = wildpat =~ pattype
+    end
 
-    repatname = File.basename( repat, repattype )
-    namewild = repatname.index( WILDSPLAT )
-    typewild = repattype.index( WILDSPLAT )
-    begin
-      $stdout.puts "\nrename-pattern: '#{repat}'"
-      pp( operands, $stdout )
-      pp( options, $stdout )
-    end if options[:debug] > DBGLVL0
+    idx = 1  # file counter
+    operands.each do | elem |
+      eflist = if wildpat =~ elem
+                 Dir.glob( elem )
+               else
+                 [ elem ]
+               end
+      eflist.each do | f |
+        src     = File.expand_path( f )
+        srcdirn = File.dirname( src )
+        srctype = File.extname( src )
+        srcname = File.basename( src, srctype )
 
-    operands.each_with_index do | f, idx |
-      src     = File.expand_path( f )
-      srcdirn = File.dirname( src )
-      srctype = File.extname( src )
-      srcname = File.basename( src, srctype )
+        dstname  = namewild ? srcname : patname
+        dstname += typewild ? srctype : pattype
+        if dironly
+          dst = File.join( patdirn, "#{srcname + srctype}" )
+        else
+          dst = File.join( patdirn, dstname )
+        end
 
-      dstname  = namewild ? srcname : repatname
-      dstname += typewild ? srctype : repattype
-      if File.directory?( repat )
-        dst = File.join( repatdirn, "#{srcname + srctype}" )
-      else
-        dst = File.join( repatdirn, dstname )
-      end
-
-      if ! File.exists?( dst ) || options[:force]
-        $stderr.puts "\##{idx+1}: '#{src}' --> '#{dst}'" if options[:debug] > DBGLVL0
-        yield src, dst
-      else
-        ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber",
-                         msgtext     = "file '#{dst}' already exists;",
-                         msgline2    = "use --force (-F) to supersede it" )
-      end
+        if ! File.exists?( dst ) || options[:force]
+          $stderr.puts "#{calledby} \##{idx}: '#{src}' -> '#{dst}'" if options[:debug] > DBGLVL0
+          yield src, dst
+          idx += 1
+        else
+          ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-noclobber",
+                           msgtext     = "file '#{dst}' already exists;",
+                           msgline2    = "use --force (-F) to supersede it" )
+        end
+      end  # eflist.each
     end  # operands.each
   end  # parseops
 

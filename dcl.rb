@@ -455,7 +455,6 @@ optparse = OptionParser.new { |opts|
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
-    options[:verbose] = true  # Dry-run implies verbose...
   end  # -n --noop
   opts.on( "-i", "--interactive", "--confirm",
            "Interactive mode (/CONFIRM)" ) do |val|
