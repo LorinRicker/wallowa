@@ -174,7 +174,7 @@ end  # parse_dcl_qualifiers
 def blend( options, dcloptions )
   opts = Hash.new
   opts[:verbose]  = options[:verbose] || dcloptions[:verbose]
-  opts[:page]     = options[:page]    || dcloptions[:page]
+  opts[:pager]    = options[:pager]   || dcloptions[:pager]
   opts[:preserve] = options[:preserve]
   opts[:noop]     = options[:noop]
   return opts
@@ -189,10 +189,10 @@ def dclCommand( action, operands, options )
   require_relative 'lib/DCLcommand'
 
   dcloptions, operands = parse_dcl_qualifiers( operands )
-  alloptions = blend( options, dcloptions )
+  searchopts           = blend( options, dcloptions )
   begin
     pp( dcloptions, $stdout )
-    pp( alloptions, $stdout )
+    pp( searchopts, $stdout )
   end if options[:debug] >= DBGLVL2
 
   # Commands:
@@ -217,7 +217,7 @@ def dclCommand( action, operands, options )
     DCLcommand.rename( options, operands )
 
   when :search
-    DCLcommand.search( options, alloptions, operands )
+    DCLcommand.search( options, searchopts, operands )
 
   when :show
     DCLcommand.show( options, operands[0] )
