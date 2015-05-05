@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.1 (05/04/2015)"
+  PROGID = "#{PROGNAME} v4.3 (05/05/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -155,7 +155,6 @@ def parse_dcl_qualifiers( argvector )
   dcloptions = Hash.new
   fspecs     = []
   pat        = /^\/(LOG|CON[FIRM]*|PAG[E]*)$/i
-  argvl      = argvector.length
   argvector.each do | a |
     if pat.match( a )
       # A DCL qualifier /LOG or /CON[FIRM] or /PAG[E]: record it...
@@ -169,12 +168,7 @@ def parse_dcl_qualifiers( argvector )
       fspecs << a
     end
   end
-  return case argvl
-         when 0 then [ nil,           nil,        dcloptions ]
-         when 1 then [ [ fspecs[0] ], nil,        dcloptions ]
-         when 2 then [ [ fspecs[0] ], fspecs[1],  dcloptions ]
-                else [ fspecs[0..-2], fspecs[-1], dcloptions ]
-         end  # case
+  return [ dcloptions, fspecs ]
 end  # parse_dcl_qualifiers
 
 def blend( options, dcloptions )
@@ -194,11 +188,9 @@ def dclCommand( action, operands, options )
   require 'fileutils'
   require_relative 'lib/DCLcommand'
 
-  src, dst, dcloptions = parse_dcl_qualifiers( operands )
+  dcloptions, operands = parse_dcl_qualifiers( operands )
   alloptions = blend( options, dcloptions )
   begin
-    pp( src, $stdout )
-    pp( dst, $stdout )
     pp( dcloptions, $stdout )
     pp( alloptions, $stdout )
   end if options[:debug] >= DBGLVL2
@@ -207,28 +199,28 @@ def dclCommand( action, operands, options )
   case action.to_sym              # Dispatch the command-line action;
                                   # invoking symlink's name is $0 ...
   when :copy
-    DCLcommand.copy( operands, options )
+    DCLcommand.copy( options, operands )
 
   when :create
-    DCLcommand.create( src, options )
+    DCLcommand.create( options, operands[0] )
 
   when :delete
-    DCLcommand.rename( src, dst, options )
+    DCLcommand.rename( options, operands )
 
   when :directory
-    DCLcommand.directory( src, options )
+    DCLcommand.directory( options, operands )
 
   when :purge
-    DCLcommand.purge( src, options )
+    DCLcommand.purge( options, operands )
 
   when :rename
-    DCLcommand.rename( operands, options )
+    DCLcommand.rename( options, operands )
 
   when :search
-    DCLcommand.search( src, options, alloptions )
+    DCLcommand.search( options, alloptions, operands )
 
   when :show
-    DCLcommand.show( src, options )
+    DCLcommand.show( options, operands[0] )
 
   else
     $stderr.puts "%#{PROGNAME}-e-badcommand, not a DCL command: '#{action}'"

@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.2, 05/05/2015
+# Version 4.3, 05/05/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -27,8 +27,8 @@ WILDQUEST = '?'
 # ==========
 
   # See ri FileUtils::cp
-  def self.copy( operands, options )
-    DCLcommand.parseops( operands, options) do | src, dst |
+  def self.copy( options, operands )
+    DCLcommand.parseops( options, operands ) do | src, dst |
       begin
         FileUtils.cp( src, dst,
                       filter( options, [ :preserve, :noop, :verbose ] ) )
@@ -40,14 +40,14 @@ WILDQUEST = '?'
 
 # ==========
 
-  def self.create( src, options )
+  def self.create( options, fspec )
     DCLcommand.nyi( "CREATE" )
   end  # create
 
 # ==========
 
   # See ri FileUtils::rm
-  def self.delete( src, options )
+  def self.delete( options, operands )
     begin
       FileUtils.rm( src, dst,
                     filter( options, [ :force, :noop, :verbose ] ) )
@@ -58,13 +58,13 @@ WILDQUEST = '?'
 
 # ==========
 
-  def self.directory( src, options )
+  def self.directory( options, operands )
     DCLcommand.nyi( "DIRECTORY" )
   end  # directory
 
 # ==========
 
-  def self.purge( src, options )
+  def self.purge( options, operands )
     DCLcommand.nyi( "PURGE" )
   end  # purge
 
@@ -72,8 +72,8 @@ WILDQUEST = '?'
 
   # See ri FileUtils::mv
   ## Also see $rby/dclrename.rb
-  def self.rename( operands, options )
-    DCLcommand.parseops( operands, options) do | src, dst |
+  def self.rename( options, operands )
+    DCLcommand.parseops( options, operands ) do | src, dst |
       begin
         FileUtils.mv( src, dst,
                       filter( options, [ :force, :noop, :verbose ] ) )
@@ -91,7 +91,8 @@ WILDQUEST = '?'
   # general regular expressions (regexps) rather than 'simple wildcarded'
   # search-strings... Do quote your '\w(star(get|)|regexp)\w' !!!
   #
-  def self.search( src, starget, options, alloptions )
+  def self.search( options, alloptions, operands )
+    starget = operands.pop
     cmd = "/bin/grep --color=always --ignore-case -e '#{starget}' "
     src.each { |s| cmd << " '#{s}'" }
     # for less, honor grep's color output with --raw-control-chars:
@@ -101,7 +102,7 @@ WILDQUEST = '?'
 
 # ==========
 
-  def self.show( src, options )
+  def self.show( options, what )
     DCLcommand.nyi( "SHOW" )
   end  # show
 
@@ -121,7 +122,7 @@ private
     return options.dup.delete_if { |k,v| legalopts.find_index(k).nil? }
   end  # filter
 
-  def self.parseops( operands, options )
+  def self.parseops( options, operands )
     ## TODO: parse any '*.ext' or 'fname.*' and
     ##       set namewild &/or typewild
     ##       accordingly...
@@ -130,8 +131,11 @@ private
     # Decompose the wildcarded rename pattern --
     #   the Last Argument is the pattern ---v
     repat     = File.expand_path( operands.pop )
-    repatdirn = File.directory?( repat ) ? repat + '/' : File.dirname( repat )
+    dironly   = File.directory?( repat )
+    repatdirn = File.dirname( repat ) if dironly
+    repatdirn = repatdirn + '/' if repatdirn[-1] != '/'
     repattype = File.extname( repat )
+
     repatname = File.basename( repat, repattype )
     namewild = repatname.index( WILDSPLAT )
     typewild = repattype.index( WILDSPLAT )
