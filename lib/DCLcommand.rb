@@ -136,15 +136,20 @@ private
   end  # filter
 
   def self.globwildcards
-    # legal glob wildcard characters - defined in one place
+    # legal glob wildcard characters, defined in one place
     /[\*\?\[\{]+/
   end  # globwildcards
 
+  def self.expandwild( elem )
+    # legal glob wildcard characters
+    if globwildcards =~ elem
+      Dir.glob( elem )  # returns an array of filespecs
+    else
+      [ elem ]          # construct and return an array containing the filespec
+    end
+  end  # expandwild
+
   def self.parse1ops( options, operands )
-    ## TODO: parse any '*.ext' or 'fname.*' and
-    ##       set namewild &/or typewild
-    ##       accordingly...
-    ##       OR? This can be a pattern -> gsub() ???
     ##
     # Determine who called me? -- This is second-most-recent entry
     #   of the caller (method) stack (eliminated the first/parseNops
@@ -165,12 +170,7 @@ private
 
     idx = 1  # file counter
     operands.each do | elem |
-      eflist = if globwildcards =~ elem
-                 Dir.glob( elem )
-               else
-                 [ elem ]
-               end
-      eflist.each do | fl |
+      expandwild( elem ).each do | fl |
         if filecond.call( fl )
           $stderr.puts "#{calledby} \##{idx}: '#{fl}'" if options[:debug] > DBGLVL0
           yield fl
@@ -179,16 +179,11 @@ private
           ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-#{msgabbr}",
                            msgtext     = "file '#{fl}' #{msgcond}" )
         end
-      end  # eflist.each
+      end  # expandwild( elem ).each
     end  # operands.each
   end  # parse1ops
 
   def self.parse2ops( options, operands )
-    ## TODO: parse any '*.ext' or 'fname.*' and
-    ##       set namewild &/or typewild
-    ##       accordingly...
-    ##       OR? This can be a pattern -> gsub() ???
-    ##
     # Determine who called me? -- This is second-most-recent entry
     #   of the caller (method) stack (eliminated the first/parseops
     #   with caller(1) ... the one wanted is array element [0]...);
@@ -215,12 +210,7 @@ private
 
     idx = 1  # file counter
     operands.each do | elem |
-      eflist = if globwildcards =~ elem
-                 Dir.glob( elem )
-               else
-                 [ elem ]
-               end
-      eflist.each do | f |
+      expandwild( elem ).each do | f |
         src     = File.expand_path( f )
         srcdirn = File.dirname( src )
         srctype = File.extname( src )
@@ -243,7 +233,7 @@ private
                            msgtext     = "file '#{dst}' already exists;",
                            msgline2    = "use --force (-F) to supersede it" )
         end
-      end  # eflist.each
+      end  # expandwild( elem ).each
     end  # operands.each
   end  # parse2ops
 
