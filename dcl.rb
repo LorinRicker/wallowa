@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.3 (05/05/2015)"
+  PROGID = "#{PROGNAME} v4.4 (05/06/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -190,10 +190,6 @@ def dclCommand( action, operands, options )
 
   dcloptions, operands = parse_dcl_qualifiers( operands )
   searchopts           = blend( options, dcloptions )
-  begin
-    pp( dcloptions, $stdout )
-    pp( searchopts, $stdout )
-  end if options[:debug] >= DBGLVL2
 
   # Commands:
   case action.to_sym              # Dispatch the command-line action;
@@ -202,10 +198,10 @@ def dclCommand( action, operands, options )
     DCLcommand.copy( options, operands )
 
   when :create
-    DCLcommand.create( options, operands[0] )
+    DCLcommand.create( options, operands )
 
   when :delete
-    DCLcommand.rename( options, operands )
+    DCLcommand.delete( options, operands )
 
   when :directory
     DCLcommand.directory( options, operands )

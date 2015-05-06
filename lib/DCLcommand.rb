@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.3, 05/05/2015
+# Version 4.4, 05/06/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -28,7 +28,7 @@ WILDQUEST = '?'
 
   # See ri FileUtils::cp
   def self.copy( options, operands )
-    DCLcommand.parseops( options, operands ) do | src, dst |
+    DCLcommand.parse2ops( options, operands ) do | src, dst |
       begin
         FileUtils.cp( src, dst,
                       filter( options, [ :preserve, :noop, :verbose ] ) )
@@ -40,19 +40,28 @@ WILDQUEST = '?'
 
 # ==========
 
-  def self.create( options, fspec )
-    DCLcommand.nyi( "CREATE" )
+  def self.create( options, operands )
+    DCLcommand.parse1ops( options, operands ) do | fil |
+      begin
+        FileUtils.touch( fil,
+                         filter( options, [ :noop, :verbose ] ) )
+      rescue StandardError => e
+        fu_rescue( e )
+      end
+    end
   end  # create
 
 # ==========
 
   # See ri FileUtils::rm
   def self.delete( options, operands )
-    begin
-      FileUtils.rm( src, dst,
-                    filter( options, [ :force, :noop, :verbose ] ) )
-    rescue StandardError => e
-      fu_rescue( e )
+    DCLcommand.parse1ops( options, operands ) do | fil |
+      begin
+        FileUtils.rm( fil,
+                      filter( options, [ :force, :noop, :verbose ] ) )
+      rescue StandardError => e
+        fu_rescue( e )
+      end
     end
   end  # delete
 
@@ -65,6 +74,10 @@ WILDQUEST = '?'
 # ==========
 
   def self.purge( options, operands )
+    # Probably will never build/implement this, as ;version numbers
+    #   are completely foreign to anything but VMS...
+    #   but if we did, we'd use:
+    # DCLcommand.parse1ops( options, operands ) do | fil | ...
     DCLcommand.nyi( "PURGE" )
   end  # purge
 
@@ -73,7 +86,7 @@ WILDQUEST = '?'
   # See ri FileUtils::mv
   ## Also see $rby/dclrename.rb
   def self.rename( options, operands )
-    DCLcommand.parseops( options, operands ) do | src, dst |
+    DCLcommand.parse2ops( options, operands ) do | src, dst |
       begin
         FileUtils.mv( src, dst,
                       filter( options, [ :force, :noop, :verbose ] ) )
@@ -122,17 +135,67 @@ private
     return options.dup.delete_if { |k,v| legalopts.find_index(k).nil? }
   end  # filter
 
-  def self.parseops( options, operands )
+  def self.globwildcards
+    # legal glob wildcard characters - defined in one place
+    /[\*\?\[\{]+/
+  end  # globwildcards
+
+  def self.parse1ops( options, operands )
     ## TODO: parse any '*.ext' or 'fname.*' and
     ##       set namewild &/or typewild
     ##       accordingly...
     ##       OR? This can be a pattern -> gsub() ???
     ##
-    # Determine who called me --
-    cb = /:in `([a-z]+)'/.match( caller(1)[0] )
-    calledby = cb[1]
+    # Determine who called me? -- This is second-most-recent entry
+    #   of the caller (method) stack (eliminated the first/parseNops
+    #   with caller(1) ... the one wanted is array element [0]...);
+    #   future-proof against changes to `name' with [`'"] ...
+    cb = /:in [`'"]([a-z]+)[`'"]/.match( caller(1)[0] )
+    calledby = cb[1]  # first group = $1
 
-    wildpat = /[\*\?\[\{]+/  # glob wildcard characters
+    if calledby.to_sym == :create
+      filecond = lambda { | f | ! File.exists?( f ) }
+      msgabbr  = 'exists'
+      msgcond  = 'already exists'
+    else
+      filecond = lambda { | f | File.exists?( f ) }
+      msgabbr  = 'fnf'
+      msgcond  = 'not found'
+    end
+
+    idx = 1  # file counter
+    operands.each do | elem |
+      eflist = if globwildcards =~ elem
+                 Dir.glob( elem )
+               else
+                 [ elem ]
+               end
+      eflist.each do | fl |
+        if filecond.call( fl )
+          $stderr.puts "#{calledby} \##{idx}: '#{fl}'" if options[:debug] > DBGLVL0
+          yield fl
+          idx += 1
+        else
+          ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-#{msgabbr}",
+                           msgtext     = "file '#{fl}' #{msgcond}" )
+        end
+      end  # eflist.each
+    end  # operands.each
+  end  # parse1ops
+
+  def self.parse2ops( options, operands )
+    ## TODO: parse any '*.ext' or 'fname.*' and
+    ##       set namewild &/or typewild
+    ##       accordingly...
+    ##       OR? This can be a pattern -> gsub() ???
+    ##
+    # Determine who called me? -- This is second-most-recent entry
+    #   of the caller (method) stack (eliminated the first/parseops
+    #   with caller(1) ... the one wanted is array element [0]...);
+    #   future-proof against changes to `name' with [`'"] ...
+    cb = /:in [`'"]([a-z]+)[`'"]/.match( caller(1)[0] )
+    calledby = cb[1]  # first group = $1
+
     patname = pattype = ''
 
     # Decompose the wildcarded rename pattern --
@@ -146,13 +209,13 @@ private
       patdirn  = File.dirname( pat )
       pattype  = File.extname( pat )
       patname  = File.basename( pat, pattype )
-      namewild = wildpat =~ patname
-      typewild = wildpat =~ pattype
+      namewild = globwildcards =~ patname
+      typewild = globwildcards =~ pattype || namewild  # honor '*' as '*.*'
     end
 
     idx = 1  # file counter
     operands.each do | elem |
-      eflist = if wildpat =~ elem
+      eflist = if globwildcards =~ elem
                  Dir.glob( elem )
                else
                  [ elem ]
@@ -182,7 +245,7 @@ private
         end
       end  # eflist.each
     end  # operands.each
-  end  # parseops
+  end  # parse2ops
 
   def self.fu_rescue( e )
     ErrorMsg.putmsg( "%#{PROGNAME}-e-rescued, #{e}", e.to_s )
