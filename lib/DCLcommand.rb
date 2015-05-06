@@ -158,6 +158,10 @@ private
     cb = /:in [`'"]([a-z]+)[`'"]/.match( caller(1)[0] )
     calledby = cb[1]  # first group = $1
 
+    # In this semantic, want to check that target file:
+    #   a) does _not_ yet exist if create/touch-ing;
+    #   b) _does_ exist if deleting it...
+    # unless --force (-F)...
     if calledby.to_sym == :create
       filecond = lambda { | f | ! File.exists?( f ) }
       msgabbr  = 'exists'
@@ -171,7 +175,8 @@ private
     idx = 1  # file counter
     operands.each do | elem |
       expandwild( elem ).each do | fl |
-        if filecond.call( fl )
+        # The user can optionally --force (-F) override:
+        if filecond.call( fl ) || options[:force]
           $stderr.puts "#{calledby} \##{idx}: '#{fl}'" if options[:debug] > DBGLVL0
           yield fl
           idx += 1
@@ -224,6 +229,7 @@ private
           dst = File.join( patdirn, dstname )
         end
 
+        # The user can optionally --force (-F) override:
         if ! File.exists?( dst ) || options[:force]
           $stderr.puts "#{calledby} \##{idx}: '#{src}' -> '#{dst}'" if options[:debug] > DBGLVL0
           yield src, dst
