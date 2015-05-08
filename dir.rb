@@ -140,5 +140,6 @@ ARGV[0] ||= ""
 args = ARGV.reverse  # gonna use pop/push discipline (right-end of array)
 vmsdir = DirectoryVMS.new( termwidth, options )
 vmsdir.listing( args )
+vmsdir.printgrand if options[:grand]
 
 # exit

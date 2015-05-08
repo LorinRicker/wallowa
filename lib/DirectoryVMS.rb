@@ -206,8 +206,6 @@ class DirectoryVMS
     if @options[:recurse] && !dirstack.empty?
       code.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug] >= DBGLVL2
       dirstack.each { | nextdir | listing( [ nextdir ] ) }
-    else
-      printgrand if @options[:grand]
     end
 
   end  # listing
