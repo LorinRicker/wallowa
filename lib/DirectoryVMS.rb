@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.0, 03/04/2015
+# Version 6.0, 05/08/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -24,6 +24,7 @@ class DirectoryVMS
   def initialize( termwidth, options )
     @termwidth = termwidth
     @options = options
+    @dircolor = :blue
     # 24-chars total date/time-field:
     @datetimeformat = "%a %d-%b-%Y %H:%M:%S"
     # Initialize per-subdir and grand nfiles/total:
@@ -36,18 +37,18 @@ class DirectoryVMS
   end  # initialize
 
   # ------------------------------------------
-  def canonical_path( p, cp = @curdir )
+  def canonical_path( cp, p )
     cpath = File.absolute_path( p, cp )
     cpath = File.dirname( cpath ) if !File.directory?( cpath )
     cpath = cpath + "/" if cpath[-1] != "/"
-    return cpath
+    return [ cpath, File.basename( p ) ]
   end  # canonical_path
 
   def printheader( dir )
-    printf( "\nDirectory %s\n\n", dir.bold.underline )
+    printf( "\nDirectory %s\n\n", dir.bold.underline.color(@dircolor) )
   end  # printheader
 
-  def printentry( fspec, fsize, mtime, prot )
+  def printentry( fname, is_dir, fsize, mtime, prot )
     if @options[:bytesize]
       size = fsize.to_s
       szwidth = 9
@@ -61,13 +62,15 @@ class DirectoryVMS
     sdpwidth = szwidth + dtwidth + prwidth + 6  # 6 = "  "*3 between fields
     fnwidth  = @termwidth / 2
     fnwidth  = @termwidth - sdpwidth if @termwidth < fnwidth + sdpwidth
-    if fspec[-1] == "/"  # embellish directories
-      format = "%-#{fnwidth}s".bold + "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
+    if is_dir  # embellish directories
+      fname  = fname + '/'
+      format = "%-#{fnwidth}s".color(@dircolor).bold +
+               "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     else
       format = "%-#{fnwidth}s  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
-    end  # if fspec[-1]
-    fspec = fspec[0,fnwidth-1] + '*' if fspec.length > fnwidth
-    printf( format, fspec, size, mtime, prot )
+    end  # if fname[-1]
+    fname = fname[0,fnwidth-1] + '*' if fname.length > fnwidth
+    printf( format, fname, size, mtime, prot )
     if @options[:times]
       inwidth = fnwidth + szwidth + 4
       format = "%#{inwidth}s%#{dtwidth}s\n%#{inwidth}s%#{dtwidth}s\n"
@@ -80,9 +83,11 @@ class DirectoryVMS
     end  # if @options[:times]
   end  # printentry
 
-  def reportentry( dir, fspec )
+  def reportentry( fspec )
     # Use File.lstat (not File.stat), so actual links are processed too:
-    fstat  = File.lstat( File.join( dir, fspec ) )
+    fstat  = File.lstat( fspec )
+    # Recognize the subdirectories as encountered:
+    is_dir = fstat.directory? && fspec[-1] != "/"
     # Collect the file's size in bytes, and accumulate total size
     fsize  = fstat.size
     @totalsize += fsize
@@ -97,12 +102,10 @@ class DirectoryVMS
     end  # if @options[:times]
     # Get the file's protection mask (mode) as human-readable (not integer)
     prot = File.mode_human_readable_VMS( fstat )
-    # Mark the subdirectories as encountered:
-    fspec = fspec + "/" if fspec[-1] != "/" if fstat.directory?
     # Get the file's ownership "user:group (uid:gid)" ...stash in the hash:
     @options[:fowner] = File.owner_human_readable( fstat ) if @options[:owner]
     # Print the entry for this file:
-    printentry( fspec, fsize, mtime, prot )
+    printentry( File.basename( fspec ), is_dir, fsize, mtime, prot )
     @numberfiles += 1
     @grandtotalnfiles += 1
   end  # reportentry
@@ -159,18 +162,19 @@ class DirectoryVMS
     code = Diagnostics::Code.new( colorize = 'red' )
     @numberfiles = @totalsize = 0
 
-    dir = args.pop    # start with the last-most argument
+    arg = args.pop    # start with the last-most argument
     dirstack = args   # ...save the rest for later (recurse)
-    dir = "." if dir == ""
-    dir = canonical_path( dir, @curdir )
-    puts "\ncd --> #{dir}\n  pwd: #{Dir.pwd}".color(:blue) if @options[:debug] >= DBGLVL1
-    if Dir.pwd != File.basename( dir )
-      Dir.chdir( dir )
-      @curdir = dir
-    end
-    direntries = Dir.entries( dir )
-    direntries.delete( "." )    # remove the back- and self-links
-    direntries.delete( ".." )
+    arg = "*" if arg == ""
+    arg = File.join( arg, '*' ) if File.directory?( arg )
+    @curdir, arg = canonical_path( @curdir, arg )
+    puts "\ncd --> #{@curdir}\n  pwd: #{Dir.pwd}".color(:blue) if @options[:debug] >= DBGLVL1
+    # if Dir.pwd != File.basename( arg )
+    #   Dir.chdir( arg )
+    #   @curdir = arg
+    # end
+    direntries = Dir.glob( File.join( @curdir, arg ), File::FNM_DOTMATCH )
+    direntries.delete( "#{@curdir}." )    # remove the back- and self-links
+    direntries.delete( "#{@curdir}.." )
 
     # Filter for user-specified dates &/or sizes...
     # direntries is same or smaller after each filter:
@@ -182,15 +186,15 @@ class DirectoryVMS
 
     code.diagnose( direntries, "in listing (top)", __LINE__ ) if @options[:debug] >= DBGLVL2
 
-    printheader( dir )
+    printheader( @curdir )
     if !direntries.empty?
       direntries.each do | fspec |
         # Push subdir onto the to-do (recursion) stack:
         nd = File.absolute_path( fspec, @curdir )
-        dirstack << nd if File.directory?( nd )
-        code.trace( fspec: fspec, dirstack: dirstack, dir: dir ) if @options[:debug] >= DBGLVL3
-        ## puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'\n dirstack: #{dirstack}  dir: '#{dir}'".color(:blue)  if @options[:debug] >= DBGLVL3
-        reportentry( dir, fspec )
+        dirstack << nd if File.directory?( nd ) && @options[:recurse]
+        code.trace( fspec: fspec, dirstack: dirstack, dir: arg ) if @options[:debug] >= DBGLVL3
+        ## puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'\n dirstack: #{dirstack}  dir: '#{arg}'".color(:blue)  if @options[:debug] >= DBGLVL3
+        reportentry( fspec )
       end  # direntries.each
       printtrailer( @numberfiles, @totalsize )
       exit true if !askprompted( '>>> Continue', 'No' ) if @options[:debug] >= DBGLVL3
