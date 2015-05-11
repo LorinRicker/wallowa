@@ -109,11 +109,11 @@ class DirectoryVMS
   end  # reportentry
 
   def printtrailer( nfiles, tsize, grand = "" )
-    files = nfiles == 1 ? "file" : "files"
-    bytes = tsize == 1 ? "byte" : "bytes"
-    tsize = @options[:bytesize] ?
-            tsize.to_s.thousands : File.size_human_readable( tsize )
     newline = ( nfiles == 0 && tsize == 0 ) ? "" : "\n"
+    files   = nfiles == 1 ? "file" : "files"
+    bytes   =  tsize == 1 ? "byte" : "bytes"
+    tsize   = @options[:bytesize] ?
+              tsize.to_s.thousands : File.size_human_readable( tsize )
     printf( "%s%sTotal of %d %s, %s %s\n", newline, grand, nfiles, files, tsize, bytes )
     @numberfiles = 0
     @totalsize   = 0
@@ -164,11 +164,12 @@ class DirectoryVMS
     arg = args.pop    # start with the last-most argument
     dirstack = args   # ...save the rest for later (recurse)
     arg = "*" if arg == ""
-    arg = File.join( arg, '*' ) if File.directory?( arg )
     # Will Dir.glob generate recursive descent (all files)?
     argrecurses = arg.index( '**' ) || recursing
     # If so, replace globbing '**' and allow recursing to do its job...
     arg = arg.gsub( /[\*]{2,}/, '' ).gsub( /[\/]{2,}/, '/' )
+    arg = File.join( arg, '*' ) if File.directory?( arg )
+
     curdir ||= ""
     curdir, arg = canonical_path( curdir, arg )
     if @options[:debug] >= DBGLVL2
@@ -195,22 +196,21 @@ class DirectoryVMS
     td = ""
     if ! direntries.empty?
       direntries.each do | fspec |
-        curdir, fs = canonical_path( curdir, fspec )
-        code.trace( fspec: fspec, dir: "#{curdir} - '#{td}'", dirstack: dirstack ) if @options[:debug] >= DBGLVL2
+        if td != curdir
+          printheader( curdir )
+          td = curdir
+        end
+        # code.trace( fspec: fspec, dir: "#{curdir} - '#{td}'", dirstack: dirstack ) if @options[:debug] >= DBGLVL2
         if File.directory?( fspec ) && ( argrecurses || @options[:recurse] )
           # Push subdir onto the to-do (recursion) stack:
           dirstack << fspec
-        else
-          if td != curdir
-            printheader( curdir )
-            td = curdir
-          end
         end
         reportentry( fspec )
       end  # direntries.each
       printtrailer( @numberfiles, @totalsize )
       exit true if !askprompted( '>>> Continue', 'No' ) if @options[:debug] >= DBGLVL3
     else
+      printheader( curdir )
       printtrailer( 0, 0 )  # ...for an empty directory
     end  # if !direntries.empty?
 
