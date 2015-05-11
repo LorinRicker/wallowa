@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 6.0, 05/08/2015
+# Version 6.1, 05/11/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -23,17 +23,15 @@ class DirectoryVMS
 
   def initialize( termwidth, options )
     @termwidth = termwidth
-    @options = options
-    @dircolor = :blue
+    @options   = options
+    @dircolor  = :blue
     # 24-chars total date/time-field:
     @datetimeformat = "%a %d-%b-%Y %H:%M:%S"
     # Initialize per-subdir and grand nfiles/total:
-    @numberfiles = 0
-    @totalsize   = 0
+    @numberfiles      = 0
+    @totalsize        = 0
     @grandtotalnfiles = 0
     @grandtotalsize   = 0
-    # And the current working directory:
-    @curdir = ""
   end  # initialize
 
   # ------------------------------------------
@@ -110,7 +108,6 @@ class DirectoryVMS
     @grandtotalnfiles += 1
   end  # reportentry
 
-
   def printtrailer( nfiles, tsize, grand = "" )
     files = nfiles == 1 ? "file" : "files"
     bytes = tsize == 1 ? "byte" : "bytes"
@@ -118,6 +115,8 @@ class DirectoryVMS
             tsize.to_s.thousands : File.size_human_readable( tsize )
     newline = ( nfiles == 0 && tsize == 0 ) ? "" : "\n"
     printf( "%s%sTotal of %d %s, %s %s\n", newline, grand, nfiles, files, tsize, bytes )
+    @numberfiles = 0
+    @totalsize   = 0
   end  # printtrailer
 
   def printgrand
@@ -158,7 +157,7 @@ class DirectoryVMS
   end  # filterSmaller
 
   # ------------------------------------------
-  def listing( args )
+  def listing( args, recursing = nil )
     code = Diagnostics::Code.new( colorize = 'red' )
     @numberfiles = @totalsize = 0
 
@@ -166,15 +165,22 @@ class DirectoryVMS
     dirstack = args   # ...save the rest for later (recurse)
     arg = "*" if arg == ""
     arg = File.join( arg, '*' ) if File.directory?( arg )
-    @curdir, arg = canonical_path( @curdir, arg )
-    puts "\ncd --> #{@curdir}\n  pwd: #{Dir.pwd}".color(:blue) if @options[:debug] >= DBGLVL1
-    # if Dir.pwd != File.basename( arg )
-    #   Dir.chdir( arg )
-    #   @curdir = arg
-    # end
-    direntries = Dir.glob( File.join( @curdir, arg ), File::FNM_DOTMATCH )
-    direntries.delete( "#{@curdir}." )    # remove the back- and self-links
-    direntries.delete( "#{@curdir}.." )
+    # Will Dir.glob generate recursive descent (all files)?
+    argrecurses = arg.index( '**' ) || recursing
+    # If so, replace globbing '**' and allow recursing to do its job...
+    arg = arg.gsub( /[\*]{2,}/, '' ).gsub( /[\/]{2,}/, '/' )
+    curdir ||= ""
+    curdir, arg = canonical_path( curdir, arg )
+    if @options[:debug] >= DBGLVL2
+      puts "\ncd --> #{curdir}".color(:blue)
+      puts "argrecurses: '#{argrecurses}'".color(:blue)
+      puts "arg: '#{arg}'"
+    end
+
+    direntries = Dir.glob( File.join( curdir, arg ), File::FNM_DOTMATCH )
+    # Remove the back- and self- directory links
+    direntries.delete_if { | e | File.basename( e ) == '.' ||
+                                 File.basename( e ) == '..'}
 
     # Filter for user-specified dates &/or sizes...
     # direntries is same or smaller after each filter:
@@ -186,14 +192,20 @@ class DirectoryVMS
 
     code.diagnose( direntries, "in listing (top)", __LINE__ ) if @options[:debug] >= DBGLVL2
 
-    printheader( @curdir )
-    if !direntries.empty?
+    td = ""
+    if ! direntries.empty?
       direntries.each do | fspec |
-        # Push subdir onto the to-do (recursion) stack:
-        nd = File.absolute_path( fspec, @curdir )
-        dirstack << nd if File.directory?( nd ) && @options[:recurse]
-        code.trace( fspec: fspec, dirstack: dirstack, dir: arg ) if @options[:debug] >= DBGLVL3
-        ## puts ">>> fspec: '#{fspec}'  fspec: '#{fspec}'\n dirstack: #{dirstack}  dir: '#{arg}'".color(:blue)  if @options[:debug] >= DBGLVL3
+        curdir, fs = canonical_path( curdir, fspec )
+        code.trace( fspec: fspec, dir: "#{curdir} - '#{td}'", dirstack: dirstack ) if @options[:debug] >= DBGLVL2
+        if File.directory?( fspec ) && ( argrecurses || @options[:recurse] )
+          # Push subdir onto the to-do (recursion) stack:
+          dirstack << fspec
+        else
+          if td != curdir
+            printheader( curdir )
+            td = curdir
+          end
+        end
         reportentry( fspec )
       end  # direntries.each
       printtrailer( @numberfiles, @totalsize )
@@ -203,9 +215,9 @@ class DirectoryVMS
     end  # if !direntries.empty?
 
     # Recurse: Each subdirectory is listed after all files...
-    if @options[:recurse] && !dirstack.empty?
+    if ! dirstack.empty?
       code.diagnose( dirstack, "in listing (recursing)", __LINE__ ) if @options[:debug] >= DBGLVL2
-      dirstack.each { | nextdir | listing( [ nextdir ] ) }
+      dirstack.each { | nextdir | listing( [ nextdir ], argrecurses ) }
     end
 
   end  # listing

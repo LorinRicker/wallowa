@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v6.0 (05/08/2015)"
+  PROGID = "#{PROGNAME} v6.1 (05/11/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -86,9 +86,8 @@ optparse = OptionParser.new { |opts|
   opts.on( "-r", "--reverse", "Display listing in reverse-sorted order" ) do |val|
     options[:reverse] = true
   end  # -r --reverse
-  opts.on( "-R", "--recurse[=GLOB]", "Recurse the listing into subdirectories, optionally",
-                                     "listing files which match 'GLOB' ('*.rb', etc.)" ) do |val|
-    options[:recurse] = val || '*'   # either --recurse or --recurse=b*.rb (etc.)
+  opts.on( "-R", "--recurse", "Recurse the listing into subdirectories" ) do |val|
+    options[:recurse] = true
   end  # -R --recurse
   opts.on( "-t", "--times", "List file access and create times (atime, ctime)" ) do |val|
     options[:times] = true
