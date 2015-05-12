@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 6.1, 05/11/2015
+# Version 6.2, 05/12/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
