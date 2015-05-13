@@ -113,7 +113,7 @@ WILDQUEST = '?'
     # for less, honor grep's color output with --raw-control-chars:
     cmd += " | /bin/less --raw-control-chars" if options[:pager] or alloptions[:pager]
     puts cmd if options[:verbose]
-    exec( cmd )  # chains, no return...
+    exec( cmd ) if ! options[:noop]  # chains, no return...
   end  # search
 
 # ==========
