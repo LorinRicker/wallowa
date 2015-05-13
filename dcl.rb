@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.4 (05/06/2015)"
+  PROGID = "#{PROGNAME} v4.5 (05/13/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----

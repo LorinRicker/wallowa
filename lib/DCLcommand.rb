@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.4, 05/06/2015
+# Version 4.5, 05/13/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -105,11 +105,14 @@ WILDQUEST = '?'
   # search-strings... Do quote your '\w(star(get|)|regexp)\w' !!!
   #
   def self.search( options, alloptions, operands )
-    starget = operands.pop
-    cmd = "/bin/grep --color=always --ignore-case -e '#{starget}' "
-    src.each { |s| cmd << " '#{s}'" }
+    starget = operands.pop  # last arg-word is what we're searching for
+    cmd = "/bin/grep --color=always --ignore-case --regexp='#{starget}' "
+    operands.each do |op|
+      Dir.glob( op ).each { | s | cmd << " '#{s}'" }
+    end
     # for less, honor grep's color output with --raw-control-chars:
     cmd += " | /bin/less --raw-control-chars" if options[:pager] or alloptions[:pager]
+    puts cmd if options[:verbose]
     exec( cmd )  # chains, no return...
   end  # search
 
