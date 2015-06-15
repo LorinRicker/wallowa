@@ -180,7 +180,7 @@ def dclCommand( action, operands, options )
   require_relative 'lib/DCLcommand'
 
   dcloptions, operands = parse_dcl_qualifiers( operands )
-  options = options.merge( dcloptions )
+ options.merge!( dcloptions )
 
   # Commands:
   case action.to_sym              # Dispatch the command-line action;
