@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.5 (05/13/2015)"
+  PROGID = "#{PROGNAME} v4.6 (06/15/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -171,15 +171,6 @@ def parse_dcl_qualifiers( argvector )
   return [ dcloptions, fspecs ]
 end  # parse_dcl_qualifiers
 
-def blend( options, dcloptions )
-  opts = Hash.new
-  opts[:verbose]  = options[:verbose] || dcloptions[:verbose]
-  opts[:pager]    = options[:pager]   || dcloptions[:pager]
-  opts[:preserve] = options[:preserve]
-  opts[:noop]     = options[:noop]
-  return opts
-end  # blend
-
 # ==========
 
 def dclCommand( action, operands, options )
@@ -189,7 +180,7 @@ def dclCommand( action, operands, options )
   require_relative 'lib/DCLcommand'
 
   dcloptions, operands = parse_dcl_qualifiers( operands )
-  searchopts           = blend( options, dcloptions )
+  options = options.merge( dcloptions )
 
   # Commands:
   case action.to_sym              # Dispatch the command-line action;
