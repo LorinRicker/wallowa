@@ -11,8 +11,8 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (02/16/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v2.3 (08/07/2015)"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -141,28 +141,25 @@ ARGV.each do | sfile |
   nameonly = ! libfile || shellscr || options[:strip]
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, sflang: '#{sflang}', nameonly: #{nameonly}" if options[:verbose]
 
-  # Figure out where user's .../bin/ folder is:
-  # Check com-line switch, ENV[] for 'BIN' or 'B', etc:
-  tfdir = '~/bin'
-  if options[:bin]
-    tfdir = options[:bin]
-  elsif ENV['BIN']
-    tfdir = ENV['BIN']
-  elsif ENV['B']
-    tfdir = ENV['B']
+  # Figure out where user's .../bin/ folder is... start with 'logical name' "bin":
+  # Check com-line switch, ENV[] for 'BIN' or 'B':
+  tfdir = ENV['bin']   # "logical name" -- see shell functions 'logicals' and 'deflogical'
+  if ! File.directory?( tfdir )
+    # use the first of these that's not nil:
+    if options[:bin]
+      tfdir = options[:bin]
+    elsif ENV['BIN']
+      tfdir = ENV['BIN']
+    elsif ENV['B']
+      tfdir = ENV['B']
+    end  # if
   end  # if
-  tfdirtree = File.join( tfdir, 'lib' )  # create ~/bin/lib
   if ! File.directory?( tfdir )
     $stderr.puts "%#{PROGNAME}-E-NODIR, directory #{tfdir} does not exist"
-    createdir = askprompted( "Create directory #{tfdir}?", "N" )
-    if createdir
-      mkdir_p( tfdirtree, :verbose => options[:verbose] )
-      # ...and continue
-    else
-      exit false  # Quit if not allowed to create the target directory...
-    end
+    exit false  # Quit if not allowed to create the target directory...
   end  # if tfdir.exists?
   $stderr.puts "%#{PROGNAME}-I-VERBOSE, tfdir: #{tfdir}" if options[:verbose]
+  tfdirtree = File.join( tfdir, 'lib' ) if tfdir
 
   # Sort out the destination filespec:
   tfdir = tfdirtree if libfile  # Adjust the target-dir for a library file
