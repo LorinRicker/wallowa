@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.6 (06/15/2015)"
+  PROGID = "#{PROGNAME} v4.7 (08/07/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -180,7 +180,7 @@ def dclCommand( action, operands, options )
   require_relative 'lib/DCLcommand'
 
   dcloptions, operands = parse_dcl_qualifiers( operands )
- options.merge!( dcloptions )
+  options.merge!( dcloptions )
 
   # Commands:
   case action.to_sym              # Dispatch the command-line action;

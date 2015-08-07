@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.5, 05/13/2015
+# Version 4.7, 08/07/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -213,7 +213,8 @@ private
       pattype  = File.extname( pat )
       patname  = File.basename( pat, pattype )
       namewild = globwildcards =~ patname
-      typewild = globwildcards =~ pattype || namewild  # honor '*' as '*.*'
+      typewild = globwildcards =~ pattype
+      typewild = namewild if pattype == ''        # honor '*' as '*.*'
     end
 
     idx = 1  # file counter
