@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.7 (08/07/2015)"
+  PROGID = "#{PROGNAME} v4.8 (08/11/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -204,7 +204,7 @@ def dclCommand( action, operands, options )
     DCLcommand.rename( options, operands )
 
   when :search
-    DCLcommand.search( options, searchopts, operands )
+    DCLcommand.search( options, operands )
 
   when :show
     DCLcommand.show( options, operands[0] )
