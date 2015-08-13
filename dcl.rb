@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.8 (08/11/2015)"
+  PROGID = "#{PROGNAME} v4.9 (08/13/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -303,31 +303,31 @@ def dclFunction( action, operands, options )
   when :cjust
     # $ cjust width "String to center-justify..."
     ## >> How to default width to terminal-width, and how to specify padchr? Syntax?
-    width  = ops.shift.to_i
-    # padchr = ops.shift
+    width  = operands.shift.to_i
+    # padchr = operands.shift
     ops = getOps( operands, options )
     result = ops.center( width )
 
   when :ljust
     # $ ljust width "String to center-justify..."
-    width  = ops.shift.to_i
-    # padchr = ops.shift
+    width  = operands.shift.to_i
+    # padchr = operands.shift
     ops = getOps( operands, options )
     result = ops.ljust( width )
 
   when :rjust
     # $ rjust width "String to center-justify..."
-    width  = ops.shift.to_i
-    # padchr = ops.shift
+    width  = operands.shift.to_i
+    # padchr = operands.shift
     ops = getOps( operands, options )
     result = ops.rjust( width )
 
   when :edit
     # $ edit "func1,func2[,...]" "String to filter"
     #   where "func1,funct2[,...]" -- the editlist -- is required
-    editlist = ops.shift            # assign and remove arg [0]
+    editlist = operands.shift            # assign and remove arg [0]
     ops = getOps( operands, options )
-    result = ops.edit( editlist, '#' )  # assume bash-style comments
+    result = ops.edit( editlist, '#' )   # assume bash-style comments
 
   when :element
     # $ element 2 [","] "String,to,extract,an,element,from:
@@ -335,23 +335,23 @@ def dclFunction( action, operands, options )
     #   and second arg is (optional) element separator (default ",");
     #   note that if length of second arg is > 1, it defaults, and
     #   remainder of string is the string to filter
-    elem = ops.shift.to_i           # assign and remove arg [0]
-    sep  = ops[0].length == 1 ? ops.shift : ","  # and arg [1]
+    elem = operands.shift.to_i                             # assign and remove arg [0]
+    sep  = operands[0].length == 1 ? operands.shift : ","  # and arg [1]
     ops = getOps( operands, options )
     result = ops.element( elem, sep )
 
   when :pluralize
     # $ pluralize word howmany [irregular]
-    word      = ops.shift                  # assign and remove arg [0]
-    howmany   = ops.shift.to_i             # and arg [1]
-    irregular = ops[0] ? ops.shift : nil  # and (optional) arg [2]
-    # ops = getOps( operands, options )             # ...ignore rest of com-line
+    word      = operands.shift                  # assign and remove arg [0]
+    howmany   = operands.shift.to_i             # and arg [1]
+    irregular = ops[0] ? operands.shift : nil   # and (optional) arg [2]
+    # ops = getOps( operands, options )         # ...ignore rest of com-line
     result = word.pluralize( howmany, irregular )
 
   when :substr, :extract
     # $ substr start len "String to extract/substring from..."
-    start = ops.shift.to_i
-    len   = ops.shift.to_i
+    start = operands.shift.to_i
+    len   = operands.shift.to_i
     ops  = getOps( operands, options )
     result = ops[start,len]      # String class does this one directly
 
@@ -421,7 +421,7 @@ FNC_LINKS = %w{ locase lowercase
                 dclsymlink }
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
-options = { :interactive => false,
+options = { :confirm     => false,
             :pager       => false,
             :preserve    => false,
             :links       => false,
@@ -445,25 +445,26 @@ optparse = OptionParser.new { |opts|
   end  # -n --noop
   opts.on( "-i", "--interactive", "--confirm",
            "Interactive mode (/CONFIRM)" ) do |val|
-    options[:interactive] = true
-  end  # -i --interactive
+    options[:confirm] = true
+  end  # -i --interactive --confirm
   opts.on( "-m", "--pager", "--less", "--more",
-           "Use pager (less) for long output" ) do |val|
+           "Use pager (less) for long output (/PAGE)" ) do |val|
     options[:pager] = true
   end  # -m --pager
   opts.on( "-p", "--preserve",
-           "Preserves file metadata (owner, permissions, datetimes)" ) do |val|
+           "Preserves file metadata",
+           "  (owner, permissions, datetimes)" ) do |val|
     options[:preserve] = true
   end  # -p --preserve
   # --- Verbose option ---
-  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
+  opts.on( "-v", "--verbose", "--log", "Verbose mode (/LOG)" ) do |val|
     options[:verbose] = true
   end  # -v --verbose
   # --- Debug option ---
   opts.on( "-d", "--debug", "=DebugLevel", Integer,
            "Show debug information (levels: 1, 2 or 3)",
-           "  1 - enables basic debugging information",
-           "  2 - enables advanced debugging information",
+           "  1 - enables basic debugger information",
+           "  2 - enables advanced debugger information",
            "  3 - enables (starts) pry-byebug debugger" ) do |val|
     options[:debug] = val.to_i
   end  # -d --debug
@@ -479,8 +480,9 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] dclfunction"   +
-                "\n\n   where dclfunction is the DCL command or lexical function to execute.\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] dclfunc"   +
+                "\n\n   where dclfunc is the DCL command or" +
+                " lexical function to execute.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     help_available( '  Available commands: ', CMD_LINKS, 8 )
@@ -503,7 +505,7 @@ if options[:symlinks]
   dclSymlink( ALL_LINKS )       # set &/or verify ALL_LINKS symlinks
 else
   # Dispatch/processing for each sym-linked command begins here...
-  if CMD_LINKS.find( action )   # one of the Command actions?
+  if CMD_LINKS.find_index( action )   # one of the Command actions?
   then
     dclCommand( action, ARGV, options )
   else
