@@ -4,7 +4,7 @@
 # DCLfunction.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.0, 08/21/2015
+# Version 5.1, 08/21/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -38,6 +38,11 @@ module DCLfunction
     when :compress
       ops = DCLfunction.getOps( operands, options )
       result = ops.compress
+
+    when :fao, :sprintf
+      formatstr = operands.shift
+      ops = DCLfunction.getOps( operands, options )
+      result = sprintf( formatstr, *operands )
 
     when :length
       ops = DCLfunction.getOps( operands, options )

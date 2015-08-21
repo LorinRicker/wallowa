@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.0 (08/21/2015)"
+  PROGID = "#{PROGNAME} v5.1 (08/21/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -189,6 +189,7 @@ FNC_LINKS = %w{ locase lowercase
                 capcase titlecase
                 collapse compress
                 cjust ljust rjust
+                fao sprintf
                 edit element extract substr
                 length pluralize
                 thousands numbernames
