@@ -14,7 +14,14 @@
 
     PATH = File.dirname $0
  DCLNAME = File.join( PATH, "dcl" )          # hard-wire this name...
-LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
+DCLLINKS = "dcllinks"
+# Symlinks go here...
+if File.basename( PATH ) != DCLLINKS
+  LINKPATH = File.join( PATH, DCLLINKS )
+else
+  LINKPATH = PATH
+end
+ BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
   PROGID = "#{PROGNAME} v5.1 (08/21/2015)"
@@ -135,6 +142,7 @@ require_relative 'lib/DCLcommand'
 require_relative 'lib/DCLfunction'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
+require_relative 'lib/ErrorMsg'
 
 # ==========
 
@@ -153,7 +161,14 @@ end  # help_available
 
 # ==========
 
-def dclSymlink( syms )
+def dclSymlink( action, syms )
+  if action.to_str != 'dcl'
+    example = '$ dcl --links'
+    ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-symlinkuse",
+                     msgtext     = "invoke --links or --symlinks option",
+                     "as #{example.underline}" )
+    exit false
+  end
   dn = "-> #{DCLNAME}"
   FileUtils.mkdir_p( LINKPATH ) if ! File.exists?( LINKPATH )
   syms.each do |s|
@@ -279,7 +294,7 @@ end                           #
 action = File.basename( $0 ).downcase  # $0 is name of invoking symlink...
 
 if options[:symlinks]
-  dclSymlink( ALL_LINKS )       # set &/or verify ALL_LINKS symlinks
+  dclSymlink( action, ALL_LINKS )       # set &/or verify ALL_LINKS symlinks
 else
   # Dispatch/processing for each sym-linked command begins here...
   if CMD_LINKS.find_index( action )   # one of the Command actions?

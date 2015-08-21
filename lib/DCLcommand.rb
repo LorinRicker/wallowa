@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.0, 08/21/2015
+# Version 5.1, 08/21/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -15,8 +15,6 @@
 # Used by ../projects/ruby/dcl.com and dclrename.rb
 
 module DCLcommand
-
-require_relative '../lib/ErrorMsg'
 
 WILDSPLAT = '*'
 WILDQUEST = '?'
@@ -110,7 +108,11 @@ end  # fileCommands
 # ==========
 
   def self.directory( options, operands )
-    DCLcommand.nyi( "DIRECTORY" )
+    # Just a handoff to the partner script dir.rb (and lib/DirectoryVMS.rb) --
+    # ...mimics the anti-globbing behavior of bash function ResetGlobbing, too!
+    cmd = "set -f ; #{BINPATH}/dir #{operands.join( ' ' )} ; set +f"
+    puts cmd.bold if options[:debug] >= 1
+    exec( cmd ) if ! options[:noop]  # chains, no return...
   end  # directory
 
 # ==========
@@ -154,7 +156,7 @@ end  # fileCommands
     end
     # for less, honor grep's color output with --raw-control-chars:
     cmd += " | /bin/less --raw-control-chars" if options[:pager]
-    puts cmd if options[:verbose]
+    puts cmd.bold if options[:debug] >= 1
     exec( cmd ) if ! options[:noop]  # chains, no return...
   end  # search
 
