@@ -261,7 +261,8 @@ optparse = OptionParser.new { |opts|
     options[:debug] = val.to_i
   end  # -d --debug
   opts.on( "-l", "--links", "--symlinks",
-           "Create or verify symlinks for all functions" ) do |val|
+           "Create or verify symlinks for all functions,",
+           "  use as: $ dcl --links" ) do |val|
     options[:symlinks] = true
   end  # -l --symlinks --links
   # --- About option ---
