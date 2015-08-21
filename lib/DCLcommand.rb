@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.8, 08/11/2015
+# Version 5.0, 08/21/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -16,13 +16,55 @@
 
 module DCLcommand
 
-# See ri FileUtils --
-require 'fileutils'
-
 require_relative '../lib/ErrorMsg'
 
 WILDSPLAT = '*'
 WILDQUEST = '?'
+
+# ==========
+
+def self.fileCommands( action, operands, options )
+
+  # Conditional: needed only for these file commands --
+  # See ri FileUtils --
+  require 'fileutils'
+
+  dcloptions, operands = parse_dcl_qualifiers( operands )
+  options.merge!( dcloptions )
+
+  # Commands:
+  case action.to_sym              # Dispatch the command-line action;
+                                  # invoking symlink's name is $0 ...
+  when :copy
+    DCLcommand.copy( options, operands )
+
+  when :create
+    DCLcommand.create( options, operands )
+
+  when :delete
+    DCLcommand.delete( options, operands )
+
+  when :directory
+    DCLcommand.directory( options, operands )
+
+  # when :purge  # -- removed: likely never to be implemented
+  #   DCLcommand.purge( options, operands )
+
+  when :rename
+    DCLcommand.rename( options, operands )
+
+  when :search
+    DCLcommand.search( options, operands )
+
+  when :show
+    DCLcommand.show( options, operands[0] )
+
+  else
+    $stderr.puts "%#{PROGNAME}-e-badcommand, not a DCL command: '#{action}'"
+    exit false
+  end  # case action.to_sym
+
+end  # fileCommands
 
 # ==========
 
@@ -73,13 +115,13 @@ WILDQUEST = '?'
 
 # ==========
 
-  def self.purge( options, operands )
-    # Probably will never build/implement this, as ;version numbers
-    #   are completely foreign to anything but VMS...
-    #   but if we did, we'd use:
-    # DCLcommand.parse1ops( options, operands ) do | fil | ...
-    DCLcommand.nyi( "PURGE" )
-  end  # purge
+  # def self.purge( options, operands )  # -- removed: likely never to be implemented
+  #   # Probably will never build/implement this, as ;version numbers
+  #   #   are completely foreign to anything but VMS...
+  #   #   but if we did, we'd use:
+  #   # DCLcommand.parse1ops( options, operands ) do | fil | ...
+  #   DCLcommand.nyi( "PURGE" )
+  # end  # purge
 
 # ==========
 
@@ -125,6 +167,26 @@ WILDQUEST = '?'
 # ==========
 
 private
+
+  def self.parse_dcl_qualifiers( argvector )
+    dcloptions = Hash.new
+    fspecs     = []
+    pat        = /^\/(LOG|CON[FIRM]*|PAG[E]*)$/i
+    argvector.each do | a |
+      if pat.match( a )
+        # A DCL qualifier /LOG or /CON[FIRM] or /PAG[E]: record it...
+        case $1[0..2].downcase
+        when 'log' then dcloptions[:verbose] = true
+        when 'con' then dcloptions[:confirm] = true
+        when 'pag' then dcloptions[:pager]   = true
+        end  # case
+      else
+        # A file-spec, copy it...
+        fspecs << a
+      end
+    end
+    return [ dcloptions, fspecs ]
+  end  # parse_dcl_qualifiers
 
   def self.nyi( cmd )
     ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-nyi",

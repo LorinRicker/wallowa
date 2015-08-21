@@ -17,7 +17,7 @@
 LINKPATH = File.join( PATH, "dcllinks" )     # symlinks go here...
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v4.9 (08/13/2015)"
+  PROGID = "#{PROGNAME} v5.0 (08/21/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -37,7 +37,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # dcl is extended (v2.xx) to provide DCL file operation command emulations
 # for several common file commands:
 # COPY:cp, DELETE:rm, RENAME:mv,
-# CREATE:touch, PURGE:??, DIRECTORY:ls,
+# CREATE:touch, DIRECTORY:ls,
 # SEARCH:grep, SHOW:set.
 
 # dcl provides command line (shell) access to a small library of string-
@@ -131,6 +131,8 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 require 'optparse'
 require 'pp'
+require_relative 'lib/DCLcommand'
+require_relative 'lib/DCLfunction'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
 
@@ -148,232 +150,6 @@ def help_available( tag, links, perline )
   end  # links.each
   puts "\n#{hlp}"
 end  # help_available
-
-# ==========
-
-def parse_dcl_qualifiers( argvector )
-  dcloptions = Hash.new
-  fspecs     = []
-  pat        = /^\/(LOG|CON[FIRM]*|PAG[E]*)$/i
-  argvector.each do | a |
-    if pat.match( a )
-      # A DCL qualifier /LOG or /CON[FIRM] or /PAG[E]: record it...
-      case $1[0..2].downcase
-      when 'log' then dcloptions[:verbose] = true
-      when 'con' then dcloptions[:confirm] = true
-      when 'pag' then dcloptions[:pager]   = true
-      end  # case
-    else
-      # A file-spec, copy it...
-      fspecs << a
-    end
-  end
-  return [ dcloptions, fspecs ]
-end  # parse_dcl_qualifiers
-
-# ==========
-
-def dclCommand( action, operands, options )
-
-  # Conditional: needed only for these file commands --
-  require 'fileutils'
-  require_relative 'lib/DCLcommand'
-
-  dcloptions, operands = parse_dcl_qualifiers( operands )
-  options.merge!( dcloptions )
-
-  # Commands:
-  case action.to_sym              # Dispatch the command-line action;
-                                  # invoking symlink's name is $0 ...
-  when :copy
-    DCLcommand.copy( options, operands )
-
-  when :create
-    DCLcommand.create( options, operands )
-
-  when :delete
-    DCLcommand.delete( options, operands )
-
-  when :directory
-    DCLcommand.directory( options, operands )
-
-  when :purge
-    DCLcommand.purge( options, operands )
-
-  when :rename
-    DCLcommand.rename( options, operands )
-
-  when :search
-    DCLcommand.search( options, operands )
-
-  when :show
-    DCLcommand.show( options, operands[0] )
-
-  else
-    $stderr.puts "%#{PROGNAME}-e-badcommand, not a DCL command: '#{action}'"
-    exit false
-  end  # case action.to_sym
-
-end  # dclCommand
-
-# ==========
-
-def getOps( operands, options )
-  ops = ''
-  if operands[0]
-    ops = operands.join( " " )           # All operands into one big sentence...
-  else                                   # ...or from std-input
-    ops = $stdin.readline.chomp if !options[:symlinks]
-  end  # if operands[0]
-  return ops
-end  # getOps
-
-def dclFunction( action, operands, options )
-
-  # Conditional: needed only for these functional commands --
-  require_relative 'lib/ppstrnum'
-  require_relative 'lib/StringEnhancements'
-
-  # Functions:
-  case action.to_sym              # Dispatch the command-line action;
-                                  # invoking symlink's name is $0 ...
-  when :capcase
-    ops = getOps( operands, options )
-    result = ops.capcase
-
-  when :collapse
-    ops = getOps( operands, options )
-    result = ops.collapse
-
-  when :compress
-    ops = getOps( operands, options )
-    result = ops.compress
-
-  when :length
-    ops = getOps( operands, options )
-    result = ops.length         # String class does this one directly
-
-  when :locase, :lowercase
-    ops = getOps( operands, options )
-    result = ops.locase         # String class does this one directly
-
-  when :numbernames
-    # $ numbernames number
-    ops = getOps( operands, options )
-    # Stanza-per-line output:
-    #    call as: ops.numbernames( '\n' )
-    # for use as: $ echo -e $( numbernames <num> )
-    result = ops.numbernames.split( ', ' )
-    result.each { |s| $stdout.puts s }
-    exit true
-
-  when :thousands
-    # $ thousands number
-    ops = getOps( operands, options )
-    result = ops.thousands
-
-  when :titlecase
-    ops = getOps( operands, options )
-    result = ops.titlecase
-
-  when :trim
-    ops = getOps( operands, options )
-    result = ops.strip          # String class does this one directly
-
-  when :trim_leading
-    ops = getOps( operands, options )
-    result = ops.lstrip         # String class does this one directly
-
-  when :trim_trailing
-    ops = getOps( operands, options )
-    result = ops.rstrip         # String class does this one directly
-
-  when :uncomment
-    ops = getOps( operands, options )
-    result = ops.uncomment
-
-  when :upcase, :uppercase
-    ops = getOps( operands, options )
-    result = ops.upcase         # String class does this one directly
-
-  # when :«+»
-  #   ops = getOps( operands, options )
-  #   result = ops.«+»
-
-  when :cjust
-    # $ cjust width "String to center-justify..."
-    ## >> How to default width to terminal-width, and how to specify padchr? Syntax?
-    width  = operands.shift.to_i
-    # padchr = operands.shift
-    ops = getOps( operands, options )
-    result = ops.center( width )
-
-  when :ljust
-    # $ ljust width "String to center-justify..."
-    width  = operands.shift.to_i
-    # padchr = operands.shift
-    ops = getOps( operands, options )
-    result = ops.ljust( width )
-
-  when :rjust
-    # $ rjust width "String to center-justify..."
-    width  = operands.shift.to_i
-    # padchr = operands.shift
-    ops = getOps( operands, options )
-    result = ops.rjust( width )
-
-  when :edit
-    # $ edit "func1,func2[,...]" "String to filter"
-    #   where "func1,funct2[,...]" -- the editlist -- is required
-    editlist = operands.shift            # assign and remove arg [0]
-    ops = getOps( operands, options )
-    result = ops.edit( editlist, '#' )   # assume bash-style comments
-
-  when :element
-    # $ element 2 [","] "String,to,extract,an,element,from:
-    #   where first arg is the element-number (zero-based) to extract,
-    #   and second arg is (optional) element separator (default ",");
-    #   note that if length of second arg is > 1, it defaults, and
-    #   remainder of string is the string to filter
-    elem = operands.shift.to_i                             # assign and remove arg [0]
-    sep  = operands[0].length == 1 ? operands.shift : ","  # and arg [1]
-    ops = getOps( operands, options )
-    result = ops.element( elem, sep )
-
-  when :pluralize
-    # $ pluralize word howmany [irregular]
-    word      = operands.shift                  # assign and remove arg [0]
-    howmany   = operands.shift.to_i             # and arg [1]
-    irregular = ops[0] ? operands.shift : nil   # and (optional) arg [2]
-    # ops = getOps( operands, options )         # ...ignore rest of com-line
-    result = word.pluralize( howmany, irregular )
-
-  when :substr, :extract
-    # $ substr start len "String to extract/substring from..."
-    start = operands.shift.to_i
-    len   = operands.shift.to_i
-    ops  = getOps( operands, options )
-    result = ops[start,len]      # String class does this one directly
-
-  when :dclsymlink
-    # $ dclsymlink action [action]...
-    dclsymlink( ops )            # Set &/or verify this action verb symlink
-    exit true
-
-  else
-    $stderr.puts "%#{PROGNAME}-e-nyi, DCL function '#{action}' not yet implemented"
-    exit false
-
-  end  # case action.to_sym
-
-  if options[:verbose]
-    $stderr.puts "%#{PROGNAME}-I-echo,   $ " + "#{action}".underline + " '#{ops}'"
-    $stderr.puts "%#{PROGNAME}-I-result, " + "'#{result}'".bold
-  end  # if options[:verbose]
-
-  $stdout.print result  # Print filtered result to std-output
-
-end  # dclFunction
 
 # ==========
 
@@ -406,8 +182,8 @@ end  # dclSymlink
                 # See also dclrename.rb; "set" conflicts with bash 'set' command
 CMD_LINKS = %w{ copy create
                 delete directory
-                purge rename
-                search show }
+                rename
+                search show }  # removed 'purge' as likely never to be implemented
 FNC_LINKS = %w{ locase lowercase
                 upcase uppercase
                 capcase titlecase
@@ -507,9 +283,9 @@ else
   # Dispatch/processing for each sym-linked command begins here...
   if CMD_LINKS.find_index( action )   # one of the Command actions?
   then
-    dclCommand( action, ARGV, options )
+    DCLcommand.fileCommands( action, ARGV, options )
   else
-    dclFunction( action, ARGV, options )
+    DCLfunction.lexFunctions( action, ARGV, options )
   end
 end  # if options[:symlinks]
 
