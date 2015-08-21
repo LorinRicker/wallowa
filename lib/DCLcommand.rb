@@ -19,6 +19,8 @@ module DCLcommand
 WILDSPLAT = '*'
 WILDQUEST = '?'
 
+require_relative '../lib/GetPrompted'
+
 # ==========
 
 def self.fileCommands( action, operands, options )
@@ -69,9 +71,23 @@ end  # fileCommands
   # See ri FileUtils::cp
   def self.copy( options, operands )
     DCLcommand.parse2ops( options, operands ) do | src, dst |
+      confirmed = true  # assume no /CONFIRM or --interactive
+      if options[:confirm]
+        prompt = "Copy #{src} to #{dst} (yes,No,all,quit)"
+        response = getprompted( prompt, "N" )
+        case response[0].upcase
+        when 'A'
+          confirmed = true
+          options[:confirm] = false  # do all the rest...
+        when 'Y'
+          confirmed = true           # and keep asking...
+        when 'N'
+          confirmed = false
+        end  # case response.upcase
+      end
       begin
         FileUtils.cp( src, dst,
-                      filter( options, [ :preserve, :noop, :verbose ] ) )
+                      filter( options, [ :preserve, :noop, :verbose ] ) ) if confirmed
       rescue StandardError => e
         fu_rescue( e )
       end
