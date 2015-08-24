@@ -71,11 +71,8 @@ end  # fileCommands
   def self.copy( options, operands )
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
-      confirmed, doall =
-        if ( options[:confirm] and not doall )
-          confirmprompted( "Copy #{src} to #{dst}" )
-        else [ true, doall ]
-        end
+      confirmed, doall = askordo( options[:confirm], doall,
+                                  "Copy #{src} to #{dst}" )
       begin
         FileUtils.cp( src, dst,
                       filter( options,
@@ -106,11 +103,8 @@ end  # fileCommands
   def self.delete( options, operands )
     doall = false
     DCLcommand.parse1ops( options, operands ) do | fil |
-      confirmed, doall =
-        if ( options[:confirm] and not doall )
-          confirmprompted( "Delete #{fil}" )
-        else [ true, doall ]
-        end
+      confirmed, doall = askordo( options[:confirm], doall,
+                                  "Delete #{fil}" )
       begin
         FileUtils.rm( fil,
                       filter( options,
@@ -149,11 +143,8 @@ end  # fileCommands
   def self.rename( options, operands )
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
-      confirmed, doall =
-        if ( options[:confirm] and not doall )
-          confirmprompted( "Rename #{src} to #{dst}" )
-        else [ true, doall ]
-        end
+      confirmed, doall = askordo( options[:confirm], doall,
+                                  "Rename #{src} to #{dst}" )
       begin
         FileUtils.mv( src, dst,
                       filter( options,
@@ -194,6 +185,13 @@ end  # fileCommands
 # ==========
 
 private
+
+  def self.askordo( confirm, doall, prompt )
+    if ( confirm and not doall )
+      confirmprompted( prompt )
+    else [ true, doall ]
+    end
+  end  # askordo
 
   def self.parse_dcl_qualifiers( argvector )
     dcloptions = Hash.new
