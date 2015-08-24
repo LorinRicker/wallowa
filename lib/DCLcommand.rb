@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.1, 08/21/2015
+# Version 5.2, 08/23/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -67,27 +67,20 @@ def self.fileCommands( action, operands, options )
 end  # fileCommands
 
 # ==========
-
   # See ri FileUtils::cp
   def self.copy( options, operands )
+    doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
-      confirmed = true  # assume no /CONFIRM or --interactive
-      if options[:confirm]
-        prompt = "Copy #{src} to #{dst} (yes,No,all,quit)"
-        response = getprompted( prompt, "N" )
-        case response[0].upcase
-        when 'A'
-          confirmed = true
-          options[:confirm] = false  # do all the rest...
-        when 'Y'
-          confirmed = true           # and keep asking...
-        when 'N'
-          confirmed = false
-        end  # case response.upcase
-      end
+      confirmed, doall =
+        if ( options[:confirm] and not doall )
+          confirmprompted( "Copy #{src} to #{dst}" )
+        else [ true, doall ]
+        end
       begin
         FileUtils.cp( src, dst,
-                      filter( options, [ :preserve, :noop, :verbose ] ) ) if confirmed
+                      filter( options,
+                             [ :preserve, :noop, :verbose ] )
+                    ) if confirmed
       rescue StandardError => e
         fu_rescue( e )
       end
@@ -111,10 +104,18 @@ end  # fileCommands
 
   # See ri FileUtils::rm
   def self.delete( options, operands )
+    doall = false
     DCLcommand.parse1ops( options, operands ) do | fil |
+      confirmed, doall =
+        if ( options[:confirm] and not doall )
+          confirmprompted( "Delete #{fil}" )
+        else [ true, doall ]
+        end
       begin
         FileUtils.rm( fil,
-                      filter( options, [ :force, :noop, :verbose ] ) )
+                      filter( options,
+                              [ :force, :noop, :verbose ] )
+                    ) if confirmed
       rescue StandardError => e
         fu_rescue( e )
       end
@@ -146,10 +147,18 @@ end  # fileCommands
   # See ri FileUtils::mv
   ## Also see $rby/dclrename.rb
   def self.rename( options, operands )
+    doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
+      confirmed, doall =
+        if ( options[:confirm] and not doall )
+          confirmprompted( "Rename #{src} to #{dst}" )
+        else [ true, doall ]
+        end
       begin
         FileUtils.mv( src, dst,
-                      filter( options, [ :force, :noop, :verbose ] ) )
+                      filter( options,
+                              [ :force, :noop, :verbose ] )
+                    ) if confirmed
       rescue StandardError => e
         fu_rescue( e )
       end
@@ -206,11 +215,17 @@ private
     return [ dcloptions, fspecs ]
   end  # parse_dcl_qualifiers
 
-  def self.nyi( cmd )
-    ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-nyi",
-                     msgtext     = "DCL command '#{cmd}' not yet implemented" )
-    exit false
-  end  # nyi
+  def self.confirmprompted( prompt )
+    response = getprompted( "#{prompt} (yes,No,all,quit)", "N" )
+    case response[0].downcase
+    when 'a'
+      return [ true, true ]    # do all the rest...
+    when 'y'
+      return [ true, false ]   # and keep asking...
+    when 'n'
+      return [ false, false ]  # and keep asking...
+    end  # case response.downcase
+  end  # confirmprompted
 
   def self.filter( options, legalopts )
     # FileUtils options can be [ :force, :noop, :preserve, :verbose ],
@@ -331,5 +346,11 @@ private
     ErrorMsg.putmsg( "%#{PROGNAME}-e-rescued, #{e}", e.to_s )
     exit false
   end  # fu_rescue
+
+  def self.nyi( cmd )
+    ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-nyi",
+                     msgtext     = "DCL command '#{cmd}' not yet implemented" )
+    exit false
+  end  # nyi
 
 end  # module DCLcommand
