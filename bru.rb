@@ -328,20 +328,19 @@ $stderr.puts "\n%#{PROGNAME}-i-noop, ======= DRY-RUN MODE =======".color(:red) i
 $stderr.puts "%#{PROGNAME}-i-popen2e_working, rsync output..."
 xstat = 0
 
+# pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
+#        \                                # followed by a literal space
+#        ( (\/?                           #   optional leading / absolute path
+#           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
+#          ([^\/\\]*) )                   #   and the filename
+#       /x
+pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
+twidth = TermChar.terminal_width
 # This is now a job for Open3.popen2e()...
 Open3.popen2e( rsync ) do | stdin, stdouterr, thrd |
-  stdouterr.each do |ln|
-    # pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
-    #        \                                # followed by a literal space
-    #        ( (\/?                           #   optional leading / absolute path
-    #           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
-    #          ([^\/\\]*) )                   #   and the filename
-    #       /x
-    pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
-    $stdout.puts "#{fit_filespec( ln, pat,
-                                  TermChar.terminal_width,
-                                  params[:itemize] )}"
-  end
+  stdouterr.each { |ln|
+    $stdout.puts "#{fit_filespec( ln, pat, twidth, params[:itemize] )}"
+  }
   xstat = thrd.value.exitstatus  # Process::Status
 end
 
