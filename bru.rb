@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.1 (03/26/2015)"
+  PROGID = "#{PROGNAME} v2.2 (09/02/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -23,6 +23,8 @@ PROGNAME = File.basename $0
   DEFEXCLFILE   = File.join( CONFIGDIR, 'common_rsync.excl' )
   DEFSOURCETREE = File.join( '/home', ENV['USER'], "" )  # ensure a trailing '/'
   DEFBACKUPTREE = File.join( '/media', ENV['USER'], DEFSOURCETREE )
+
+  MELLIPSE = "···"  # mid-dot ellipse
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -46,6 +48,7 @@ require_relative 'lib/appconfig'
 require_relative 'lib/FileEnhancements'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/AskPrompted'
+require_relative 'lib/TermChar'
 
 # ==========
 
@@ -85,6 +88,34 @@ def make_tree( op, dir, options )
     dir_error( op, dir )
   end
 end  # make_tree
+
+def fit_filespec( ln, pat, twidth, itemize )
+  return ln if not itemize                  # --itemize-changes asserted?
+  m = pat.match( ln )
+  if m
+    case m[1][0..1]  # first-two characters of itemized changes field
+    when 'cd'  # directory created
+      fs = "create: #{m[2]}"
+    when '.d'  # directory updated
+      fs = "update: #{m[2]}"
+    when '>f'  # file sent/updated
+      fs = m[4]
+      wdth = twidth - 7  # for padding and MELLIPSE
+      if fs.length > wdth
+        fn = File.basename( fs, '.*' )
+        ft = File.extname( fs )
+        w  = wdth - ft.length
+        fs = fn[0..w] + MELLIPSE + ft
+      end
+      fs = "  #{fs}"
+    else       # catch-all -- will improve itemize codes based on observances...
+      fs = "  #{m[4]} (--itemize-changes: #{m[1]})"
+    end  # case
+    return "| #{fs}"
+  else
+    return "! #{ln}"  # other normal rsync output...
+  end
+end  # fit_filespec
 
 # ==========
 
@@ -299,7 +330,18 @@ xstat = 0
 
 # This is now a job for Open3.popen2e()...
 Open3.popen2e( rsync ) do | stdin, stdouterr, thrd |
-  stdouterr.each { |ln| $stdout.puts "  | #{ln}" }
+  stdouterr.each do |ln|
+    # pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
+    #        \                                # followed by a literal space
+    #        ( (\/?                           #   optional leading / absolute path
+    #           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
+    #          ([^\/\\]*) )                   #   and the filename
+    #       /x
+    pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
+    $stdout.puts "#{fit_filespec( ln, pat,
+                                  TermChar.terminal_width,
+                                  params[:itemize] )}"
+  end
   xstat = thrd.value.exitstatus  # Process::Status
 end
 
