@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (09/02/2015)"
+  PROGID = "#{PROGNAME} v2.3 (09/03/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -132,6 +132,7 @@ params =  { :sourcetree => nil,
 # options are *never* saved/used to/from a config-file --
 options = { :recover    => false,
             :noop       => false,
+            :rawout     => false,
             :sudo       => "",
             :use        => nil,
             :write      => nil,
@@ -148,7 +149,7 @@ ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 # Parse the command line --
 optparse = OptionParser.new { |opts|
   opts.on( "-s", "--sourcetree", "=SourceDir", String,
-           "Source directory tree" ) do |val|
+           "Source directory tree; what you're backing up..." ) do |val|
     params[:sourcetree] = val
   end  # -s --sourcetree
   opts.on( "-b", "--backuptree", "=BackupDir", String,
@@ -177,7 +178,7 @@ optparse = OptionParser.new { |opts|
            "display file progress during file transfer" ) do |val|
     params[:progress] = val
   end  # -p --progress
-  opts.on( "-i", "--[no-]itemize",
+  opts.on( "-i", "--[no-]itemize-changes",
            "Itemize changes during file transfer" ) do |val|
     params[:itemize] = val
   end  # -i --itemize
@@ -215,6 +216,12 @@ optparse = OptionParser.new { |opts|
     cfile = File.extname( cfile ) == '' ? cfile + CONFIGTYPE : cfile
     options[:write]  = cfile || CONFIGFILE
   end  # -C --write --save
+  opts.on( "-o", "--raw-output",
+           "Display raw rsync output lines, unfiltered;",
+           "content depends on itemize-changes, stats,",
+           "progress and/or verbose" ) do |val|
+    options[:rawout] = val
+  end  # -o --raw-output
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
@@ -328,18 +335,24 @@ $stderr.puts "\n%#{PROGNAME}-i-noop, ======= DRY-RUN MODE =======".color(:red) i
 $stderr.puts "%#{PROGNAME}-i-popen2e_working, rsync output..."
 xstat = 0
 
-# pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
-#        \                                # followed by a literal space
-#        ( (\/?                           #   optional leading / absolute path
-#           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
-#          ([^\/\\]*) )                   #   and the filename
-#       /x
-pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
-twidth = TermChar.terminal_width
+if not options[:rawout]
+  # pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
+  #        \                                # followed by a literal space
+  #        ( (\/?                           #   optional leading / absolute path
+  #           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
+  #          ([^\/\\]*) )                   #   and the filename
+  #       /x
+  pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
+  twidth = TermChar.terminal_width
+end
 # This is now a job for Open3.popen2e()...
 Open3.popen2e( rsync ) do | stdin, stdouterr, thrd |
   stdouterr.each { |ln|
-    $stdout.puts "#{fit_filespec( ln, pat, twidth, params[:itemize] )}"
+    if not options[:rawout]
+      $stdout.puts "#{fit_filespec( ln, pat, twidth, params[:itemize] )}"
+    else
+      $stdout.puts "| #{ln}"
+    end
   }
   xstat = thrd.value.exitstatus  # Process::Status
 end
