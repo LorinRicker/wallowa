@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.4 (09/03/2015)"
+  PROGID = "#{PROGNAME} v2.5 (09/03/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -273,7 +273,11 @@ end                           #
 # Use (read) a named config-file --
 AppConfig.configuration_yaml( options[:write], params, true ) if options[:write]
 # And (re)save a named config-file (might be a different filename than options[:write]) --
-options.merge!( AppConfig.configuration_yaml( options[:use], params ) ) if options[:use]
+ if options[:use]
+  options.merge!( AppConfig.configuration_yaml( options[:use], params ) )
+else
+  options.merge!( params )
+end
 
 # If a BackupDirectory is specified, use it rather than the default;
 # if given, the --backuptree spec trumps ARGV[0]:
