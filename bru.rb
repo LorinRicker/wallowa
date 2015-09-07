@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.5 (09/03/2015)"
+  PROGID = "#{PROGNAME} v2.6 (09/07/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -120,6 +120,10 @@ end  # fit_filespec
 # ==========
 
 # params will always be saved/used to/from a config-file (YAML) --
+#   This allows us to save the most commonly customized "options"
+#   (params are merged with options for an rsync run), and the
+#   YAML file can be easily edited, or copied/edited, for new
+#   backup/restore scenarios...
 params =  { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => nil,
@@ -129,7 +133,8 @@ params =  { :sourcetree => nil,
             :progress   => false
           }
 
-# options are *never* saved/used to/from a config-file --
+# options are *never* saved to a config-file -- but params are
+#   merged into options, and then options used throughout the run...
 options = { :recover    => false,
             :noop       => false,
             :rawout     => false,
@@ -344,6 +349,7 @@ $stderr.puts "%#{PROGNAME}-i-popen2e_working, rsync output..."
 xstat = 0
 
 if not options[:rawout]
+  # rsync output is excessively messy, so filter it here --
   # pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
   #        \                                # followed by a literal space
   #        ( (\/?                           #   optional leading / absolute path
@@ -359,6 +365,8 @@ Open3.popen2e( rsync ) do | stdin, stdouterr, thrd |
     if not options[:rawout]
       $stdout.puts "#{fit_filespec( ln, pat, twidth, options[:itemize] )}"
     else
+      # there are a few cases where raw (messy) rsync output just
+      #   must be admired or debugged...
       $stdout.puts "| #{ln}"
     end
   }
