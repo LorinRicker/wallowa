@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.6 (09/07/2015)"
+  PROGID = "#{PROGNAME} v2.7 (09/07/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -98,7 +98,7 @@ def fit_filespec( ln, pat, twidth, itemize )
       fs = "create: #{m[2]}"
     when '.d'  # directory updated
       fs = "update: #{m[2]}"
-    when '>f'  # file sent/updated
+    when 'cf', '>f', '<f'  # file sent/updated
       fs = m[4]
       wdth = twidth - 7  # for padding and MELLIPSE
       if fs.length > wdth
@@ -350,11 +350,11 @@ xstat = 0
 
 if not options[:rawout]
   # rsync output is excessively messy, so filter it here --
-  # pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
+  # pat = /^([fdLDScstpoguax><h.*+? ]{11})  # 11-char --itemize-changes -i field
   #        \                                # followed by a literal space
-  #        ( (\/?                           #   optional leading / absolute path
-  #           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
-  #          ([^\/\\]*) )                   #   and the filename
+  #        (\/?                             #   optional leading / absolute path
+  #          ([^\/\\]*[\/\\])*              #   zero-or-many sub-directories
+  #          ([^\/\\]*))                    #   and the filename
   #       /x
   pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
   twidth = TermChar.terminal_width
