@@ -1,5 +1,8 @@
 # A way to determine the "boundary" between the largest Fixnum and the smallest Bignum
 
+# on http://stackoverflow.com/questions/535721/ruby-max-integer, contributed by
+#    Andrew Grimm, 6-Jan-2012
+
 start = Time.now
 largest_known_fixnum = 1
 smallest_known_bignum = nil
