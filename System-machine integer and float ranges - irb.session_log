@@ -1,0 +1,54 @@
+$ irb
+>> puts Float::MAX
+1.7976931348623157e+308
+=> nil
+>> puts Float::MIN
+2.2250738585072014e-308
+=> nil
+>> puts Float::EPSILON
+2.220446049250313e-16
+=> nil
+
+>> puts Integer::MAX
+NameError: uninitialized constant Integer::MAX
+	from (irb):11
+	from /home/lorin/.rvm/rubies/ruby-2.1.0/bin/irb:11:in `<main>'
+>> puts Fixnum::MAX
+NameError: uninitialized constant Fixnum::MAX
+	from (irb):12
+	from /home/lorin/.rvm/rubies/ruby-2.1.0/bin/irb:11:in `<main>'
+>> puts Bignum::MAX
+NameError: uninitialized constant Bignum::MAX
+	from (irb):13
+	from /home/lorin/.rvm/rubies/ruby-2.1.0/bin/irb:11:in `<main>'
+
+>> 0.size
+=> 8        # bytes: 8*8 = 64-bits
+>> 1.size
+=> 8
+
+>> machinebytes = ['foo'].pack('p').size
+=> 8
+>> machinebits = machinebytes * 8
+=> 64        # bytes: 8*8 = 64-bits
+
+>> machine_maxSigned = 2**( machinebits-1 ) - 1
+=> 9223372036854775807
+>> machine_maxUnsigned = 2**( machinebits ) - 1
+=> 18446744073709551615
+
+#######################
+# Alternative approach:
+
+>> FIXNUM_MAX = (2**(0.size * 8 -2) -1)
+=> 4611686018427387903
+>> FIXNUM_MIN = -(2**(0.size * 8 -2))
+=> -4611686018427387904
+
+# Why did you subtract 2 bits instead of 1 for the sign? I tested this
+# and it seems to be correct, but why does Ruby use 2 bits for the sign?
+#   –  Matthias Feb 8 '12 at 15:46
+
+# An extra bit is used to mark the value as an integer (as opposed to
+# a pointer to an object).
+#   –  Matthew Crumley Mar 8 '12 at 18:53
