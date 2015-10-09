@@ -13,7 +13,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (09/02/2015)"
+  PROGID = "#{PROGNAME} v2.7 (09/07/2015)"
   AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
 
   CONFIGTYPE = ".yaml.rc"
@@ -98,7 +98,7 @@ def fit_filespec( ln, pat, twidth, itemize )
       fs = "create: #{m[2]}"
     when '.d'  # directory updated
       fs = "update: #{m[2]}"
-    when '>f'  # file sent/updated
+    when 'cf', '>f', '<f'  # file sent/updated
       fs = m[4]
       wdth = twidth - 7  # for padding and MELLIPSE
       if fs.length > wdth
@@ -120,6 +120,10 @@ end  # fit_filespec
 # ==========
 
 # params will always be saved/used to/from a config-file (YAML) --
+#   This allows us to save the most commonly customized "options"
+#   (params are merged with options for an rsync run), and the
+#   YAML file can be easily edited, or copied/edited, for new
+#   backup/restore scenarios...
 params =  { :sourcetree => nil,
             :backuptree => nil,
             :exclude    => nil,
@@ -129,9 +133,11 @@ params =  { :sourcetree => nil,
             :progress   => false
           }
 
-# options are *never* saved/used to/from a config-file --
+# options are *never* saved to a config-file -- but params are
+#   merged into options, and then options used throughout the run...
 options = { :recover    => false,
             :noop       => false,
+            :rawout     => false,
             :sudo       => "",
             :use        => nil,
             :write      => nil,
@@ -148,7 +154,7 @@ ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 # Parse the command line --
 optparse = OptionParser.new { |opts|
   opts.on( "-s", "--sourcetree", "=SourceDir", String,
-           "Source directory tree" ) do |val|
+           "Source directory tree; what you're backing up..." ) do |val|
     params[:sourcetree] = val
   end  # -s --sourcetree
   opts.on( "-b", "--backuptree", "=BackupDir", String,
@@ -177,7 +183,7 @@ optparse = OptionParser.new { |opts|
            "display file progress during file transfer" ) do |val|
     params[:progress] = val
   end  # -p --progress
-  opts.on( "-i", "--[no-]itemize",
+  opts.on( "-i", "--[no-]itemize-changes",
            "Itemize changes during file transfer" ) do |val|
     params[:itemize] = val
   end  # -i --itemize
@@ -199,8 +205,10 @@ optparse = OptionParser.new { |opts|
   opts.on( "-U ConfigFile", "--use", "--read", String,
            "Use (read) a configuration file which was",
            "previously saved in #{CONFIGDIR}/" ) do |val|
-    cfile = File.extname( val ) == '' ? val + CONFIGTYPE : val
-    if File.exist?( File.expand_path( cfile, CONFIGDIR ) )
+    cfile = val.to_s
+    cfile = cfile + CONFIGTYPE if File.extname( cfile ) == ''
+    cfile = File.expand_path( cfile, CONFIGDIR )
+    if File.exist?( cfile )
       options[:use] = cfile
     else
       $stderr.puts "%#{PROGNAME}-e-fnf, configuration file #{cfile} not found"
@@ -211,10 +219,18 @@ optparse = OptionParser.new { |opts|
            "Write (save) the configuration file from",
            "the current #{PROGNAME} command line's options",
            "(default: #{CONFIGFILE})" ) do |val|
-    cfile = File.basename( val.to_s ) == '' ? CONFIGFILE : val.to_s
-    cfile = File.extname( cfile ) == '' ? cfile + CONFIGTYPE : cfile
+    cfile = val.to_s
+    cfile = CONFIGFILE if File.basename( cfile ) == ''
+    cfile = cfile + CONFIGTYPE if File.extname( cfile ) == ''
+    cfile = File.expand_path( cfile, CONFIGDIR )
     options[:write]  = cfile || CONFIGFILE
   end  # -C --write --save
+  opts.on( "-o", "--raw-output",
+           "Display raw rsync output lines, unfiltered;",
+           "content depends on itemize-changes, stats,",
+           "progress and/or verbose" ) do |val|
+    options[:rawout] = val
+  end  # -o --raw-output
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
@@ -259,34 +275,38 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
-# If a BackupDirectory is specified, use it rather than the default;
-# if given, the --backuptree spec trumps ARGV[0]:
-params[:backuptree] ||= ARGV[0]
-backupdir = dirspec( params[:backuptree], DEFBACKUPTREE )
-
 # Use (read) a named config-file --
 AppConfig.configuration_yaml( options[:write], params, true ) if options[:write]
 # And (re)save a named config-file (might be a different filename than options[:write]) --
-options.merge!( AppConfig.configuration_yaml( options[:use], params ) ) if options[:use]
+ if options[:use]
+  options.merge!( AppConfig.configuration_yaml( options[:use], params ) )
+else
+  options.merge!( params )
+end
+
+# If a BackupDirectory is specified, use it rather than the default;
+# if given, the --backuptree spec trumps ARGV[0]:
+options[:backuptree] ||= ARGV[0]
+backupdir = dirspec( options[:backuptree], DEFBACKUPTREE )
 
 # Common rsync options, always used here...
 # note that --archive = --recursive --perms --links --times
 #                       --owner --group --devices --specials
 rcommon  = "-auhm"     # --archive --update --human-readable --prune-empty-dirs
-rcommon += " --stats" if params[:stats] || options[:verbose]
-rcommon += " --checksum" if params[:checksum]
+rcommon += " --stats" if options[:stats] || options[:verbose]
+rcommon += " --checksum" if options[:checksum]
 rcommon += " --dry-run"  if options[:noop]
 
 # Turn on progress output? Using --info=FLAGS rather than --progress (etc)
 # See man rsync and rsync --info=help for details --
-rverbose  = params[:progress] ? " --info=progress1,backup1" : ""
-rverbose += params[:itemize]  ? " --itemize-changes" : ""
+rverbose  = options[:progress] ? " --info=progress1,backup1" : ""
+rverbose += options[:itemize]  ? " --itemize-changes" : ""
 
 # If an exclude-from file is specified (or default) and exists, use it --
-exclfile, excloption = excludespec( params[:exclude], DEFEXCLFILE, " --exclude-from=" )
+exclfile, excloption = excludespec( options[:exclude], DEFEXCLFILE, " --exclude-from=" )
 
 # If a SourceDirectory is specified, use it rather than the default --
-sourcedir = dirspec( params[:sourcetree], DEFSOURCETREE )
+sourcedir = dirspec( options[:sourcetree], DEFSOURCETREE )
 
 # Form the full rsync command with options --
 #   Here's where we swap sourcedir<-->backupdir for a restore, if needed --
@@ -328,18 +348,27 @@ $stderr.puts "\n%#{PROGNAME}-i-noop, ======= DRY-RUN MODE =======".color(:red) i
 $stderr.puts "%#{PROGNAME}-i-popen2e_working, rsync output..."
 xstat = 0
 
-# pat = /^[fdLDScstpoguax><h.*+? ]{11}    # 11-char --itemize-changes -i field
-#        \                                # followed by a literal space
-#        ( (\/?                           #   optional leading / absolute path
-#           ([^\/\\]*)[\/\\])*            #   zero-or-many sub-directories
-#          ([^\/\\]*) )                   #   and the filename
-#       /x
-pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
-twidth = TermChar.terminal_width
+if not options[:rawout]
+  # rsync output is excessively messy, so filter it here --
+  # pat = /^([fdLDScstpoguax><h.*+? ]{11})  # 11-char --itemize-changes -i field
+  #        \                                # followed by a literal space
+  #        (\/?                             #   optional leading / absolute path
+  #          ([^\/\\]*[\/\\])*              #   zero-or-many sub-directories
+  #          ([^\/\\]*))                    #   and the filename
+  #       /x
+  pat = /^([fdLDScstpoguaxh><.*+? ]{11})\ (\/?([^\/\\]*[\/\\])*([^\/\\]*))/
+  twidth = TermChar.terminal_width
+end
 # This is now a job for Open3.popen2e()...
 Open3.popen2e( rsync ) do | stdin, stdouterr, thrd |
   stdouterr.each { |ln|
-    $stdout.puts "#{fit_filespec( ln, pat, twidth, params[:itemize] )}"
+    if not options[:rawout]
+      $stdout.puts "#{fit_filespec( ln, pat, twidth, options[:itemize] )}"
+    else
+      # there are a few cases where raw (messy) rsync output just
+      #   must be admired or debugged...
+      $stdout.puts "| #{ln}"
+    end
   }
   xstat = thrd.value.exitstatus  # Process::Status
 end
