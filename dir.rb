@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v6.2 (05/12/2015)"
+  PROGID = "#{PROGNAME} v6.3 (10/17/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -37,6 +37,7 @@ options = { :bytesize => false,
             :before   => false,
             :full     => false,
             :grand    => false,
+            :inode    => false,
             :larger   => false,
             :owner    => false,
             :smaller  => false,
@@ -68,6 +69,9 @@ optparse = OptionParser.new { |opts|
   opts.on( "-g", "--grand", "Display grand totals (summarize files and sizes)" ) do |val|
     options[:grand] = true
   end  # -g --grand
+  opts.on( "-i", "--inode", "Display file inodes" ) do |val|
+    options[:inode] = true
+  end  # -i --inode
   opts.on( "-l", "--larger=SIZE", "List files larger than size",
            Integer ) do |val|
     options[:larger] = val
