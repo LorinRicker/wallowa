@@ -98,7 +98,7 @@ def fit_filespec( ln, pat, twidth, itemize )
       fs = "create: #{m[2]}"
     when '.d'  # directory updated
       fs = "update: #{m[2]}"
-    when 'cf', '>f', '<f'  # file sent/updated
+    when 'cf', '>f', '<f', '.f'  # file sent/updated
       fs = m[4]
       wdth = twidth - 7  # for padding and MELLIPSE
       if fs.length > wdth
