@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 6.2, 05/12/2015
+# Version 6.4, 10/19/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -46,7 +46,7 @@ class DirectoryVMS
     printf( "\nDirectory %s\n\n", dir.bold.underline.color(@dircolor) )
   end  # printheader
 
-  def printentry( fname, is_dir, fsize, mtime, prot )
+  def printentry( fname, is_dir, fsize, mtime, prot, inode )
     if @options[:bytesize]
       size = fsize.to_s
       szwidth = 9
@@ -56,8 +56,9 @@ class DirectoryVMS
     end  # if @options[:bytesize]
     dtwidth  = mtime.size
     prwidth  = prot.size
+    inwidth  = inode.size
      owidth  = 20
-    sdpwidth = szwidth + dtwidth + prwidth + 6  # 6 = "  "*3 between fields
+    sdpwidth = inode.size + szwidth + dtwidth + prwidth + 8  # 8 = "  "*4 between fields
     fnwidth  = @termwidth / 2
     fnwidth  = @termwidth - sdpwidth if @termwidth < fnwidth + sdpwidth
     if is_dir  # embellish directories
@@ -65,10 +66,14 @@ class DirectoryVMS
       format = "%-#{fnwidth}s".color(@dircolor).bold +
                "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     else
-      format = "%-#{fnwidth}s  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
+      format = "%-#{fnwidth}s  %#{inwidth}  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     end  # if fname[-1]
-    fname = fname[0,fnwidth-1] + '*' if fname.length > fnwidth
-    printf( format, fname, size, mtime, prot )
+    # if inode   # squeeze inode# onto end of filename field:
+    #   fname = fname[0,fnwidth-1-2-inode.length] + '* ' + inode
+    # else
+    #   fname = fname[0,fnwidth-1] + '*' if fname.length > fnwidth
+    # end
+    printf( format, fname, inode, size, mtime, prot )
     if @options[:times]
       inwidth = fnwidth + szwidth + 4
       format = "%#{inwidth}s%#{dtwidth}s\n%#{inwidth}s%#{dtwidth}s\n"
@@ -98,12 +103,13 @@ class DirectoryVMS
       @options[:atime] = fstat.atime.strftime( @datetimeformat )
       @options[:ctime] = fstat.ctime.strftime( @datetimeformat )
     end  # if @options[:times]
+    inode = @options[:inode] ? fstat.ino.to_s : ''
     # Get the file's protection mask (mode) as human-readable (not integer)
     prot = File.mode_human_readable_VMS( fstat )
     # Get the file's ownership "user:group (uid:gid)" ...stash in the hash:
     @options[:fowner] = File.owner_human_readable( fstat ) if @options[:owner]
     # Print the entry for this file:
-    printentry( File.basename( fspec ), is_dir, fsize, mtime, prot )
+    printentry( File.basename( fspec ), is_dir, fsize, mtime, prot, inode )
     @numberfiles += 1
     @grandtotalnfiles += 1
   end  # reportentry

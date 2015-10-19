@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v6.3 (10/17/2015)"
+  PROGID = "#{PROGNAME} v6.4 (10/19/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -52,7 +52,7 @@ options = { :bytesize => false,
 ARGV[0] = './*' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-b", "--bytesize", "List file sizes in bytes (default is K, M, G, etc.)" ) do |val|
+  opts.on( "-b", "--bytesize", "Display file sizes in bytes (default is K, M, G, etc.)" ) do |val|
     options[:bytesize] = true
   end  # -b --bytesize
   opts.on( "-A", "--since", "--after[=DATE]", "List files modified after (since) date" ) do |val|
@@ -63,7 +63,7 @@ optparse = OptionParser.new { |opts|
     val = "today" if ! val
     options[:before] = DateCalc.thisday( val )
   end  # -B --before
-  opts.on( "-f", "--full", "Display full listing (include times and ownership)" ) do |val|
+  opts.on( "-f", "--full", "List full metadata (include times and ownership)" ) do |val|
     options[:full] = options[:owner] = options[:times] = true
   end  # -f --full
   opts.on( "-g", "--grand", "Display grand totals (summarize files and sizes)" ) do |val|
@@ -76,20 +76,20 @@ optparse = OptionParser.new { |opts|
            Integer ) do |val|
     options[:larger] = val
   end  # -l --larger
-  opts.on( "-o", "--owner", "List file ownership 'User:Group (uid,gid)'" ) do |val|
+  opts.on( "-o", "--owner", "Display file ownership 'User:Group (uid,gid)'" ) do |val|
     options[:owner] = true
   end  # -o --full
   opts.on( "-s", "--smaller=SIZE", "List files smaller than size",
            Integer ) do |val|
     options[:smaller] = val
   end  # -s --smaller
-  opts.on( "-r", "--reverse", "Display listing in reverse-sorted order" ) do |val|
+  opts.on( "-r", "--reverse", "List files in reverse-sorted order" ) do |val|
     options[:reverse] = true
   end  # -r --reverse
   opts.on( "-R", "--recurse", "Recurse the listing into subdirectories" ) do |val|
     options[:recurse] = true
   end  # -R --recurse
-  opts.on( "-t", "--times", "List file access and create times (atime, ctime)" ) do |val|
+  opts.on( "-t", "--times", "Display file access and create times (atime, ctime)" ) do |val|
     options[:times] = true
   end  # -t --times
   # --- Verbose option ---
