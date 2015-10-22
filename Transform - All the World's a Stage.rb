@@ -27,9 +27,9 @@
 # and all the men and women merely characters...
 # >>
 
-# Usage:  $ ruby "Transform - All the World's a State.rb"
+# Usage:  $ ruby "Transform - All the World's a Stage.rb"
 # or to see intermediate objects' values:
-#         $ ruby "Transform - All the World's a State.rb" true
+#         $ ruby "Transform - All the World's a Stage.rb" true
 
 sourcetext = <<EOT
 All the world's a stage,
