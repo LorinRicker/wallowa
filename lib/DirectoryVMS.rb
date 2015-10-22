@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 6.4, 10/19/2015
+# Version 6.4, 10/22/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -66,7 +66,7 @@ class DirectoryVMS
       format = "%-#{fnwidth}s".color(@dircolor).bold +
                "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     else
-      format = "%-#{fnwidth}s  %#{inwidth}  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
+      format = "%-#{fnwidth}s  %#{inwidth}s  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
     end  # if fname[-1]
     # if inode   # squeeze inode# onto end of filename field:
     #   fname = fname[0,fnwidth-1-2-inode.length] + '* ' + inode
