@@ -65,9 +65,8 @@ targetwords.each_with_index { | tw, i | replhash[tw] = replwords[i] }
 #              targetwords[7] => replwords[7]
 #             }
 
-# Regex will be a chain of alternate-literals:
-regextext   = ""
-targetwords.each { |w| regextext += regextext == '' ? w : '|' + w }
+# Regex is a chain of alternate-literals:
+regextext = targetwords.join( '|' )
 
 # Optional intermediate objects' values:
 puts "\nreplhash = '#{replhash}'\nregextext = '#{regextext}'\n\n" if ARGV[0]
