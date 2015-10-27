@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 6.4, 10/22/2015
+# Version 6.5, 10/26/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -46,7 +46,7 @@ class DirectoryVMS
     printf( "\nDirectory %s\n\n", dir.bold.underline.color(@dircolor) )
   end  # printheader
 
-  def printentry( fname, is_dir, fsize, mtime, prot, inode )
+  def printentry( fname, fsize, mtime, prot, inode )
     if @options[:bytesize]
       size = fsize.to_s
       szwidth = 9
@@ -56,27 +56,30 @@ class DirectoryVMS
     end  # if @options[:bytesize]
     dtwidth  = mtime.size
     prwidth  = prot.size
-    inwidth  = inode.size
      owidth  = 20
-    sdpwidth = inode.size + szwidth + dtwidth + prwidth + 8  # 8 = "  "*4 between fields
+    allwidth = szwidth + dtwidth + prwidth + 6  # 6 = "  " between each field
     fnwidth  = @termwidth / 2
-    fnwidth  = @termwidth - sdpwidth if @termwidth < fnwidth + sdpwidth
-    if is_dir  # embellish directories
-      fname  = fname + '/'
-      format = "%-#{fnwidth}s".color(@dircolor).bold +
-               "  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
+    fnwidth  = @termwidth - allwidth if @termwidth < fnwidth + allwidth
+    fnlen    = fname.length
+    if fname[-1] == '/'  # embellish directories
+      fnformat = "%-#{fnwidth}s".color(@dircolor).bold
     else
-      format = "%-#{fnwidth}s  %#{inwidth}s  %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
-    end  # if fname[-1]
-    # if inode   # squeeze inode# onto end of filename field:
-    #   fname = fname[0,fnwidth-1-2-inode.length] + '* ' + inode
-    # else
-    #   fname = fname[0,fnwidth-1] + '*' if fname.length > fnwidth
-    # end
-    printf( format, fname, inode, size, mtime, prot )
+      fnformat = "%-#{fnwidth}s"
+    end
+    fname = sprintf( "#{fnformat}", fname )
+    if inode
+      inwidth = [inode.size, 7].max
+      fname = fname[0,fnwidth-1] + '*' if fnlen > fnwidth + inwidth
+      format = "#{fnformat} %#{inwidth}s %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
+      printf( format, fname, inode, size, mtime, prot )
+    else
+      fname = fname[0,fnwidth-1] + '*' if fnlen > fnwidth
+      format = "#{fnformat} %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
+      printf( format, fname, size, mtime, prot )
+    end  # if inode
     if @options[:times]
-      inwidth = fnwidth + szwidth + 4
-      format = "%#{inwidth}s%#{dtwidth}s\n%#{inwidth}s%#{dtwidth}s\n"
+      labwidth = fnwidth + szwidth + 4
+      format = "%#{labwidth}s%#{dtwidth}s\n%#{labwidth}s%#{dtwidth}s\n"
       printf( format, "a:", @options[:atime], "c:", @options[:ctime] )
     end  # if @options[:times]
     if @options[:owner]
@@ -90,7 +93,8 @@ class DirectoryVMS
     # Use File.lstat (not File.stat), so actual links are processed too:
     fstat  = File.lstat( fspec )
     # Recognize the subdirectories as encountered:
-    is_dir = fstat.directory? && fspec[-1] != "/"
+    fname = File.basename( fspec )
+    fname += '/' if fstat.directory? && fspec[-1] != "/"
     # Collect the file's size in bytes, and accumulate total size
     fsize  = fstat.size
     @totalsize += fsize
@@ -103,13 +107,13 @@ class DirectoryVMS
       @options[:atime] = fstat.atime.strftime( @datetimeformat )
       @options[:ctime] = fstat.ctime.strftime( @datetimeformat )
     end  # if @options[:times]
-    inode = @options[:inode] ? fstat.ino.to_s : ''
+    inode = @options[:inode] ? fstat.ino.to_s : nil
     # Get the file's protection mask (mode) as human-readable (not integer)
     prot = File.mode_human_readable_VMS( fstat )
     # Get the file's ownership "user:group (uid:gid)" ...stash in the hash:
     @options[:fowner] = File.owner_human_readable( fstat ) if @options[:owner]
     # Print the entry for this file:
-    printentry( File.basename( fspec ), is_dir, fsize, mtime, prot, inode )
+    printentry( fname, fsize, mtime, prot, inode )
     @numberfiles += 1
     @grandtotalnfiles += 1
   end  # reportentry
