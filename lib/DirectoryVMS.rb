@@ -4,7 +4,7 @@
 # DirectoryVMS.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 6.5, 10/26/2015
+# Version 6.6, 10/28/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -47,6 +47,10 @@ class DirectoryVMS
   end  # printheader
 
   def printentry( fname, fsize, mtime, prot, inode )
+    fnlen    = fname.length
+    fnwidth  = @termwidth / 2
+
+    # Pack together the standard size - mtime - protmask fields:
     if @options[:bytesize]
       size = fsize.to_s
       szwidth = 9
@@ -56,33 +60,42 @@ class DirectoryVMS
     end  # if @options[:bytesize]
     dtwidth  = mtime.size
     prwidth  = prot.size
-     owidth  = 20
-    allwidth = szwidth + dtwidth + prwidth + 6  # 6 = "  " between each field
-    fnwidth  = @termwidth / 2
-    fnwidth  = @termwidth - allwidth if @termwidth < fnwidth + allwidth
-    fnlen    = fname.length
-    if fname[-1] == '/'  # embellish directories
+    sdpfields = sprintf( "%#{szwidth}s  %#{dtwidth}s  %#{prwidth}s",
+                         size, mtime, prot )
+    sdpwidth = sdpfields.size
+    # Adjust the filename field width if it's wider than its allotment:
+    fnwidth  = @termwidth - sdpwidth if fnwidth > @termwidth - sdpwidth
+
+    # Embellish directories:
+    if fname[-1] == '/'
       fnformat = "%-#{fnwidth}s".color(@dircolor).bold
     else
       fnformat = "%-#{fnwidth}s"
     end
-    fname = sprintf( "#{fnformat}", fname )
+    fname = fname[0,fnwidth-2] + '* ' if fnlen > fnwidth
+
+    # Insert inode if requested:
     if inode
       inwidth = [inode.size, 7].max
-      fname = fname[0,fnwidth-1] + '*' if fnlen > fnwidth + inwidth
-      format = "#{fnformat} %#{inwidth}s %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
-      printf( format, fname, inode, size, mtime, prot )
+      fnformat = "%-#{fnwidth-inwidth-1}s"
+      fname = sprintf( "#{fnformat}", fname )
+      format = "#{fnformat}%#{inwidth}s %#{sdpwidth}s\n"
+      printf( format, fname, inode, sdpfields )
     else
-      fname = fname[0,fnwidth-1] + '*' if fnlen > fnwidth
-      format = "#{fnformat} %#{szwidth}s  %#{dtwidth}s  %#{prwidth}s\n"
-      printf( format, fname, size, mtime, prot )
+      fname = sprintf( "#{fnformat}", fname )
+      format = "#{fnformat}%#{sdpwidth}s\n"
+      printf( format, fname, sdpfields )
     end  # if inode
+
+    # Optional line for atime and ctime:
     if @options[:times]
       labwidth = fnwidth + szwidth + 4
       format = "%#{labwidth}s%#{dtwidth}s\n%#{labwidth}s%#{dtwidth}s\n"
       printf( format, "a:", @options[:atime], "c:", @options[:ctime] )
     end  # if @options[:times]
+    # Optional line for file's owner:
     if @options[:owner]
+      owidth  = 20
       owidth += fnwidth + szwidth + 11
       format = "%#{owidth}s\n"
       printf( format, @options[:fowner] )
