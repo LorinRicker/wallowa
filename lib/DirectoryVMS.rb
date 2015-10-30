@@ -48,7 +48,7 @@ class DirectoryVMS
 
   def printentry( fname, fsize, mtime, prot, inode )
     fnlen    = fname.length
-    fnwidth  = @termwidth / 2
+    namwidth = @termwidth / 2
 
     # Pack together the standard size - mtime - protmask fields:
     if @options[:bytesize]
@@ -64,20 +64,20 @@ class DirectoryVMS
                          size, mtime, prot )
     sdpwidth = sdpfields.size
     # Adjust the filename field width if it's wider than its allotment:
-    fnwidth  = @termwidth - sdpwidth if fnwidth > @termwidth - sdpwidth
+    namwidth  = @termwidth - sdpwidth if namwidth > @termwidth - sdpwidth
 
     # Embellish directories:
     if fname[-1] == '/'
-      fnformat = "%-#{fnwidth}s".color(@dircolor).bold
+      fnformat = "%-#{namwidth}s".color(@dircolor).bold
     else
-      fnformat = "%-#{fnwidth}s"
+      fnformat = "%-#{namwidth}s"
     end
-    fname = fname[0,fnwidth-2] + '* ' if fnlen > fnwidth
+    fname = fname[0,namwidth-2] + '* ' if fnlen > namwidth
 
     # Insert inode if requested:
     if inode
       inwidth = [inode.size, 7].max
-      fnformat = "%-#{fnwidth-inwidth-1}s"
+      fnformat = "%-#{namwidth-inwidth-1}s"
       fname = sprintf( "#{fnformat}", fname )
       format = "#{fnformat}%#{inwidth}s %#{sdpwidth}s\n"
       printf( format, fname, inode, sdpfields )
@@ -89,14 +89,14 @@ class DirectoryVMS
 
     # Optional line for atime and ctime:
     if @options[:times]
-      labwidth = fnwidth + szwidth + 4
+      labwidth = namwidth + szwidth + 4
       format = "%#{labwidth}s%#{dtwidth}s\n%#{labwidth}s%#{dtwidth}s\n"
       printf( format, "a:", @options[:atime], "c:", @options[:ctime] )
     end  # if @options[:times]
     # Optional line for file's owner:
     if @options[:owner]
       owidth  = 20
-      owidth += fnwidth + szwidth + 11
+      owidth += namwidth + szwidth + 11
       format = "%#{owidth}s\n"
       printf( format, @options[:fowner] )
     end  # if @options[:times]
