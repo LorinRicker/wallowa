@@ -4,7 +4,7 @@
 # FileComparison.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.4, 02/17/2015
+# Version 4.5, 11/02/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -119,14 +119,15 @@ def interactive_launch( fname1, fname2, textfiles, options )
   end
   toolkeys = tools.keys
   availabletools = app_cmd_completions( toolkeys, exitquit: true, yesno: true )
+  $stderr.puts "%#{PROGNAME}-w-not_text, filemagic analyzes non-text files" if !textfiles
   # Prompt user for "Which tool?" (or yes, continue)
   response = getprompted( "  * Launch a diff-tool on these files", "Yes" )
   response = availabletools[response.downcase]  # fully expand
   return true if response == 'no'  # ...done!
 
+  difftool = response    # starting assumption: user has provided tool name?
   # Got an affirmative response or a tool name:
   if textfiles           # both files are text?
-    difftool = response    # starting assumption: user has provided tool name?
     if response == 'yes'   # ...but not a tool name, so figure defaults and ask:
       # Prefer the user-specified options[:tool] as the default diff-tool,
       # else just use kompare (if it's installed) or diff (always installed)
@@ -145,7 +146,9 @@ def interactive_launch( fname1, fname2, textfiles, options )
       exit false
     end
   else
-    difftool = 'dhex'  # the only current choice for binary/non-text files
+    # The only current/default choice for binary/non-text files,
+    # unless user overrrides with a specific tool-choice:
+    difftool = 'dhex' if difftool == 'y'
   end
 
   # Ready to execute something!  First, determine whether exec'ing or spawn'ing:
@@ -153,12 +156,13 @@ def interactive_launch( fname1, fname2, textfiles, options )
 
   # Next, tweak a few special cases...
   case difftool.to_sym
-  when :cmp  then difftool = "#{difftool} -b --verbose"           # all bytes
-  when :dhex then difftool = "#{difftool} -f ~/.dhexrc"           # use a config-file
-  when :diff then difftool = "#{difftool} -yW#{options[:width]}"  # parallel, width
+  when :cmp  then diffopt = " -b --verbose"           # all bytes
+  when :dhex then diffopt = " -f ~/.dhexrc"           # use a config-file
+  when :diff then diffopt = " -yW#{options[:width]}"  # parallel, width
+  else diffopt = ''
   end  # case
 
-  cmd = "#{tools[difftool]} '#{fname1}' '#{fname2}' 2>/dev/null"
+  cmd = "#{tools[difftool]}#{diffopt} '#{fname1}' '#{fname2}' 2>/dev/null"
   msg = "    $ #{cmd.underline.color(:blue)}"
 
   if chain_exec
