@@ -10,8 +10,8 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (11/19/2014)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v2.3 (11/08/2015)"
+  AUTHOR = "Lorin Ricker, Elbert County, Colorado, USA"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
