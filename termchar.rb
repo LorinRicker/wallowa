@@ -10,7 +10,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.3 (11/08/2015)"
+  PROGID = "#{PROGNAME} v2.4 (11/08/2015)"
   AUTHOR = "Lorin Ricker, Elbert County, Colorado, USA"
 
 DBGLVL0 = 0
@@ -26,6 +26,7 @@ require_relative 'lib/TermChar'
 options = { :characters => false,
             :lines      => false,
             :geometry   => false,
+            :winch      => false,
             :verbose    => false,
             :debug      => DBGLVL0,
             :about      => false
@@ -45,6 +46,10 @@ optparse = OptionParser.new { |opts|
            "Display terminal geometry as WxL" ) do |val|
     options[:geometry] = true
   end  # -g --geometry
+  opts.on( "-w", "--window-change", "--winch",
+           "Report each window change event" ) do |val|
+    options[:winch] = true
+  end  # -w --window-change --winch
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
@@ -89,6 +94,17 @@ when options[:characters]
 when options[:lines]
   s = options[:verbose] ? "%#{PROGNAME}-i-length, terminal length is " : ""
   puts "#{s}#{TermChar.terminal_height} lines"
+when options[:winch]
+  begin
+    loop do # forever, until user enters Ctrl/C...
+      TermChar.every_window_change_event do | wce |
+        s = options[:verbose] ? "%#{PROGNAME}-i-WxL, terminal geometry is " : ""
+        puts "#{s}#{TermChar.terminal_width}x#{TermChar.terminal_height}"
+      end
+    end
+  rescue SystemExit
+    exit true
+  end
 else
   TermChar.terminal_dimensions( true )
 end

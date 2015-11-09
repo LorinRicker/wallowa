@@ -4,7 +4,7 @@
 # TermChar.rb
 #
 # Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 11/03/2015
+# Version 2.1, 11/08/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -37,5 +37,18 @@ module TermChar
   def self.terminal_width
     terminal_dimensions[1]
   end  # terminal_width
+
+  def self.every_window_change_event
+    begin
+      puts ">>> ready to trap..."
+      trap( 'WINCH' ) do
+        yield
+      end
+      sleep 
+    rescue Interrupt => e
+      raise SystemExit
+      return nil
+    end
+  end  # each_window_change_event
 
 end  # module TermChar
