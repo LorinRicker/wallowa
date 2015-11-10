@@ -4,7 +4,7 @@
 # ANSIseq.rb
 #
 # Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.1, 02/05/2015
+# Version 4.0, 11/10/2015
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -113,20 +113,22 @@ def color( colour )
   self.render( rendition )
 end  # color
 
-def clearscreen
-  return $stdout.tty? ? CLRSCR : ""
-end  # clearscreen
-
 def atposition( row: 1, col: 1 )
   row = [ row, TermChar.terminal_height ].min
   str = SAVECURSOR + "[#{row};#{col}H" + self + RESTORECURSOR
   $stdout.print str
 end  # atposition
 
+# String class method:
+def self.clearscreen
+  return $stdout.tty? ? CLRSCR : ""
+end  # clearscreen
+
 end  # class String
 
 # === Main/test/demo ===
 if $0 == __FILE__
+  puts String.clearscreen
   puts "\n#{'='*3} ANSI color demo #{'='*30}"
   colors = [ :black, :white,
              :red, :ltred, :blue, :ltblue, :green, :ltgreen,
