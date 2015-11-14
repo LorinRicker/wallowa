@@ -10,8 +10,10 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (11/10/2015)"
+  PROGID = "#{PROGNAME} v1.1 (11/14/2015)"
   AUTHOR = "Lorin Ricker, Elbert County, Colorado, USA"
+
+LISTFILE = '/home/lorin/projects/ruby/composers_rename/composers_rename.lis'
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -31,8 +33,7 @@ def self.display_help( clr = false )
   ex2 = "DIR:subdir".underline
   ex3 = "'Lname, Rnames'".underline
   cmd1 = "cd $rlb".bold
-  cmd2 = "cp -v $rby/composers_rename/composers_rename.lis ./".bold
-  cmd3 = "comprename -h".bold
+  cmd2 = "comprename -h".bold
   $stdout.puts String.clearscreen if clr
   $stdout.puts <<-EOT
 === #{PROGNAME} - Instructions for use ===
@@ -40,7 +41,7 @@ Purpose: Rename groups of subdirectories which are named as
          composers' last names (short-sighted) to full-name
          forms:  #{ex1}
 
-         The text file 'composers_rename.lis' specifies:
+         The text file '#{LISTFILE}' specifies:
            a) Directive line of form #{ex2} which
               changes the relative subdirectory in which
               composer-named directories are to be found
@@ -58,10 +59,7 @@ Purpose: Rename groups of subdirectories which are named as
     1. $ #{cmd1}
        or to other archive/backup or phone relative-top
        directory for the RipLibrary.
-    2. $ #{cmd2}
-       to copy $rby/composers_rename/composers_rename.lis to
-       that current working directory (RipLibrary).
-    3. $ #{cmd3}     # for help and these Instructions
+    2. $ #{cmd2}     # for help and these Instructions
        ...In particular, see the --dryrun and --confirm options.
 
   EOT
@@ -126,7 +124,12 @@ answer = askprompted( "Is CWD '#{Dir.getwd}' correct" )
 if answer
   # The script-data file 'composers_rename.lis' must be found
   # in the current working directory (copy it there, if not):
-  lines = File.open( 'composers_rename.lis', "r" ).readlines
+  begin
+    lines = File.open( LISTFILE, "r" ).readlines
+  rescue Errno::ENOENT => e
+    $stderr.puts "%#{PROGNAME}-f-fnf, can't open #{LISTFILE}"
+    exit false
+  end
   lines.each do | line |
     line = line.chomp.compress
     # Ignore blank and comment lines:
