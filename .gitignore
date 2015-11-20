@@ -1,0 +1,15 @@
+# .gitignore -- ~/projects/ruby/...
+
+.project
+/.bundle
+/testdata
+/tmp
+/misc/*.rb_old
+/misc/*.rb_original
+*.rb_old
+*.rb_original
+*.txt
+*.sublime*
+
+# VMS command files -- ignore in this context
+*.COM
