@@ -41,6 +41,7 @@ require_relative 'lib/ANSIseq'
 # ==========
 
 options = { :confirm  => true,
+            :lessthan => nil,
             :noop     => nil,
             :verbose  => false,
             :debug    => DBGLVL0,
@@ -53,6 +54,10 @@ optparse = OptionParser.new { |opts|
   opts.on( "-i", "--confirm", "--interactive",
            "Interactive/confirm mode" ) do |val|
     options[:confirm] = val
+  end  # -n --dryrun
+  opts.on( "-l", "--lessthan=DashValue", Integer,
+           "Purge dash-numbers less than this value" ) do |val|
+    options[:lessthan] = val.to_i
   end  # -n --dryrun
   opts.on( "-n", "--dryrun", "Test (rehearse) the kernel purge" ) do |val|
     options[:noop] = true
@@ -94,6 +99,10 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+# Each uninitialized hash-key returns an empty array --
+lkpackages = Hash.new { |k,v| k[v] = [] }
+lk2purge   = Hash.new { |k,v| k[v] = [] }
+
 if options[:confirm] || ARGV.empty?
   cmd = "dpkg -l"
   pat = /^\w+\s+(?<pckg>
@@ -101,16 +110,31 @@ if options[:confirm] || ARGV.empty?
          (?<vers>\d+\.\d+\.\d+)(?<dash>-\d+)
          (?<sfix>-\w+)?)
         /x
-  prefix = suffix = ''
+  prefix = suffix = version = s = ''
+
   %x{ #{cmd} }.lines do | p |
     m = pat.match( p )
     if m
-      prefix = m[:pfix] if prefix != m[:pfix]
-      suffix = m[:sfix] if suffix != m[:sfix]
-      puts "pkg: '#{m[:pfix]}'  version: '#{m[:vers]}'" \
-           "  dash: '#{m[:dash]}'  suffix: '#{m[:sfix]}'"
+      prefix  = m[:pfix] if prefix != m[:pfix]
+      version = m[:vers] if version != m[:vers]
+      suffix  = m[:sfix] if suffix != m[:sfix]
+      key = "#{prefix}#{version}-XX#{suffix}"
+      lkpackages[ key ] << m[:dash]
+      ## puts "  '#{m[:dash]}'"
     end
   end
 end
+
+puts "lkpackages -- #{lkpackages}" if options[:verbose]
+
+if options[:lessthan]
+  lkpackages.each do | key, arry |
+    arry.each do | vrs |
+      lk2purge[ key ] << vrs if vrs.to_i.abs < options[:lessthan]
+    end
+  end
+end
+
+puts "lk2purge -- #{lk2purge}" if options[:verbose]
 
 exit true
