@@ -18,10 +18,12 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (11/23/2015)"
+  PROGID = "#{PROGNAME} v0.1 (11/24/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
+
+MAGICSTR = '«·»'
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -40,12 +42,13 @@ require_relative 'lib/ANSIseq'
 
 # ==========
 
-options = { :confirm  => true,
-            :lessthan => nil,
-            :noop     => nil,
-            :verbose  => false,
-            :debug    => DBGLVL0,
-            :about    => false
+options = { :confirm     => true,
+            :lessthan    => nil,
+            :greaterthan => nil,
+            :noop        => nil,
+            :verbose     => false,
+            :debug       => DBGLVL0,
+            :about       => false
           }
 
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
@@ -56,10 +59,14 @@ optparse = OptionParser.new { |opts|
     options[:confirm] = val
   end  # -n --dryrun
   opts.on( "-l", "--lessthan=DashValue", Integer,
-           "Purge dash-numbers less than this value" ) do |val|
+           "Purge dash-numbers #{'less than'.bold} this value" ) do |val|
     options[:lessthan] = val.to_i
-  end  # -n --dryrun
-  opts.on( "-n", "--dryrun", "Test (rehearse) the kernel purge" ) do |val|
+  end  # -l --lessthan
+  opts.on( "-g", "--greaterthan=DashValue", Integer,
+           "Purge dash-numbers #{'greater than'.bold} this value" ) do |val|
+    options[:greaterthan] = val.to_i
+  end  # -g --greaterthan
+  opts.on( "-n", "--dryrun", "Test (rehearse) the kernel package purge" ) do |val|
     options[:noop] = true
   end  # -n --dryrun
   # --- Verbose option ---
@@ -83,8 +90,8 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "\n  Usage: #{PROGNAME} [options] [ kernel-ident ]" +
-                "\n\n    where kernel-ident is a character string which identifies" +
-                "\n    one or more kernel install packages to purge.\n\n"
+                "\n\n    where kernel-ident is a character string which identifies one or more" +
+                "\n    #{'kernel install packages to purge'.underline}.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     options[:help] = true
@@ -104,37 +111,51 @@ lkpackages = Hash.new { |k,v| k[v] = [] }
 lk2purge   = Hash.new { |k,v| k[v] = [] }
 
 if options[:confirm] || ARGV.empty?
-  cmd = "dpkg -l"
-  pat = /^\w+\s+(?<pckg>
-         (?<pfix>linux-(image|headers)-)
-         (?<vers>\d+\.\d+\.\d+)(?<dash>-\d+)
-         (?<sfix>-\w+)?)
+  # See man dpkg-query (watch out for automatic
+  # field-width truncations under column "Name"!) --
+  cmd = "dpkg-query --show --showformat='${Status} ${Package}\n' \"linux*\""
+  pat = /^install\ ok\ installed\            # only Install-Installed packages
+         (?<pckg>                            # full package name
+         (?<pfix>linux-(image|headers)-)     # only linux* (kernel) packages
+         (?<vers>\d+\.\d+\.\d+)              # MM.mm.rev version spec
+         -(?<dash>\d+)                       # -dash spec
+             (\.\d+)?                        # don't care: .XX
+         (?<sfix>(-\w+)?)                    # "-generic" or empty
+         )
         /x
+
   prefix = suffix = version = s = ''
 
   %x{ #{cmd} }.lines do | p |
+    puts ">> #{p}" if options[:verbose]
     m = pat.match( p )
     if m
-      prefix  = m[:pfix] if prefix != m[:pfix]
+      prefix  = m[:pfix] if prefix  != m[:pfix]
       version = m[:vers] if version != m[:vers]
-      suffix  = m[:sfix] if suffix != m[:sfix]
-      key = "#{prefix}#{version}-XX#{suffix}"
+      suffix  = m[:sfix] if suffix  != m[:sfix]
+      key = "#{prefix}#{version}-#{MAGICSTR}#{suffix}"
       lkpackages[ key ] << m[:dash]
       ## puts "  '#{m[:dash]}'"
     end
   end
 end
 
-puts "lkpackages -- #{lkpackages}" if options[:verbose]
+puts "lkpackages -- #{lkpackages}" if options[:debug] >= DBGLVL2
 
-if options[:lessthan]
-  lkpackages.each do | key, arry |
-    arry.each do | vrs |
-      lk2purge[ key ] << vrs if vrs.to_i.abs < options[:lessthan]
-    end
+# Create a comparison range: options[:greaterthan]...options[:lessthan]
+# substituting 0 and 10000 if either or both of these options are not specified:
+hidash = options[:lessthan]    || 10000
+lodash = options[:greaterthan] || 0
+# This range comparison must *exclude* >both< of the end-points!
+lodash += 1 if lodash > 0
+dashrange = Range.new( lodash, hidash, true )  # exclusive: ...
+
+lkpackages.each do | key, arry |
+  arry.each do | vrs |
+    lk2purge[ key ] << vrs if dashrange.include?( vrs.to_i )
   end
 end
 
-puts "lk2purge -- #{lk2purge}" if options[:verbose]
+puts "lk2purge -- #{lk2purge}" if options[:debug] >= DBGLVL2
 
 exit true
