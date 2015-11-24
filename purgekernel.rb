@@ -47,10 +47,10 @@ end  # build_purge
 
 # ==========
 
-options = { :confirm     => true,
+options = { :confirm     => false,
             :lessthan    => nil,
             :greaterthan => nil,
-            :noop        => nil,
+            :noop        => true,  # nil,
             :verbose     => false,
             :debug       => DBGLVL0,
             :about       => false
@@ -94,8 +94,8 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] [ kernel-ident ]" +
-                "\n\n    where kernel-ident is a character string which identifies one or more" +
+  opts.banner = "\n  Usage: #{PROGNAME} [options] [ kernel-ident ... ]" +
+                "\n\n    where kernel-ident is a list of one or more" +
                 "\n    #{'kernel install packages to purge'.underline}.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
@@ -116,6 +116,7 @@ lkpackages = Hash.new { |k,v| k[v] = [] }
 lk2purge   = Hash.new { |k,v| k[v] = [] }
 
 if options[:confirm] || ARGV.empty?
+
   # See man dpkg-query (watch out for automatic
   # field-width truncations under column "Name"!) --
   cmd = "dpkg-query --show --showformat='${Status} ${Package}\n' \"linux*\""
@@ -139,16 +140,21 @@ if options[:confirm] || ARGV.empty?
       version = m[:vers] if version != m[:vers]
       suffix  = m[:sfix] if suffix  != m[:sfix]
       key = "#{prefix}#{version}-#{MAGICSTR}#{suffix}"
-      lkpackages[ key ] << m[:dash]
-      ## puts "  '#{m[:dash]}'"
+      if ARGV.empty?
+        lkpackages[ key ] << m[:dash]
+      else
+        ARGV.each { | d | lkpackages[ key ] << d } if lkpackages[ key ] == []
+      end
     end
   end
-end
+
+end  # if options[:confirm] || ARGV.empty?
 
 puts "lkpackages -- #{lkpackages}" if options[:debug] >= DBGLVL2
 
 # Create a comparison range: options[:greaterthan]...options[:lessthan]
-# substituting 0 and 10000 if either or both of these options are not specified:
+# substituting 0 and 10000 if either or both of these options are not specified;
+# thus, the defaulted range 0...10000 means "all versions" --
 hidash = options[:lessthan]    || 10000
 lodash = options[:greaterthan] || 0
 # This range comparison must *exclude* >both< of the end-points!
