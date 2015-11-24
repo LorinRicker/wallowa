@@ -115,40 +115,36 @@ end                           #
 lkpackages = Hash.new { |k,v| k[v] = [] }
 lk2purge   = Hash.new { |k,v| k[v] = [] }
 
-if options[:confirm] || ARGV.empty?
+# See man dpkg-query (watch out for automatic
+# field-width truncations under column "Name"!) --
+cmd = "dpkg-query --show --showformat='${Status} ${Package}\n' \"linux*\""
+pat = /^install\ ok\ installed\            # only Install-Installed packages
+       (?<pckg>                            # full package name
+       (?<pfix>linux-(image|headers)-)     # only linux* (kernel) packages
+       (?<vers>\d+\.\d+\.\d+)              # MM.mm.rev version spec
+       -(?<dash>\d+)                       # -dash spec
+           (\.\d+)?                        # don't care: .XX
+       (?<sfix>(-\w+)?)                    # "-generic" or empty
+       )
+      /x
 
-  # See man dpkg-query (watch out for automatic
-  # field-width truncations under column "Name"!) --
-  cmd = "dpkg-query --show --showformat='${Status} ${Package}\n' \"linux*\""
-  pat = /^install\ ok\ installed\            # only Install-Installed packages
-         (?<pckg>                            # full package name
-         (?<pfix>linux-(image|headers)-)     # only linux* (kernel) packages
-         (?<vers>\d+\.\d+\.\d+)              # MM.mm.rev version spec
-         -(?<dash>\d+)                       # -dash spec
-             (\.\d+)?                        # don't care: .XX
-         (?<sfix>(-\w+)?)                    # "-generic" or empty
-         )
-        /x
+prefix = suffix = version = s = ''
 
-  prefix = suffix = version = s = ''
-
-  %x{ #{cmd} }.lines do | p |
-    puts ">> #{p}" if options[:verbose]
-    m = pat.match( p )
-    if m
-      prefix  = m[:pfix] if prefix  != m[:pfix]
-      version = m[:vers] if version != m[:vers]
-      suffix  = m[:sfix] if suffix  != m[:sfix]
-      key = "#{prefix}#{version}-#{MAGICSTR}#{suffix}"
-      if ARGV.empty?
-        lkpackages[ key ] << m[:dash]
-      else
-        ARGV.each { | d | lkpackages[ key ] << d } if lkpackages[ key ] == []
-      end
+%x{ #{cmd} }.lines do | p |
+  puts ">> #{p}" if options[:verbose]
+  m = pat.match( p )
+  if m
+    prefix  = m[:pfix] if prefix  != m[:pfix]
+    version = m[:vers] if version != m[:vers]
+    suffix  = m[:sfix] if suffix  != m[:sfix]
+    key = "#{prefix}#{version}-#{MAGICSTR}#{suffix}"
+    if ARGV.empty?
+      lkpackages[ key ] << m[:dash]
+    else
+      ARGV.each { | d | lkpackages[ key ] << d } if lkpackages[ key ] == []
     end
   end
-
-end  # if options[:confirm] || ARGV.empty?
+end
 
 puts "lkpackages -- #{lkpackages}" if options[:debug] >= DBGLVL2
 
