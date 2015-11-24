@@ -34,11 +34,16 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 require 'optparse'
 require 'pp'
-require_relative 'lib/Prompted'
+require_relative 'lib/AskPrompted'
 require_relative 'lib/TermChar'
 require_relative 'lib/ANSIseq'
 
 # ==========
+
+# Build the 'purgethese' array of linux kernel packages to purge:
+def build_purge( pkg )
+  puts "...would purge '#{pkg}'!"
+end  # build_purge
 
 # ==========
 
@@ -157,5 +162,22 @@ lkpackages.each do | key, arry |
 end
 
 puts "lk2purge -- #{lk2purge}" if options[:debug] >= DBGLVL2
+
+# Now that the range of -dash versions is limited to just those
+# in the lodash...hidash range, run an interactive check if
+# the user asked for it with --confirm (etc) --
+
+lk2purge.each do | key, arry |
+  arry.each do | vrs |
+    pkg = key.gsub( /#{MAGICSTR}/, vrs )
+    if options[:confirm]
+      prompt = "Purge package " + key.gsub( /#{MAGICSTR}/, vrs.bold )
+      answer = askprompted( prompt, "No" )
+    else
+      answer = true
+    end
+    build_purge( pkg ) if answer
+  end
+end
 
 exit true
