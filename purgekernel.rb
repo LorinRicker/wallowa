@@ -23,7 +23,7 @@ PROGNAME = File.basename $0
 
 # -----
 
-MAGICSTR = '«·»'
+MAGICSTR = '»·«'  # literally, this replacement string
 LOLIMIT  =    0
 HILIMIT  = 1000
 
@@ -52,6 +52,8 @@ require_relative 'lib/ANSIseq'
 options = { :confirm     => false,
             :lessthan    => nil,
             :greaterthan => nil,
+            :logfile     => "./" + PROGNAME + "_" +
+                            Time.now.strftime("%Y-%m-%d_%H%M") + ".log",
             :noop        => true,  # nil,
             :verbose     => false,
             :debug       => DBGLVL0,
@@ -61,18 +63,22 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-g", "--greaterthan=LoValue", Integer,
+           "Purge dash-numbers #{'greater than'.bold} LoValue ..." ) do |val|
+    options[:greaterthan] = val.to_i
+  end  # -g --greaterthan
+  opts.on( "-l", "--lessthan=HiValue", Integer,
+           "  ... and/or #{'less than'.bold} HiValue" ) do |val|
+    options[:lessthan] = val.to_i
+  end  # -l --lessthan
   opts.on( "-i", "--confirm", "--interactive",
            "Interactive/confirm mode" ) do |val|
     options[:confirm] = val
-  end  # -n --dryrun
-  opts.on( "-l", "--lessthan=DashValue", Integer,
-           "Purge dash-numbers #{'less than'.bold} this value" ) do |val|
-    options[:lessthan] = val.to_i
-  end  # -l --lessthan
-  opts.on( "-g", "--greaterthan=DashValue", Integer,
-           "Purge dash-numbers #{'greater than'.bold} this value" ) do |val|
-    options[:greaterthan] = val.to_i
-  end  # -g --greaterthan
+  end  # -i --confirm -- interactive
+  opts.on( "-e", "--logfile", "--errlog",
+           "Log-file (default: '#{options[:logfile]}')" ) do |val|
+    options[:logfile] = val
+  end  # -e --logfile --errlog
   opts.on( "-n", "--dryrun", "Test (rehearse) the kernel package purge" ) do |val|
     options[:noop] = true
   end  # -n --dryrun
@@ -113,6 +119,8 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+options[:verbose] = options[:debug] >= DBGLVL1
+
 # Each uninitialized hash-key returns an empty array --
 kernelpackages    = Hash.new { |k,v| k[v] = [] }
 kernels2purge     = Hash.new { |k,v| k[v] = [] }
@@ -150,7 +158,7 @@ prefix = suffix = kversion = ''
   end
 end
 
-puts "kernelpackages -- #{kernelpackages}" if options[:debug] >= DBGLVL2
+$stdout.puts "kernelpackages -- #{kernelpackages}" if options[:debug] >= DBGLVL2
 
 # Create a comparison range: options[:greaterthan]...options[:lessthan]
 # and substituting LOLIMIT and/or HILIMIT if either or both of these
@@ -168,7 +176,7 @@ kernelpackages.each do | package, versions |
   end
 end
 
-puts "kernels2purge -- #{kernels2purge}" if options[:debug] >= DBGLVL2
+$stdout.puts "kernels2purge -- #{kernels2purge}" if options[:debug] >= DBGLVL2
 
 # Now that the range of -dash versions is limited to just those
 # in the lodash...hidash range, run an interactive check if
@@ -188,6 +196,22 @@ kernels2purge.each do | package, versions |
   purgepackages << package.gsub( /#{MAGICSTR}/, "{#{confirmedpackages.join(',')}}" )
 end
 
-puts "purgepackages -- #{purgepackages}" if options[:debug] >= DBGLVL2
+$stdout.puts "purgepackages -- #{purgepackages}" if options[:debug] >= DBGLVL2
+
+purgepackages.each do | package |
+  noop = options[:noop] ? " --dry-run" : ""
+  cmd = "apt-get purge --yes#{noop} #{package}"
+  $stdout.puts "\n\ncmd.bold\n" if options[:verbose]
+  %x{ cmd }.each do | line |
+    if options[:verbose]
+      $stdout.puts "  >> #{line}"
+    else
+      # case line   # output only selected lines...
+      # when /^.../ then $stdout.puts "  >> #{line}"
+      # end
+    end
+    $stderr.puts line   # always echo all lines to stderr-file
+  end
+end
 
 exit true
