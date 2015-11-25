@@ -18,12 +18,14 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (11/24/2015)"
+  PROGID = "#{PROGNAME} v0.1 (11/25/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
 
 MAGICSTR = '«·»'
+LOLIMIT  =    0
+HILIMIT  = 1000
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -41,9 +43,9 @@ require_relative 'lib/ANSIseq'
 # ==========
 
 # Build the 'purgethese' array of linux kernel packages to purge:
-def build_purge( pkg )
-  puts "...would purge '#{pkg}'!"
-end  # build_purge
+# def build_purge( pkg )
+#   puts "...would purge '#{pkg}'!"
+# end  # build_purge
 
 # ==========
 
@@ -112,8 +114,10 @@ end                           #
 ###############################
 
 # Each uninitialized hash-key returns an empty array --
-lkpackages = Hash.new { |k,v| k[v] = [] }
-lk2purge   = Hash.new { |k,v| k[v] = [] }
+kernelpackages    = Hash.new { |k,v| k[v] = [] }
+kernels2purge     = Hash.new { |k,v| k[v] = [] }
+confirmedpackages = Array.new
+purgepackages     = Array.new
 
 # See man dpkg-query (watch out for automatic
 # field-width truncations under column "Name"!) --
@@ -128,58 +132,62 @@ pat = /^install\ ok\ installed\            # only Install-Installed packages
        )
       /x
 
-prefix = suffix = version = s = ''
+prefix = suffix = kversion = ''
 
-%x{ #{cmd} }.lines do | p |
-  puts ">> #{p}" if options[:verbose]
-  m = pat.match( p )
+%x{ #{cmd} }.lines do | line |
+  puts ">> #{line}" if options[:verbose]
+  m = pat.match( line )
   if m
-    prefix  = m[:pfix] if prefix  != m[:pfix]
-    version = m[:vers] if version != m[:vers]
-    suffix  = m[:sfix] if suffix  != m[:sfix]
-    key = "#{prefix}#{version}-#{MAGICSTR}#{suffix}"
+    prefix   = m[:pfix] if prefix   != m[:pfix]
+    kversion = m[:vers] if kversion != m[:vers]
+    suffix   = m[:sfix] if suffix   != m[:sfix]
+    package  = "#{prefix}#{kversion}-#{MAGICSTR}#{suffix}"
     if ARGV.empty?
-      lkpackages[ key ] << m[:dash]
+      kernelpackages[ package ] << m[:dash]
     else
-      ARGV.each { | d | lkpackages[ key ] << d } if lkpackages[ key ] == []
+      ARGV.each { | arg | kernelpackages[package] << arg } if kernelpackages[package].empty?
     end
   end
 end
 
-puts "lkpackages -- #{lkpackages}" if options[:debug] >= DBGLVL2
+puts "kernelpackages -- #{kernelpackages}" if options[:debug] >= DBGLVL2
 
 # Create a comparison range: options[:greaterthan]...options[:lessthan]
-# substituting 0 and 10000 if either or both of these options are not specified;
-# thus, the defaulted range 0...10000 means "all versions" --
-hidash = options[:lessthan]    || 10000
-lodash = options[:greaterthan] || 0
+# and substituting LOLIMIT and/or HILIMIT if either or both of these
+# options are not specified; thus, the defaulted range LOLIMIT...HILIMIT
+# means "all versions" --
+hidash = options[:lessthan]    || HILIMIT
+lodash = options[:greaterthan] || LOLIMIT
 # This range comparison must *exclude* >both< of the end-points!
-lodash += 1 if lodash > 0
+lodash += 1 if lodash > LOLIMIT
 dashrange = Range.new( lodash, hidash, true )  # exclusive: ...
 
-lkpackages.each do | key, arry |
-  arry.each do | vrs |
-    lk2purge[ key ] << vrs if dashrange.include?( vrs.to_i )
+kernelpackages.each do | package, versions |
+  versions.each do | vrs |
+    kernels2purge[ package ] << vrs if dashrange.include?( vrs.to_i )
   end
 end
 
-puts "lk2purge -- #{lk2purge}" if options[:debug] >= DBGLVL2
+puts "kernels2purge -- #{kernels2purge}" if options[:debug] >= DBGLVL2
 
 # Now that the range of -dash versions is limited to just those
 # in the lodash...hidash range, run an interactive check if
 # the user asked for it with --confirm (etc) --
 
-lk2purge.each do | key, arry |
-  arry.each do | vrs |
-    pkg = key.gsub( /#{MAGICSTR}/, vrs )
-    if options[:confirm]
-      prompt = "Purge package " + key.gsub( /#{MAGICSTR}/, vrs.bold )
-      answer = askprompted( prompt, "No" )
-    else
-      answer = true
+kernels2purge.each do | package, versions |
+  if options[:confirm]
+    # Use the confirmed packages (only) --
+    versions.each do | vrs |
+      prompt = "Purge package " + package.gsub( /#{MAGICSTR}/, vrs.bold )
+      confirmedpackages << vrs if askprompted( prompt, "No" )
     end
-    build_purge( pkg ) if answer
+  else
+    # Use the full array of found packages --
+    confirmedpackages = versions
   end
+  purgepackages << package.gsub( /#{MAGICSTR}/, "{#{confirmedpackages.join(',')}}" )
 end
+
+puts "purgepackages -- #{purgepackages}" if options[:debug] >= DBGLVL2
 
 exit true
