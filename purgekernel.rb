@@ -171,7 +171,7 @@ $stdout.puts "kernelpackages -- #{kernelpackages}" if options[:debug] >= DBGLVL2
 if options[:show]
   puts "Currently installed Linux Kernel Packages".bold.underline
   kernelpackages.each do | package, versions |
-    versions.sort!
+    versions.sort! { | a, b | b <=> a }
     versions.each do | vrs |
       p = package.gsub( /#{MAGICSTR}/, vrs.bold )
       puts "  #{p}"
