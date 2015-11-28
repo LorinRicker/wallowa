@@ -18,7 +18,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (11/25/2015)"
+  PROGID = "#{PROGNAME} v0.1 (11/27/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -49,9 +49,10 @@ require_relative 'lib/ANSIseq'
 
 # ==========
 
-options = { :confirm     => false,
+options = { :show        => nil,
             :lessthan    => nil,
             :greaterthan => nil,
+            :confirm     => nil,
             :logfile     => "./" + PROGNAME + "_" +
                             Time.now.strftime("%Y-%m-%d_%H%M") + ".log",
             :noop        => true,  # nil,
@@ -63,6 +64,12 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-s", "--show", "--list",
+           "List currently installed Linux kernel packages" ) do |val|
+    options[:show] = val
+    # If we're showing, we're not doing anything else...
+    options[:lessthan] = options[:greaterthan] = options[:confirm] = nil
+  end  # -s --show
   opts.on( "-g", "--greaterthan=LoValue", Integer,
            "Purge dash-numbers #{'greater than'.bold} LoValue ..." ) do |val|
     options[:greaterthan] = val.to_i
@@ -159,6 +166,19 @@ prefix = suffix = kversion = ''
 end
 
 $stdout.puts "kernelpackages -- #{kernelpackages}" if options[:debug] >= DBGLVL2
+
+# Show/list packages in a nice sorted order, then just exit...
+if options[:show]
+  puts "Currently installed Linux Kernel Packages".bold.underline
+  kernelpackages.each do | package, versions |
+    versions.sort!
+    versions.each do | vrs |
+      p = package.gsub( /#{MAGICSTR}/, vrs.bold )
+      puts "  #{p}"
+    end
+  end
+  exit true
+end
 
 # Create a comparison range: options[:greaterthan]...options[:lessthan]
 # and substituting LOLIMIT and/or HILIMIT if either or both of these
