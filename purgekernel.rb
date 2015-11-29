@@ -18,7 +18,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (11/27/2015)"
+  PROGID = "#{PROGNAME} v0.1 (11/28/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -220,17 +220,19 @@ $stdout.puts "purgepackages -- #{purgepackages}" if options[:debug] >= DBGLVL2
 
 purgepackages.each do | package |
   noop = options[:noop] ? " --dry-run" : ""
-  cmd = "apt-get purge --yes#{noop} #{package}"
-  $stdout.puts "\n\ncmd.bold\n" if options[:verbose]
-  %x{ cmd }.each do | line |
+  cmd = "sudo apt-get purge --yes#{noop} #{package}"
+  $stdout.puts "\n\n#{cmd.bold}\n" if options[:verbose]
+  %x{ #{cmd} }.each do | line |
+    $stderr.puts line   # always echo all lines to stderr-file
     if options[:verbose]
       $stdout.puts "  >> #{line}"
     else
-      # case line   # output only selected lines...
-      # when /^.../ then $stdout.puts "  >> #{line}"
-      # end
+      case line   # output only selected lines...
+      when /^\s+linux-/,
+           /^Purg linux-/
+             $stdout.puts "  >> #{line}"
+      end
     end
-    $stderr.puts line   # always echo all lines to stderr-file
   end
 end
 
