@@ -18,7 +18,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (12/12/2015)"
+  PROGID = "#{PROGNAME} v0.2 (12/14/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -128,6 +128,11 @@ end                           #
 
 options[:verbose] = options[:debug] >= DBGLVL1
 
+# A template-name array for the Linux kernel packages:
+lkptemplates = [ "linux-image-#{MAGICSTR}-#{MAGICSTR}-generic",
+                 "linux-headers-#{MAGICSTR}-#{MAGICSTR}",
+                 "linux-headers-#{MAGICSTR}-#{MAGICSTR}-generic" ]
+
 # Each uninitialized hash-key returns an empty array --
 kernelpackages    = Hash.new { |k,v| k[v] = [] }
 kernels2purge     = Hash.new { |k,v| k[v] = [] }
@@ -221,7 +226,7 @@ $stdout.puts "purgepackages -- #{purgepackages}" if options[:debug] >= DBGLVL2
 purgepackages.each do | package |
   dryrun = options[:noop] ? " --dry-run" : ""
   cmd = "sudo apt-get purge --yes#{dryrun} #{package}"
-  $stdout.puts "\n\n#{cmd.bold}\n" if options[:verbose]
+  $stdout.puts "\n\n#{cmd.bold.red}\n" if options[:verbose]
   %x{ #{cmd} }.each do | ln |
     $stderr.puts ln   # always echo all lines to stderr-file
     if options[:verbose]
