@@ -18,14 +18,14 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.2 (12/14/2015)"
+  PROGID = "#{PROGNAME} v0.3 (12/28/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
 
 MAGICSTR = '»·«'  # literally, this replacement string
-LOLIMIT  =    0
-HILIMIT  = 1000
+LOLIMIT  = "0.00.0-00"
+HILIMIT  = "9.99.9-99"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -71,7 +71,7 @@ optparse = OptionParser.new { |opts|
     options[:lessthan] = options[:greaterthan] = options[:confirm] = nil
   end  # -s --show
   opts.on( "-g", "--greaterthan=LoValue", Integer,
-           "Purge dash-numbers #{'greater than'.bold} LoValue ..." ) do |val|
+           "Purge version-numbers #{'greater than'.bold} LoValue ..." ) do |val|
     options[:greaterthan] = val.to_i
   end  # -g --greaterthan
   opts.on( "-l", "--lessthan=HiValue", Integer,
@@ -129,13 +129,13 @@ end                           #
 options[:verbose] = options[:debug] >= DBGLVL1
 
 # A template-name array for the Linux kernel packages:
-lkptemplates = [ "linux-image-#{MAGICSTR}-#{MAGICSTR}-generic",
-                 "linux-headers-#{MAGICSTR}-#{MAGICSTR}",
-                 "linux-headers-#{MAGICSTR}-#{MAGICSTR}-generic" ]
+lkptemplates = [ "linux-image-#{MAGICSTR}-generic",
+                 "linux-headers-#{MAGICSTR}",
+                 "linux-headers-#{MAGICSTR}-generic" ]
 
 # Each uninitialized hash-key returns an empty array --
 kernelpackages    = Hash.new { |k,v| k[v] = [] }
-kernels2purge     = Hash.new { |k,v| k[v] = [] }
+kernelversions    = Array.new
 confirmedpackages = Array.new
 purgepackages     = Array.new
 
@@ -145,8 +145,7 @@ cmd = "dpkg-query --show --showformat='${Status} ${Package}\n' \"linux*\""
 pat = /^install\ ok\ installed\            # only Install-Installed packages
        (?<pckg>                            # full package name
        (?<pfix>linux-(image|headers)-)     # only linux* (kernel) packages
-       (?<vers>\d+\.\d+\.\d+)              # MM.mm.rev version spec
-       -(?<dash>\d+)                       # -dash spec
+       (?<vers>\d+\.\d+\.\d+-\d+)          # Major.minor.rev-dash version spec
            (\.\d+)?                        # don't care: .XX
        (?<sfix>(-\w+)?)                    # "-generic" or empty
        )
@@ -161,9 +160,9 @@ prefix = suffix = kversion = ''
     prefix   = m[:pfix] if prefix   != m[:pfix]
     kversion = m[:vers] if kversion != m[:vers]
     suffix   = m[:sfix] if suffix   != m[:sfix]
-    package  = "#{prefix}#{kversion}-#{MAGICSTR}#{suffix}"
+    package  = "#{prefix}#{MAGICSTR}#{suffix}"
     if ARGV.empty?
-      kernelpackages[ package ] << m[:dash]
+      kernelpackages[ package ] << m[:vers]
     else
       ARGV.each { | arg | kernelpackages[package] << arg } if kernelpackages[package].empty?
     end
@@ -176,7 +175,7 @@ $stdout.puts "kernelpackages -- #{kernelpackages}" if options[:debug] >= DBGLVL2
 if options[:show]
   puts "Currently installed Linux Kernel Packages".bold.underline
   kernelpackages.each do | package, versions |
-    versions.sort! { | a, b | b <=> a }
+    versions.sort! { | a, b | b <=> a }  # descending
     versions.each do | vrs |
       p = package.gsub( /#{MAGICSTR}/, vrs.bold )
       puts "  #{p}"
@@ -189,25 +188,28 @@ end
 # and substituting LOLIMIT and/or HILIMIT if either or both of these
 # options are not specified; thus, the defaulted range LOLIMIT...HILIMIT
 # means "all versions" --
-hidash = options[:lessthan]    || HILIMIT
-lodash = options[:greaterthan] || LOLIMIT
-# This range comparison must *exclude* >both< of the end-points!
-lodash += 1 if lodash > LOLIMIT
-dashrange = Range.new( lodash, hidash, true )  # exclusive: ...
+hivers = options[:lessthan]    || HILIMIT
+lovers = options[:greaterthan] || LOLIMIT
+# Strip punctuation ".-" from version-strings, convert to simple integers...
+# then to a range which must *exclude* >both< of the end-points!
+hivers = hivers.gsub( /[.-]/, '' ).to_i
+lovers = lovers.gsub( /[.-]/, '' ).to_i
+lovers += 1 if lovers > LOLIMIT.gsub( /[.-]/, '' ).to_i
+versrange = Range.new( lovers, hivers, true )  # exclusive: ...
 
 kernelpackages.each do | package, versions |
   versions.each do | vrs |
-    kernels2purge[ package ] << vrs if dashrange.include?( vrs.to_i )
+    kernelversions << vrs if versrange.cover?( vrs )
   end
 end
 
-$stdout.puts "kernels2purge -- #{kernels2purge}" if options[:debug] >= DBGLVL2
+$stdout.puts "kernelversions -- #{kernelversions}" if options[:debug] >= DBGLVL2
 
-# Now that the range of -dash versions is limited to just those
-# in the lodash...hidash range, run an interactive check if
+# Now that the range of versions is limited to just those
+# in the lovers...hivers range, run an interactive check if
 # the user asked for it with --confirm (etc) --
 
-kernels2purge.each do | package, versions |
+kernelversions.each do | package, versions |
   if options[:confirm]
     # Use the confirmed packages (only) --
     versions.each do | vrs |
