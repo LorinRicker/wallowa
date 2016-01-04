@@ -68,13 +68,9 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **fibonacci.rb** --
 
-**fibonacci_bb.rb** --
-
 **filecomp.rb** --
 
 **fileenhance.rb** --
-
-**fixbig_mult_bb.rb** --
 
 **fixcopyright.rb** --
 
@@ -85,8 +81,6 @@ The rest of this README briefly describes each of the com-line utility programs 
 **how-big-is-smallest-bignum2.rb** --
 
 **how-many-chords-on-piano.rb** --
-
-**incr_max_array_element_bb.rb** --
 
 **lsfunction.rb** --
 
@@ -108,8 +102,6 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **ruler.rb** --
 
-**strcat_bb.rb** --
-
 **stringenhance.rb** --
 
 **stripcomments.rb** --
@@ -123,6 +115,16 @@ The rest of this README briefly describes each of the com-line utility programs 
 **wordfrequencies.rb** --
 
 **xchart.rb** --
+
+## Benchmark Programs
+
+**fibonacci_bb.rb** --
+
+**fixbig_mult_bb.rb** --
+
+**incr_max_array_element_bb.rb** --
+
+**strcat_bb.rb** --
 
 ## Demo Programs
 
