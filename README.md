@@ -34,7 +34,75 @@ There are xx subdirectories (folders) in the repo:
 
   * templates/ -- a small collection of Ruby program templates, just for getting a new program started in a consistent way
 
+  * .git/ -- The git/GitHub repo itself
+
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
 Command-Line Utility Programs
 -----------------------------
+
+*adoptdirtree.rb* and *adopt.sh* --
+
+*audiocat.rb* --
+
+*audioscram.rb* --
+
+*autoinstall.rb* --
+
+*bru.rb* --
+
+*«.».rb* --
+
+*«.».rb* --
+
+Demo Programs
+-------------
+
+*argvdemo.rb* --
+
+*Demos/Chained_Iterators.rb* --
+
+*Demos/DeleteCharFromMiddleOfString.rb* --
+
+*Demos/EnvironmentVariables.rb* --
+
+*Demos/factr.rb* --
+
+*Demos/HappyBirthday.rb* --
+
+*Demos/HelloWorld.rb* and *Demos/helloworld_ml.rb* --
+
+*Demos/LoadPath.rb* and *Demos/LoadPath2.rb* --
+
+*Demos/Print_All_Classes.rb*, *Demos/Print_All_Exceptions.rb* and *Demos/Print_All_Modules.rb* --
+
+*Demos/programfilenames1.rb* and *Demos/ProgramFileNames2.rb* --
+
+*Demos/QuotedOutput.rb* --
+
+*Demos/RubyConfig.rb* --
+
+*Demos/RunningOn.rb* --
+
+*Demos/Sheldon.rb* --
+
+*Demos/SieveOfEratosthenes.rb* --
+
+*Demos/Transform - All the World's a Stage.rb* --
+
+Library (lib/) Support Modules
+------------------------------
+
+*lib/ANSIseq.rb* (and *ANSISEQ.COM* and *CLS.COM*) --
+
+*lib/AppCmdCompletions.rb* --
+
+*lib/appconfig.rb* --
+
+*lib/ArrayEnhancements.rb* --
+
+*lib/AskPrompted.rb* --
+
+*lib/binary.rb* --
+
+*lib/«.».rb* --
