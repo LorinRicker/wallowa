@@ -1,8 +1,6 @@
-wallowa
-========
+# wallowa
 
-Overview
---------
+## Overview
 
 This repository is unconventional in that it serves as a collection-point for a rather large number of Ruby com-line utilities and educational programs, primarily designed and developed for a Ruby Immersion Bootcamp (multi-week class), but also for individual use and sharing within the Ruby Community.
 
@@ -16,93 +14,88 @@ This repo consists of ~50 (and counting) utility and demo programs --
 
   * The demo programs are mostly ad-hoc from the com-line interface perspective, and each serves to demonstrate a particular Ruby principle, idea, concept and/or approach to some problem.
 
-There are xx subdirectories (folders) in the repo:
+There are nine subdirectories (folders) in the repo:
 
-  * Archives/ -- a holding pen for some old(er) ideas and versions that I'm not quite willing to bag (delete) yet, useful only as historical comparison (if that).
+  * **Archives/** -- a holding pen for some old(er) ideas and versions that I'm not quite willing to bag (delete) yet, useful only as historical comparison (if that).
 
-  * composers_rename/ -- a working directory for a one-time-use script, comprename.rb and a driver-data file composers_rename.lis
+  * **composers_rename/** -- a working directory for a one-time-use script, comprename.rb and a driver-data file composers_rename.lis
 
-  * Demos/ -- a small collection of Ruby demonstrations
+  * **Demos/** -- a small collection of Ruby demonstrations
 
-  * Docs/ -- a few odds-&-ends documentation files that are related to other things in this repo; most significant is a text file, "Ruby Haiku.txt", which still gets an occasional new idea and haiku, just for fun
+  * **Docs/** -- a few odds-&-ends documentation files that are related to other things in this repo; most significant is a text file, "Ruby Haiku.txt", which still gets an occasional new idea and haiku, just for fun
 
-  * gpl/ -- the GNU GENERAL PUBLIC LICENSE which applies to this repository
+  * **gpl/** -- the GNU GENERAL PUBLIC LICENSE which applies to this repository
 
-  * lib/ -- the primary subdirectory, the library full of support modules (proto-gems) used throughout the com-line utility programs (especially)
+  * **lib/** -- the primary subdirectory, the library full of support modules (proto-gems) used throughout the com-line utility programs (especially)
 
-  * MusicDocs/ -- a group of 12-tone row documents, created by the tonerow.rb utility program, for key and classic works in the genre by Schoenberg and Webern
+  * **MusicDocs/** -- a group of 12-tone row documents, created by the tonerow.rb utility program, for key and classic works in the genre by Schoenberg and Webern
 
-  * templates/ -- a small collection of Ruby program templates, just for getting a new program started in a consistent way
+  * **templates/** -- a small collection of Ruby program templates, just for getting a new program started in a consistent way
 
-  * .git/ -- The git/GitHub repo itself
+  * **.git/** -- The git/GitHub repo itself
 
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
-Command-Line Utility Programs
------------------------------
+## Command-Line Utility Programs
 
-*adoptdirtree.rb* and *adopt.sh* --
+**adoptdirtree.rb** and *adopt.sh* --
 
-*audiocat.rb* --
+**audiocat.rb** --
 
-*audioscram.rb* --
+**audioscram.rb** --
 
-*autoinstall.rb* --
+**autoinstall.rb** --
 
-*bru.rb* --
+**bru.rb** --
 
-*«.».rb* --
+**«.».rb** --
 
-*«.».rb* --
+**«.».rb** --
 
-Demo Programs
--------------
+## Demo Programs
 
-*argvdemo.rb* --
+**argvdemo.rb** --
 
-*Demos/Chained_Iterators.rb* --
+**Demos/Chained_Iterators.rb** --
 
-*Demos/DeleteCharFromMiddleOfString.rb* --
+**Demos/DeleteCharFromMiddleOfString.rb** --
 
-*Demos/EnvironmentVariables.rb* --
+**Demos/EnvironmentVariables.rb** --
 
-*Demos/factr.rb* --
+**Demos/factr.rb** --
 
-*Demos/HappyBirthday.rb* --
+**Demos/HappyBirthday.rb** --
 
-*Demos/HelloWorld.rb* and *Demos/helloworld_ml.rb* --
+**Demos/HelloWorld.rb** and **Demos/helloworld_ml.rb** --
 
-*Demos/LoadPath.rb* and *Demos/LoadPath2.rb* --
+**Demos/LoadPath.rb** and **Demos/LoadPath2.rb** --
 
-*Demos/Print_All_Classes.rb*, *Demos/Print_All_Exceptions.rb* and *Demos/Print_All_Modules.rb* --
+**Demos/Print_All_Classes.rb**, **Demos/Print_All_Exceptions.rb** and **Demos/Print_All_Modules.rb** --
 
-*Demos/programfilenames1.rb* and *Demos/ProgramFileNames2.rb* --
+**Demos/programfilenames1.rb** and **Demos/ProgramFileNames2.rb** --
 
-*Demos/QuotedOutput.rb* --
+**Demos/QuotedOutput.rb** --
 
-*Demos/RubyConfig.rb* --
+**Demos/RubyConfig.rb** --
 
-*Demos/RunningOn.rb* --
+**Demos/RunningOn.rb** --
 
-*Demos/Sheldon.rb* --
+**Demos/Sheldon.rb** --
 
-*Demos/SieveOfEratosthenes.rb* --
+**Demos/SieveOfEratosthenes.rb** --
 
-*Demos/Transform - All the World's a Stage.rb* --
+**Demos/Transform - All the World's a Stage.rb** --
 
-Library (lib/) Support Modules
-------------------------------
+## Library (lib/) Support Modules
 
-*lib/ANSIseq.rb* (and *ANSISEQ.COM* and *CLS.COM*) --
+**lib/ANSIseq.rb** (and **ANSISEQ.COM** and **CLS.COM**) --
 
-*lib/AppCmdCompletions.rb* --
+**lib/AppCmdCompletions.rb** --
 
-*lib/appconfig.rb* --
+**lib/appconfig.rb** --
 
-*lib/ArrayEnhancements.rb* --
+**lib/ArrayEnhancements.rb** --
 
-*lib/AskPrompted.rb* --
+**lib/AskPrompted.rb** --
 
-*lib/binary.rb* --
-
-*lib/«.».rb* --
+**lib/binary.rb** --
