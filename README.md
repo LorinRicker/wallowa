@@ -48,9 +48,85 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **bru.rb** --
 
-**«.».rb** --
+**capture_all_matches.rb** --
 
-**«.».rb** --
+**composers.rb** --
+
+**datecalc.rb** --
+
+**dcl.rb** --
+
+**dclrename.rb** --
+
+**deltree.rb** --
+
+**dir.rb** --
+
+**enigma_v1.rb** --
+
+**factorial.rb** --
+
+**fibonacci.rb** --
+
+**fibonacci_bb.rb** --
+
+**filecomp.rb** --
+
+**fileenhance.rb** --
+
+**fixbig_mult_bb.rb** --
+
+**fixcopyright.rb** --
+
+**googlesearch.rb** --
+
+**how-big-is-smallest-bignum.rb** --
+
+**how-big-is-smallest-bignum2.rb** --
+
+**how-many-chords-on-piano.rb** --
+
+**incr_max_array_element_bb.rb** --
+
+**lsfunction.rb** --
+
+**microscope.rb** --
+
+**mkssfpath.rb** and **mkssf.sh** --
+
+**pgmheaderfixup.rb** --
+
+**process.rb** --
+
+**purgekernel.rb** --
+
+**randomwordgenerator.rb** --
+
+**«».rb** --
+
+**«».rb** --
+
+**regex.rb** --
+
+**rel2bin.rb** --
+
+**ruler.rb** --
+
+**strcat_bb.rb** --
+
+**stringenhance.rb** --
+
+**stripcomments.rb** --
+
+**teamscram.rb** --
+
+**termchar.rb** --
+
+**tonerow.rb** --
+
+**wordfrequencies.rb** --
+
+**xchart.rb** --
 
 ## Demo Programs
 
@@ -99,3 +175,51 @@ The rest of this README briefly describes each of the com-line utility programs 
 **lib/AskPrompted.rb** --
 
 **lib/binary.rb** --
+
+**lib/Combinatorics.rb** --
+
+**lib/DateCalc.rb** --
+
+**lib/DCLcommand.rb** and **lib/DCLfunction.rb** --
+
+**lib/Diagnostics.rb** --
+
+**lib/dpkg_utils.rb** --
+
+**lib/ErrorMsg.rb** --
+
+**lib/FileComparison.rb** --
+
+**lib/FineEnhancements.rb** --
+
+**lib/FileFilters.rb** --
+
+**lib/filemagic.rb** --
+
+**lib/FindAllPosBeginEnd.rb** --
+
+**lib/GetPrompted.rb** --
+
+**lib/ppstrnum.rb** --
+
+**lib/pquts.rb** --
+
+**lib/Prompted.rb** --
+
+**lib/require_relative.rb** --
+
+**lib/Scramble.rb** --
+
+**lib/ScriptLines.rb** --
+
+**lib/StringCoerce.rb** --
+
+**lib/StringEnhancements.rb** --
+
+**lib/StringUpdater.rb** --
+
+**lib/TermChar.rb** --
+
+**lib/Thousands.rb** --
+
+**lib/TimeEnhancements.rb** --
