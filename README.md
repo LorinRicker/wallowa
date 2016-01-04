@@ -38,7 +38,7 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 ## Command-Line Utility Programs
 
-**adoptdirtree.rb** and *adopt.sh* --
+**adoptdirtree.rb** and **adopt.sh** --
 
 **audiocat.rb** --
 
@@ -46,7 +46,7 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **autoinstall.rb** --
 
-**bru.rb** --
+**bru.rb** -- An intelligent "wrapper" for the powerful *rsync* program (which has way too many options and switches for every conceivable purpose, including ones that you'd never see or use).  This utility provides a simplified command-line options and arguments structure, optional configuration files to "remember" specific backup tasks, simplified/filtered output from the *rsync* subprocess, and more.
 
 **capture_all_matches.rb** --
 
@@ -101,10 +101,6 @@ The rest of this README briefly describes each of the com-line utility programs 
 **purgekernel.rb** --
 
 **randomwordgenerator.rb** --
-
-**«».rb** --
-
-**«».rb** --
 
 **regex.rb** --
 
