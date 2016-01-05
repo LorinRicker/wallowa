@@ -32,7 +32,7 @@ There are nine subdirectories (folders) in the repo:
 
   * **templates/** -- a small collection of Ruby program templates, just for getting a new program started in a consistent way
 
-  * **.git/** -- The git/GitHub repo itself
+  * **.git/** -- The *wallowa* git/GitHub repo itself
 
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
@@ -48,10 +48,6 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **bru.rb** -- An intelligent "wrapper" for the powerful *rsync* program (which has way too many options and switches for every conceivable purpose, including ones that you'd never see or use).  This utility provides a simplified command-line options and arguments structure, optional configuration files to "remember" specific backup tasks, simplified/filtered output from the *rsync* subprocess, and more.
 
-**capture_all_matches.rb** --
-
-**composers.rb** --
-
 **datecalc.rb** --
 
 **dcl.rb** --
@@ -61,8 +57,6 @@ The rest of this README briefly describes each of the com-line utility programs 
 **deltree.rb** --
 
 **dir.rb** --
-
-**enigma_v1.rb** --
 
 **factorial.rb** --
 
@@ -74,11 +68,9 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **fixcopyright.rb** --
 
-**googlesearch.rb** --
+**how-big-is-smallest-bignum.rb** -- Determines (or discovers) the "boundary" between the largest Integer value and the smallest Bignum value on a given system/architecture, using a binary-search-like algorithm to detect the point at which the next Integer value becomes an actual Bignum value.
 
-**how-big-is-smallest-bignum.rb** --
-
-**how-big-is-smallest-bignum2.rb** --
+**how-big-is-smallest-bignum2.rb** -- An alternative approach to the same problem (above), this one contributed by Andrew Grimm on http://stackoverflow.com/questions/535721/ruby-max-integer (6-Jan-2012).
 
 **how-many-chords-on-piano.rb** --
 
@@ -94,9 +86,7 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **purgekernel.rb** --
 
-**randomwordgenerator.rb** --
-
-**regex.rb** --
+**regex.rb** -- Inspired by a technique (suggestion) in the regex chapter of *the Pickaxe Book* (**Programming Ruby 2.0 & 1.9**, Dave Thomas, et al), this program provides a way to experiment with regexes and target strings, displaying the relevant contents of a pattern match's MatchData object. Provides value as an immediate com-line utility, but does not compare in comprehensive functionality to online/web tools like *regex101.com* or *debuggex.com*, or to JGS's *RegexBuddy*.
 
 **rel2bin.rb** --
 
@@ -128,17 +118,23 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 ## Demo Programs
 
-**argvdemo.rb** --
+**Demos/argvdemo.rb** --
+
+**Demos/capture_all_matches.rb** --
 
 **Demos/Chained_Iterators.rb** --
 
 **Demos/DeleteCharFromMiddleOfString.rb** --
+
+**Demos/enigma_v1.rb** --
 
 **Demos/EnvironmentVariables.rb** --
 
 **Demos/factr.rb** --
 
 **Demos/HappyBirthday.rb** --
+
+**Demos/googlesearch.rb** --
 
 **Demos/HelloWorld.rb** and **Demos/helloworld_ml.rb** --
 
@@ -149,6 +145,8 @@ The rest of this README briefly describes each of the com-line utility programs 
 **Demos/programfilenames1.rb** and **Demos/ProgramFileNames2.rb** --
 
 **Demos/QuotedOutput.rb** --
+
+**Demos/randomwordgenerator.rb** --
 
 **Demos/RubyConfig.rb** --
 
