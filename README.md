@@ -76,6 +76,8 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **lsfunction.rb** --
 
+**mdrender.rb** -- A *github/markdown* rendering utility (early version).
+
 **microscope.rb** --
 
 **mkssfpath.rb** and **mkssf.sh** --
