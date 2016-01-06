@@ -38,6 +38,24 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 ## Command-Line Utility Programs
 
+The majority of the utility programs in this section use the OptionParser (optparse) gem to provide a consistent com-line parse look-&-feel for the user (me). Early on, it occurred to me (as it has to so many other coders) that there's a common subset of com-line options that can and should be present in *any* family of utilities, and I've provided for these options in nearly all such programs:
+
+  * **-a** or **--about**          -- display program identification information
+  * **-v** or **--verbose**        -- provide non-silent &/or progress output
+  * **-n** or **--dryrun**         -- test (rehearsal) mode, show but do not **do**
+  * **-h** or **-?** or **--help** -- display help text
+  * **-dN** or **--debug=N**       -- show debug information/output (levels 1, 2 or 3)
+
+Only a few programs in this category do not use OptionParser, and these only require very simple or no command line input; perhaps only an argument value, or nothing at all.
+
+A different subset of these programs are launched using a rather tricky (at least to derive, not to use now that it's been developed) functional mechanism which actually temporarily **defeats** the shell's globbing behavior for that one command (and without the user's noticing or bothering with it).  This is done so that the program/script itself will actually receive the glob-wildcard characters as part of the command line argument values -- the shell does not expand/glob these wildcards, allowing the program to do more advanced things with them, including wildcard expansion on its own terms.  Programs in this category include the ones which implement the DCL Emulator commands:
+
+    * dcl.rb
+    * dir.rb
+    * dclrename
+
+See in particular the description for the script **dcl.rb** below for more information.
+
 **adoptdirtree.rb** and **adopt.sh** --
 
 **audiocat.rb** --
@@ -74,7 +92,7 @@ The rest of this README briefly describes each of the com-line utility programs 
 
 **how-many-chords-on-piano.rb** --
 
-**lsfunction.rb** -- Anyone else as frustrated as I am that bash (and other shells?) don't provide a command to *selectively* list an in-memory shell function by name?  Sure, the **set** command will dump the whole enchilada, in one huge stream of lines, but you're left to scroll-back and try to find the one function you need to review.  This utility allows you to list a shell function, or environment variable, by name, and even supports a simple wild-card character (currently '%') to list (for example) just the functions whose name starts with 'f' (as in **lsfunction -f f%**).
+**lsfunction.rb** -- Anyone else as frustrated as I am that bash (and other shells?) doesn't provide a command to *selectively* list an in-memory shell function by name?  Sure, the **set** command will dump the whole enchilada, in one huge stream of lines, but you're left to scroll-back and try to find the one function you need to review.  This utility allows you to list a shell function, or environment variable, by name, and even supports a simple wild-card character (currently '%') to list (for example) just the functions whose name starts with 'f' (as in **lsfunction -f f%**).
 
 **mdrender.rb** -- A *github/markdown* rendering utility (early version).
 
