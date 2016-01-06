@@ -29,11 +29,69 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (01/05/2016)"
+  PROGID = "#{PROGNAME} v0.2 (01/06/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
 
+DBGLVL0 = 0
+DBGLVL1 = 1
+DBGLVL2 = 2  ######################################################
+DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
+             ######################################################
+# ==========
+
+require 'optparse'
+require 'pp'
 require 'github/markdown'
+
+# ==========
+
+options = { :noop        => true,  # nil,
+            :verbose     => false,
+            :debug       => DBGLVL0,
+            :about       => false
+          }
+
+optparse = OptionParser.new { |opts|
+  opts.on( "-n", "--dryrun", "Test (rehearse) «·»" ) do |val|
+    options[:noop] = true
+  end  # -n --dryrun
+  # --- Verbose option ---
+  opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
+    options[:verbose] = true
+  end  # -v --verbose
+  # --- Debug option ---
+  opts.on( "-d", "--debug", "=DebugLevel", Integer,
+           "Show debug information (levels: 1, 2 or 3)",
+           "  1 - enables basic debugging information",
+           "  2 - enables advanced debugging information",
+           "  3 - enables (starts) pry-byebug debugger" ) do |val|
+    options[:debug] = val.to_i
+  end  # -d --debug
+  # --- About option ---
+  opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    $stdout.puts "#{PROGID}"
+    $stdout.puts "#{AUTHOR}"
+    options[:about] = true
+    exit true
+  end  # -a --about
+  # --- Set the banner & Help option ---
+  opts.banner = "\n  Usage: #{PROGNAME} [options]"
+  opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
+    $stdout.puts opts
+    options[:help] = true
+    exit true
+  end  # -? --help
+}.parse!  # leave residue-args in ARGV
+
+###############################
+if options[:debug] >= DBGLVL3 #
+  require 'pry'               #
+  binding.pry                 #
+end                           #
+###############################
+
+options[:verbose] = options[:debug] >= DBGLVL1
 
 puts GitHub::Markdown.render_gfm File.read(ARGV[0])
