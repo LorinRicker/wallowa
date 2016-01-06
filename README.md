@@ -42,7 +42,7 @@ The majority of the utility programs in this section use the OptionParser (optpa
 
   * **-a** or **--about**          -- display program identification information
   * **-v** or **--verbose**        -- provide non-silent &/or progress output
-  * **-n** or **--dryrun**         -- test (rehearsal) mode, show but *do not* _do_
+  * **-n** or **--dryrun**         -- test (rehearsal) mode, show but *do not* __do__
   * **-h** or **-?** or **--help** -- display help text
   * **-dN** or **--debug=N**       -- show debug information/output (levels 1, 2 or 3)
 
