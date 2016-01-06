@@ -42,13 +42,13 @@ The majority of the utility programs in this section use the OptionParser (optpa
 
   * **-a** or **--about**          -- display program identification information
   * **-v** or **--verbose**        -- provide non-silent &/or progress output
-  * **-n** or **--dryrun**         -- test (rehearsal) mode, show but do not **do**
+  * **-n** or **--dryrun**         -- test (rehearsal) mode, show but *do not* _do_
   * **-h** or **-?** or **--help** -- display help text
   * **-dN** or **--debug=N**       -- show debug information/output (levels 1, 2 or 3)
 
 Only a few programs in this category do not use OptionParser, and these only require very simple or no command line input; perhaps only an argument value, or nothing at all.
 
-A different subset of these programs are launched using a rather tricky (at least to derive, not to use now that it's been developed) functional mechanism which actually temporarily **defeats** the shell's globbing behavior for that one command (and without the user's noticing or bothering with it).  This is done so that the program/script itself will actually receive the glob-wildcard characters as part of the command line argument values -- the shell does not expand/glob these wildcards, allowing the program to do more advanced things with them, including wildcard expansion on its own terms.  Programs in this category include the ones which implement the DCL Emulator commands:
+A different subset of these programs are launched using a rather tricky (at least to derive, not to use now that it's been developed) functional mechanism (ResetGlobbing) which actually temporarily **defeats** the shell's globbing behavior for that one command (and without the user's noticing or bothering with it).  This is done so that the program/script itself will actually receive the glob-wildcard characters as part of the command line argument values -- the shell does not expand/glob these wildcards, allowing the program to do more advanced things with them, including wildcard expansion on its own terms.  Programs in this category include the ones which implement the DCL Emulator commands:
 
     * dcl.rb
     * dir.rb
