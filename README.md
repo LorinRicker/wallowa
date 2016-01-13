@@ -76,9 +76,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **dir.rb** --
 
-**factorial.rb** --
-
-**fibonacci.rb** --
+**factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 62` or `$ fibonacci 78`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.
 
 **filecomp.rb** --
 
@@ -92,7 +90,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **how-many-chords-on-piano.rb** --
 
-**lsfunction.rb** -- Anyone else as frustrated as I am that bash (and other shells?) doesn't provide a command to *selectively* list an in-memory shell function by name?  Sure, the **set** command will dump the whole enchilada, in one huge stream of lines, but you're left to scroll-back and try to find the one function you need to review.  This utility allows you to list a shell function, or environment variable, by name, and even supports a simple wild-card character (currently '%') to list (for example) just the functions whose name starts with 'f' (as in **lsfunction -f f%**).
+**lsfunction.rb** -- Anyone else as frustrated as I am that bash (and other shells?) doesn't provide a command to *selectively* list an in-memory shell function by name?  Sure, the **set** command will dump the whole enchilada, in one huge stream of lines, but you're left to scroll-back and try to find the one function you need to review.  This utility allows you to list a shell function, or environment variable, by name, and even supports a simple wild-card character (currently '%') to list (for example) just the functions whose name starts with 'f' (as in `$ lsfunction -f f%`).
 
 **mdrender.rb** -- A *github/markdown* rendering utility (early version).
 
