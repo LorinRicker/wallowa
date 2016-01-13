@@ -44,7 +44,7 @@ The majority of the utility programs in this section use the OptionParser (optpa
   * **-v** or **--verbose**        -- provide non-silent &/or progress output
   * **-n** or **--dryrun**         -- test (rehearsal) mode, show but *do not* __do__
   * **-h** or **-?** or **--help** -- display help text
-  * **-dN** or **--debug=N**       -- show debug information/output (levels 1, 2 or 3)
+  * **-dN** or **--debug=N**       -- show debug information/output (levels N = 1, 2 or 3)
 
 Only a few programs in this category do not use OptionParser, and these only require very simple or no command line input; perhaps only an argument value, or nothing at all.
 
@@ -104,7 +104,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **purgekernel.rb** --
 
-**regex.rb** -- Inspired by a technique (suggestion) in the regex chapter of *the Pickaxe Book* (**Programming Ruby 2.0 & 1.9**, Dave Thomas, et al), this program provides a way to experiment with regexes and target strings, displaying the relevant contents of a pattern match's MatchData object. Provides value as an immediate com-line utility, but does not compare in comprehensive functionality to online/web tools like *regex101.com* or *debuggex.com*, or to JGS's *RegexBuddy*.
+**regex.rb** -- Inspired by a technique (suggestion) in the regex chapter of *the Pickaxe Book* (**Programming Ruby 2.0 & 1.9**, Dave Thomas, et al), this program provides a way to experiment with regexes and target strings, displaying the relevant contents of a pattern match's MatchData object. Provides value as an immediate com-line utility, but does not compare in comprehensive functionality to online/web tools like [regex101.com](http://www.regex101.com) or [debuggex.com](http://www.debuggex.com), or to JGS's [RegexBuddy](http://www.regexbuddy.com).
 
 **rel2bin.rb** --
 
