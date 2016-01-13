@@ -36,7 +36,7 @@ There are nine subdirectories (folders) in the repo:
 
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
-## Command-Line Utility Programs
+## Com-Line Utility Programs and the OptionParser Gem
 
 The majority of the utility programs in this section use the OptionParser (optparse) gem to provide a consistent com-line parse look-&-feel for the user (me). Early on, it occurred to me (as it has to so many other coders) that there's a common subset of com-line options that can and should be present in *any* family of utilities, and I've provided for these options in nearly all such programs:
 
