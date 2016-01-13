@@ -3,7 +3,7 @@
 
 # dcl.rb
 #
-# Copyright © 2012-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.2 (08/23/2015)"
+  PROGID = "#{PROGNAME} v5.3 (01/13/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -214,6 +214,7 @@ FNC_LINKS = %w{ locase lowercase
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = { :confirm     => false,
+            :convertcase => nil,
             :pager       => false,
             :preserve    => false,
             :links       => false,
@@ -227,6 +228,11 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-c", "--case=CASE", /lower|upper|camel/i,
+           "Convert target filename case: lower, upper, camel" ) do |val|
+    options[:convertcase] = val.downcase.to_sym
+    options[:force]       = true
+  end  # -c --case
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true

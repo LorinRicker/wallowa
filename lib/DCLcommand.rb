@@ -3,8 +3,8 @@
 
 # DCLcommand.rb
 #
-# Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.2, 08/23/2015
+# Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Version 5.3, 01/13/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -143,10 +143,19 @@ end  # fileCommands
   def self.rename( options, operands )
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
+      case options[:convertcase]
+      when :lower
+        dstcase = File.join( File.dirname(dst), File.basename(dst).downcase )
+      when :upper
+        dstcase = File.join( File.dirname(dst), File.basename(dst).upcase )
+      when :camel
+        dstcase = dst  # NYI!!!
+      else dstcase = dst
+      end  # case options[:convertcase]
       confirmed, doall = askordo( options[:confirm], doall,
-                                  "Rename #{src} to #{dst}" )
+                                  "Rename #{src} to #{dstcase}" )
       begin
-        FileUtils.mv( src, dst,
+        FileUtils.mv( src, dstcase,
                       filter( options,
                               [ :force, :noop, :verbose ] )
                     ) if confirmed

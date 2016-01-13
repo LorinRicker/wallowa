@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.3 (05/05/2015)"
+  PROGID = "#{PROGNAME} v1.4 (01/13/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -39,17 +39,23 @@ require_relative 'lib/ErrorMsg'
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # === Main ===
-options = { :noop     => false,
-            :force    => false,
-            :verbose  => false,
-            :debug    => DBGLVL0,
-            :about    => false
+options = { :noop        => false,
+            :convertcase => nil,
+            :force       => false,
+            :verbose     => false,
+            :debug       => DBGLVL0,
+            :about       => false
           }
 
 usage = "    Usage: $ #{PROGNAME} [options] file [file...] " +
         "'rename_pattern'".bold
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-c", "--case=CASE", /lower|upper|camel/i,
+           "Convert target filename case: lower, upper, camel" ) do |val|
+    options[:convertcase] = val.downcase.to_sym
+    options[:force]       = true
+  end  # -c --case
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true
