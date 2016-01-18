@@ -7,6 +7,7 @@
 # Version 0.4, 06/04/2014
 # Version 0.5, 01/12/2016, adds a com-line ARGV[0] for interactive tests,
 #                          pretty-printing the results.
+# Version: 1.0, 01/18/2016, even more general ARGV: lo...hi calculates a series
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -35,10 +36,25 @@ alias :fib :fibonacci_fast
 
 # Main -- test driver:
 if $0 == __FILE__ then
-  if ARGV[0]  # ain't null
+  if ARGV[0]  # ain't nil
     require_relative 'lib/ppstrnum'
-    f = fib(ARGV[0].to_i)
-    puts "\nFibonacci_#{ARGV[0]} = #{f.thousands}"
-    puts "\nor #{f.numbernames}"
+    if ARGV[0].include?('..')
+      series = Array.new
+      pat = /^(?<lo>\d+)    # one or more digits
+             \.{2,}         # two or more dots: '..', '...' etc
+             (?<hi>\d+).*   # one or more digits
+            /x
+      m   = pat.match( ARGV[0] )
+      if m
+        m[:lo].to_i.upto( m[:hi].to_i ) { |i|
+          series << fib( i )
+        }
+        puts "\nFibonacci(#{m[:lo]}...#{m[:hi]}) -> #{series.join( ', ' )}"
+      end
+    else  # a single value
+      f = fib(ARGV[0].to_i)
+      puts "\nFibonacci_#{ARGV[0]} = #{f.thousands}"
+      puts "\nor #{f.numbernames}"
+    end
   end
 end
