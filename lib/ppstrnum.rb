@@ -3,8 +3,8 @@
 
 # ppstrnum.rb
 #
-# Copyright © 2011-2015 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 01/25/2015
+# Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.1, 01/22/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -119,9 +119,10 @@ module Ppstrnum
                    seventeen eighteen nineteen }
     # Authority for number names:
     # http://en.wikipedia.org/wiki/Names_of_large_numbers
+    # http://www.unc.edu/~rowlett/units/large.html
     $illions ||= [
                    [ 123, 'quadragint' ],
-                   [ 120, 'noven'      ],        # 'trigint'
+                   [ 120, 'noven'      ],
                    [ 117, 'octo'       ],
                    [ 114, 'septen'     ],
                    [ 111, 'ses'        ],
@@ -145,7 +146,7 @@ module Ppstrnum
                    [  60, 'noven'      ],        # 'dec'
                    [  57, 'octo'       ],
                    [  54, 'septen'     ],
-                   [  51, 'se'         ],
+                   [  51, 'sex'        ],        # corrected by Rowlett
                    [  48, 'quinqua'    ],
                    [  45, 'quattuor'   ],
                    [  42, 'tre'        ],
@@ -164,12 +165,18 @@ module Ppstrnum
                    [   3, 'thousand'   ],
                    [   2, 'hundred'    ]
                  ]
+    maxExponent = $illions[0][0]
     # Convert any \-chars:
     sep = stanzasep
     #pp ["stanzasep",stanzasep,sep]
     # Discard any fractional part, remove any separators:
     nstr   = self.split('.')[0].gsub(',','').gsub('_','')
     number = nstr.to_i
+    # Sanity-range check:
+    if number > 10 ** maxExponent
+      $stderr.puts "%ppstrnum-e-NYI, unknown name for number #{self}"
+      return "(unknown name for number)"
+    end
     result = ''
     minus  = number < 0 ? 'minus ' : ''
     if number != 0
@@ -190,7 +197,7 @@ module Ppstrnum
           zname = zname + 'trigint'  if (93..120).cover?(zbase) && zbase % 3 == 0
           zname = zname + 'vigint'   if (63.. 90).cover?(zbase)
           zname = zname + 'dec'      if (33.. 60).cover?(zbase)
-          zname = zname + 'illion' + sep if (6..123).cover?(zbase) && zbase % 3 == 0
+          zname = zname + 'illion' + sep if (6..maxExponent).cover?(zbase) && zbase % 3 == 0
           result = result + ' ' + zname
           # Commas after "*illion"; special case, after "thousand" too:
           result = result + sep if zbase == 3
