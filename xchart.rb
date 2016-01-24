@@ -3,7 +3,7 @@
 
 # xchart.rb
 #
-# Copyright © 2012-2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the

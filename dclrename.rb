@@ -3,7 +3,7 @@
 
 # dclrename.rb
 #
-# Copyright © 2015 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2015-2016 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the

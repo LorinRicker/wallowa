@@ -6,6 +6,7 @@
 /tmp
 /misc/*.rb_old
 /misc/*.rb_original
+*.rb.backup
 *.rb_old
 *.rb_original
 *.txt

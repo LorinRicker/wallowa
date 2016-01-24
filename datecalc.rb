@@ -3,7 +3,7 @@
 
 # datecalc.rb
 #
-# Copyright © 2012-2015 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2012-2016 Lorin Ricker <lorin@rickernet.us>
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.

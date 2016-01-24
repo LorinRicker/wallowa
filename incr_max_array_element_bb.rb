@@ -3,7 +3,7 @@
 
 # incr_max_array_element_bb.rb
 #
-# Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
 # Version 0.1, 09/24/2014
 #
 # This program is free software, under the terms and conditions of the
