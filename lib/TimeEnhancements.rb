@@ -3,7 +3,7 @@
 
 # TimeEnhancements.rb
 #
-# Copyright © 2014 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
 # Version 1.0, 04/28/2014
 #
 # This program is free software, under the terms and conditions of the

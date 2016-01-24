@@ -3,7 +3,7 @@
 
 # StringUpdater.rb
 #
-# Copyright © 2015 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
 # Version 1.2, 02/16/2015
 #
 # This program is free software, under the terms and conditions of the

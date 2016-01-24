@@ -3,7 +3,7 @@
 
 # binary.rb
 #
-# Copyright © 2014-2015 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: v0.1 - 12/31/2014
 #
 # This program is free software, under the terms and conditions of the
