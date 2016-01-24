@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 01/22/2016
+# Version 1.2, 01/23/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -120,48 +120,110 @@ module Ppstrnum
     # Authority for number names:
     # http://en.wikipedia.org/wiki/Names_of_large_numbers
     # http://www.unc.edu/~rowlett/units/large.html
+    # ...and best, most consistent up through 'centillion':
+    # http://www.thealmightyguru/Pointless/BigNumbers.html
     $illions ||= [
-                   [ 123, 'quadragint' ],
-                   [ 120, 'noven'      ],
+                   [ 303, 'cent'       ],  # centillion
+                   [ 300, 'novem'      ],
+                   [ 297, 'octo'       ],
+                   [ 294, 'septen'     ],
+                   [ 291, 'sex'        ],
+                   [ 288, 'quin'       ],
+                   [ 285, 'quattuor'   ],
+                   [ 282, 'tre'        ],
+                   [ 279, 'duo'        ],
+                   [ 276, 'un'         ],
+                   [ 273, ''           ],  # nonagintillion
+                   [ 270, 'novem'      ],
+                   [ 267, 'octo'       ],
+                   [ 264, 'septen'     ],
+                   [ 261, 'sex'        ],
+                   [ 258, 'quin'       ],
+                   [ 255, 'quattuor'   ],
+                   [ 252, 'tre'        ],
+                   [ 249, 'duo'        ],
+                   [ 246, 'un'         ],
+                   [ 243, ''           ],  # octogintillion
+                   [ 240, 'novem'      ],
+                   [ 237, 'octo'       ],
+                   [ 234, 'septen'     ],
+                   [ 231, 'sex'        ],
+                   [ 228, 'quin'       ],
+                   [ 225, 'quattuor'   ],
+                   [ 222, 'tre'        ],
+                   [ 219, 'duo'        ],
+                   [ 216, 'un'         ],
+                   [ 213, ''           ],  # septuagintillion
+                   [ 210, 'novem'      ],
+                   [ 207, 'octo'       ],
+                   [ 204, 'septen'     ],
+                   [ 201, 'sex'        ],
+                   [ 198, 'quin'       ],
+                   [ 195, 'quattuor'   ],
+                   [ 192, 'tre'        ],
+                   [ 189, 'duo'        ],
+                   [ 186, 'un'         ],
+                   [ 183, ''           ],  # sexagintillion
+                   [ 180, 'novem'      ],
+                   [ 177, 'octo'       ],
+                   [ 174, 'septen'     ],
+                   [ 171, 'sex'        ],
+                   [ 168, 'quin'       ],
+                   [ 165, 'quattuor'   ],
+                   [ 162, 'tre'        ],
+                   [ 159, 'duo'        ],
+                   [ 156, 'un'         ],
+                   [ 153, ''           ],  # quinquagintillion
+                   [ 150, 'novem'      ],
+                   [ 147, 'octo'       ],
+                   [ 144, 'septen'     ],
+                   [ 141, 'sex'        ],
+                   [ 138, 'quin'       ],
+                   [ 135, 'quattuor'   ],
+                   [ 132, 'tre'        ],
+                   [ 129, 'duo'        ],
+                   [ 126, 'un'         ],
+                   [ 123, ''           ],  # quadragintillion
+                   [ 120, 'novem'      ],
                    [ 117, 'octo'       ],
                    [ 114, 'septen'     ],
-                   [ 111, 'ses'        ],
-                   [ 108, 'quinqua'    ],
+                   [ 111, 'sex'        ],
+                   [ 108, 'quin '      ],
                    [ 105, 'quattuor'   ],
-                   [ 102, 'tres'       ],
+                   [ 102, 'tre'        ],
                    [ 100, 'googol'     ],
                    [  99, 'duo'        ],
                    [  96, 'un'         ],
-                   [  93, ''           ],        # 'trigint'
-                   [  90, 'novem'      ],        # 'vigint'
+                   [  93, ''           ],  # trigintillion
+                   [  90, 'novem'      ],
                    [  87, 'octo'       ],
-                   [  84, 'septem'     ],
-                   [  81, 'ses'        ],
-                   [  78, 'quinqua'    ],
+                   [  84, 'septen'     ],
+                   [  81, 'sex'        ],
+                   [  78, 'quin'       ],
                    [  75, 'quatturo'   ],
-                   [  72, 'tres'       ],
+                   [  72, 'tre'        ],
                    [  69, 'duo'        ],
                    [  66, 'un'         ],
-                   [  63, ''           ],        # 'vigint'
-                   [  60, 'noven'      ],        # 'dec'
+                   [  63, ''           ],  # vigintillion
+                   [  60, 'novem'      ],
                    [  57, 'octo'       ],
                    [  54, 'septen'     ],
-                   [  51, 'sex'        ],        # corrected by Rowlett
-                   [  48, 'quinqua'    ],
+                   [  51, 'sex'        ],
+                   [  48, 'quin'       ],
                    [  45, 'quattuor'   ],
                    [  42, 'tre'        ],
                    [  39, 'duo'        ],
                    [  36, 'un'         ],
-                   [  33, ''           ],        # 'dec'
+                   [  33, ''           ],  # decillion
                    [  30, 'non'        ],
                    [  27, 'oct'        ],
                    [  24, 'sept'       ],
-                   [  21, 'sext'       ],
+                   [  21, 'sex'        ],
                    [  18, 'quint'      ],
                    [  15, 'quadr'      ],
                    [  12, 'tr'         ],
                    [   9, 'b'          ],
-                   [   6, 'm'          ],
+                   [   6, 'm'          ],  # -illion
                    [   3, 'thousand'   ],
                    [   2, 'hundred'    ]
                  ]
@@ -194,9 +256,15 @@ module Ppstrnum
           prefix = write.to_s.numbernames( stanzasep, setcase )  # recurse
           # Aggregate prefix and common-suffixes:
           result = result + prefix
-          zname = zname + 'trigint'  if (93..120).cover?(zbase) && zbase % 3 == 0
-          zname = zname + 'vigint'   if (63.. 90).cover?(zbase)
-          zname = zname + 'dec'      if (33.. 60).cover?(zbase)
+          zname = zname + 'nonagint'     if ( 273..300 ).cover?(zbase)
+          zname = zname + 'octogint'     if ( 243..270 ).cover?(zbase)
+          zname = zname + 'septuagint'   if ( 213..240 ).cover?(zbase)
+          zname = zname + 'sexagint'     if ( 183..210 ).cover?(zbase)
+          zname = zname + 'quinquagint'  if ( 153..180 ).cover?(zbase)
+          zname = zname + 'quadragint'   if ( 123..150 ).cover?(zbase)
+          zname = zname + 'trigint'      if (  93..120 ).cover?(zbase) && zbase % 3 == 0
+          zname = zname + 'vigint'       if (  63.. 90 ).cover?(zbase)
+          zname = zname + 'dec'          if (  33.. 60 ).cover?(zbase)
           zname = zname + 'illion' + sep if (6..maxExponent).cover?(zbase) && zbase % 3 == 0
           result = result + ' ' + zname
           # Commas after "*illion"; special case, after "thousand" too:
