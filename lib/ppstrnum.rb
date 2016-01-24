@@ -79,15 +79,14 @@ module Ppstrnum
   #
   # These names of numbers corresponds to the "U.S., Canada and modern British
   # (Short Scale)" vocabulary -- the current implementation extends to the range
-  # of 10^123 or "Quadragintillion", although the official vocabulary extends to
-  # 10^3003 or "Millinillion."  As "one quadragintillion" exceeds "one googol" by
-  # a magnitude of 10^23rd, this seems like "enough."
-  # Authority: http://en.wikipedia.org/wiki/Names_of_large_numbers
+  # of 10^303 or "Centillion", although the official vocabulary extends to
+  # 10^3003 or "Millinillion."  As "one centillion" exceeds "one googol" by
+  # a magnitude of 10^203rd, this seems like "enough."
   #
-  # It's worth noting that this algorithm of ~122 lines of Ruby code generates,
+  # It's worth noting that this algorithm of ~217 lines of Ruby code generates,
   # for an equivalent number (one-to-one mapping) of discrete inputs, at least
-  # two times (±) nine hundred ninety nine quadragintillion distinct and unique
-  # output strings, the names of all of those numbers!
+  # two times (±) a centillion distinct and unique output strings, the names of
+  # all of those numbers!
   #
   # Works for Integer, Fixnum and Bignum values, as well as for String
   # numeric representations:  "123456", "123,456,789" and "987_654_321"
@@ -117,10 +116,10 @@ module Ppstrnum
     $teens ||= %w{ eleven    twelve   thirteen
                    fourteen  fifteen  sixteen
                    seventeen eighteen nineteen }
-    # Authority for number names:
+    # Authorities for number names:
     # http://en.wikipedia.org/wiki/Names_of_large_numbers
     # http://www.unc.edu/~rowlett/units/large.html
-    # ...and best, most consistent up through 'centillion':
+    # ...and most consistent up through 'centillion':
     # http://www.thealmightyguru/Pointless/BigNumbers.html
     $illions ||= [
                    [ 303, 'cent'       ],  # centillion
