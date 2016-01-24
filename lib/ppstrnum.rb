@@ -187,7 +187,7 @@ module Ppstrnum
                    [ 117, 'octo'       ],
                    [ 114, 'septen'     ],
                    [ 111, 'sex'        ],
-                   [ 108, 'quin '      ],
+                   [ 108, 'quin'       ],
                    [ 105, 'quattuor'   ],
                    [ 102, 'tre'        ],
                    [ 100, 'googol'     ],
