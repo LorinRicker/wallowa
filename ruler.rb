@@ -13,8 +13,8 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (02/05/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.2 (01/24/2016)"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -60,13 +60,17 @@ optparse = OptionParser.new { |opts|
            "line-# to display ruler (1 = top-of-screen)" ) do |val|
     options[:atline] = val
   end  # -l -@ --atline --@line
-  opts.on( "-s", "--style=STYLE", /default|both|before|after|none/i,
-           "Style for hash-marks (both (d), before, after, none)" ) do |val|
-  options[:style] = val || :default
+  opts.on( "-s", "--style=STYLE", /default|both|above|before|after|below|none/i,
+           "Style for hash-marks (both (d), none,",
+           "above, before, after, below)" ) do |val|
+    options[:style] = val || :default
+    options[:style] = 'before' if val == 'above'
+    options[:style] = 'after'  if val == 'below'
   end  # -s --style
   opts.on( "-c", "--color=COLOR", /black|red|green|brown|blue|purple|cyan|yellow|white/i,
-           "Ruler color (blue (d), black, red, green, brown, blue, purple, cyan, yellow, white" ) do |val|
-  options[:color] = val.to_sym || :blue
+           "Ruler color (blue (d), black, red, green, brown,",
+           " purple, cyan, yellow, white" ) do |val|
+    options[:color] = val.to_sym || :blue
   end  # -c --color
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
@@ -88,11 +92,7 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] [BackupDir]" +
-                "\n\n   The target BackupDir (directory) can be specified either as the command"   +
-                "\n   argument or as the value of the option --backuptree.  If both are provided," +
-                "\n   then the command argument is used.  The SourceDir is always specified as"    +
-                "\n   the value of the --sourcetree option.\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options]\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     options[:help] = true
