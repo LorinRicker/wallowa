@@ -48,7 +48,7 @@ The majority of the utility programs in this section use the OptionParser (optpa
 
 Only a few programs in this category do not use OptionParser, and these only require very simple or no command line input; perhaps only an argument value, or nothing at all.
 
-A different subset of these programs are launched using a rather tricky (at least to derive, not to use now that it's been developed) functional mechanism (ResetGlobbing) which actually temporarily **defeats** the shell's globbing behavior for that one command (and without the user's noticing or bothering with it).  This is done so that the program/script itself will actually receive the glob-wildcard characters as part of the command line argument values -- the shell does not expand/glob these wildcards, allowing the program to do more advanced things with them, including wildcard expansion on its own terms.  Programs in this category include the ones which implement the OpenVMS DCL Emulator commands:
+A different subset of these programs are launched using a rather tricky (at least to derive, not to use now that it's been developed) functional mechanism (`ResetGlobbing`) which actually temporarily **defeats** the shell's globbing behavior for that one command (and without the user's noticing or bothering with it).  This is done so that the program/script itself will actually receive the glob-wildcard characters as part of the command line argument values -- the shell does not expand/glob these wildcards, allowing the program to do more advanced things with them, including wildcard expansion on its own terms.  Programs in this category include the ones which implement the OpenVMS DCL Emulator commands:
 
     * dcl.rb
     * dir.rb
@@ -68,13 +68,23 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **datecalc.rb** --
 
-**dcl.rb** --
+**dcl.rb** -- Currently, I spend ~50% of my command-line time on DCL/VMS (see description of **dir.rb** below) and ~50% on bash/Linux. Sometimes my fingers don't know whether to type `dir` or `ls`, `copy` or `cp`... Wouldn't it be great if some DCL-style commands were actually available in bash?  Not just command aliases, but entire command syntax and behavior. This script is a DCL emulator -- at least a partial one -- which brings several file commands in DCL-style to bash:
+
+  * `copy` for `cp`
+  * `create` for `touch`
+  * `delete` for `rm`
+  * `rename` for `mv`
+  * `dir` for `ls`
+  * `search` for `grep`
+  * (preliminary ideas for `purge` and `show` have not been implemented, and may be jettisoned as practically inappropriate)
+
+In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract, f$fao, f$length ...` are provided -- this script is sort of a Swiss Army knife of DCL functions and operations transplanted into bash. Individual commands and functions are invoked by command aliases (constructed by a maintenance function in this script), and all command aliases use the bash globbing defeat function `ResetGlobbing`. See also **lib/DCLcommands.rb** and **lib/DCLfunctions** which actually implement the emulated commands and functions.
 
 **dclrename.rb** --
 
-**deltree.rb** --
+**deltree.rb** -- (not-yet-implemented)
 
-**dir.rb** -- My career has long been associated with the OpenVMS (old-timers say that the "Open" is silence, thus: "VMS") operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.
+**dir.rb** -- My career has long been associated with the OpenVMS (old-timers say that the "Open" is silence, thus: "VMS") operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.  `dir` also uses the `ResetGlobbing` function to turn off shell (bash) globbing, allowing the script to receive arguments like `*.rb` unexpanded in ARGV, and to handle wildcard globbing internally.
 
 **factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
 
@@ -238,5 +248,5 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **lib/TimeEnhancements.rb** --
 
-
+-----
 Last update: 24-Jan-2016
