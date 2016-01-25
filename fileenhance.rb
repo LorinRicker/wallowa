@@ -4,7 +4,7 @@
 # fileenhance.rb
 #
 # Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 0.4, 10/15/2014
+# Version 0.5, 01/24/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -13,14 +13,15 @@
 
 require_relative 'lib/StringEnhancements'
 require_relative 'lib/FileEnhancements'
+require_relative 'lib/pquts'
 require 'pp'
 
 # Main -- test drivers:
 def ftdriver( f, fdef = "" )
-  puts String.quts( f, "\nFile" ) + String.quts( fdef, "  Default" )
+  puts quts( f, "\nFile" ) + quts( fdef, "  Default" )
   fileh = File.parse( f, fdef )
   pp fileh
-  String.pquts( ( File.join fileh[:dir], fileh[:base] ), "Reconstituted" )
+  pquts( ( File.join fileh[:dir], fileh[:base] ), "Reconstituted" )
 end  # ftdriver
 
 if $0 == __FILE__ then

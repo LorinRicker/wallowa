@@ -80,7 +80,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract, f$fao, f$length ...` are provided -- this script is sort of a Swiss Army knife of DCL functions and operations transplanted into bash. Individual commands and functions are invoked by command aliases (constructed by a maintenance function in this script), and all command aliases use the bash globbing defeat function `ResetGlobbing`. See also **lib/DCLcommands.rb** and **lib/DCLfunctions** which actually implement the emulated commands and functions.
 
-**dclrename.rb** --
+**dclrename.rb** -- An alternate or partner implementation of top-level processing for the DCL `rename` emulated command -- it provides for a test harness and exploratory platform for this process, with an eye to future wildcard processing enhancments.
 
 **deltree.rb** -- (not-yet-implemented)
 
@@ -90,7 +90,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **filecomp.rb** --
 
-**fileenhance.rb** --
+**fileenhance.rb** -- A test/demo driver for the `File.parse` class method in **lib/FileEnhancements.rb**, also uses `quts` and `pquts` methods in **lib/pquts.rb**.
 
 **fixcopyright.rb** --
 
