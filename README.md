@@ -74,7 +74,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **deltree.rb** --
 
-**dir.rb** --
+**dir.rb** -- My career has long been associated with the OpenVMS (old-timers say that the "Open" is silence, thus: "VMS") operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.
 
 **factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
 
@@ -237,3 +237,6 @@ See in particular the description for the script **dcl.rb** below for more infor
 **lib/Thousands.rb** --
 
 **lib/TimeEnhancements.rb** --
+
+
+Last update: 24-Jan-2016
