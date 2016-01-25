@@ -118,7 +118,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **rel2bin.rb** --
 
-**ruler.rb** --
+**ruler.rb** -- Imposes (displays) a character-metric horizontal ruler onto the current terminal, at any cursor-addressable line position of the display, over-writing any text at that position. Color, hash-mark style and position is controllable with command-line options, with reasonable defaults (blue ruler at top of screen/display with hash marks below the ruler).
 
 **stringenhance.rb** --
 
