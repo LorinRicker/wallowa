@@ -9,6 +9,7 @@
 *.rb.backup
 *.rb_old
 *.rb_original
+PreliminaryIdeas/*
 *.txt
 *.sublime*
 
