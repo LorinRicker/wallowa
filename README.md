@@ -84,7 +84,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
 
-**filecomp.rb** -- An upscale wrapper for the basic two-file `diff` utility, performs a fast check for file equality or non-equality using an intelligent combination of fast comparisons based on message digests (SHA-1 (default) or SHA-[256,384,512]), files times (mtime, atime, ctime), file sizes (byte-counts), and/or file-type "magic numbers" (internal first-bytes signature). Files that are "the same" are simply reported as "file1 == file2"; files that are "different" are reported as "file1 <> file2" and, for these, offers to invoke one of several GUI or character-based "file differences" utilities (`meld` is the GUI default tool). These tools are available based on which file-diff tools are actually installed on your system -- the `--help` option displays those diff-tools that are available.
+**filecomp.rb** -- An upscale wrapper for the basic two-file `diff` utility, performs a fast check for file equality or non-equality using an intelligent combination of fast comparisons based on message digests (SHA-1 (default) or SHA-[256,384,512]), files times (mtime, atime, ctime), file sizes (byte-counts), and/or file-type "magic numbers" (internal first-bytes signature). Files that are "the same" are simply reported as "file1 == file2"; files that are "different" are reported as "file1 <> file2" and, for these, offers to invoke one of several GUI or character-based "file differences" utilities (`meld` is the GUI default tool). These tools are available based on which file-diff tools are actually installed on your system -- the `--help` option displays those diff-tools that are available. Can compare an explicitly named pair of files, or a file-group compared with that same group in another directory.
 
 **fileenhance.rb** -- A test/demo driver for the `File.parse` class method in **lib/FileEnhancements.rb**, also uses `quts` and `pquts` methods in **lib/pquts.rb**.
 
@@ -100,7 +100,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **mdrender.rb** -- A *github/markdown* rendering utility (early version).
 
-**microscope.rb** --
+**microscope.rb** -- Based on ideas from Pat Shaughnessy's excellent book ["Ruby Under A Microscope"](http://patshaughnessy.net/ruby-under-a-microscope) (ISBN 978-1-59327-527-3, [No Starch Press](http://www.nostarch.com/rum), 2014), and on the **Ripper** Ruby Gem, applies lexical (token) analysis, parser (sexp/AST) analysis, and/or compiler (YARV) analysis to a Ruby source file, or to a limited range of lines in a Ruby source file.
 
 **mkssfpath.rb** and **mkssf.sh** --
 
