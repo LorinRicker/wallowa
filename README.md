@@ -116,7 +116,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **ruler.rb** -- Imposes (displays) a character-metric horizontal ruler onto the current terminal, at any cursor-addressable line position of the display, over-writing any text at that position. Color, hash-mark style and position is controllable with command-line options, with reasonable defaults (blue ruler at top of screen/display with hash marks below the ruler).
 
-**stringenhance.rb** --
+**stringenhance.rb** -- A somewhat old-fashioned test driver for lib/StringEnhancements.rb methods.
 
 **stripcomments.rb** --
 
@@ -245,4 +245,4 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 25-Jan-2016
+Last update: 26-Jan-2016
