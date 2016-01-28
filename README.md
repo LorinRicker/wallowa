@@ -128,7 +128,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **wordfrequencies.rb** --
 
-**xchart.rb** --
+**xchart.rb** -- This script displays help-information about the Ruby Exception class hierarchy, together with rescue examples and with color embellishments.
 
 ## Benchmark Programs
 
@@ -245,4 +245,4 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 26-Jan-2016
+Last update: 28-Jan-2016
