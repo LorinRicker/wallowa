@@ -118,7 +118,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **stringenhance.rb** -- A somewhat old-fashioned test driver for lib/StringEnhancements.rb methods.
 
-**stripcomments.rb** --
+**stripcomments.rb** -- This script strips (removes) comment lines from a source-code file, where comment lines are started by hash-marks '#' (for Ruby, Python, Perl, bash, etc.); it removes both stand-alone (single-line) comments and those embedded in source lines. The script uses STDIN and STDOUT, filenames on com-line, including redirection, so this program can be used as a filter in a pipeline.
 
 **teamscram.rb** --
 
@@ -245,4 +245,4 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 28-Jan-2016
+Last update: 29-Jan-2016
