@@ -1,10 +1,10 @@
-#!/usr/bin/ruby1.9.1
+#!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
 # LoadPath2.rb
 #
-# Copyright © 2011-2012 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.1, 07/27/2012
+# Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.2, 01/30/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -23,4 +23,4 @@ puts "$LOAD_PATH ($:)..."
 puts $:
 
 #~ LoadPath2.rb:26: Use RbConfig instead of obsolete and deprecated Config
-pp RbConfig::CONFIG
+## pp RbConfig::CONFIG
