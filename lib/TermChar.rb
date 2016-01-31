@@ -4,7 +4,7 @@
 # TermChar.rb
 #
 # Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.1, 11/08/2015
+# Version 2.2, 01/30/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -15,7 +15,7 @@
 module TermChar
 
   def self.terminal_dimensions( show = nil )
-    if ENV['RUBY_VERSION'].split('-')[1] >= '2.0'
+    if RUBY_VERSION >= '2.0'
       require "io/console"
       tdim = IO.console.winsize
     else
@@ -44,7 +44,7 @@ module TermChar
       trap( 'WINCH' ) do
         yield
       end
-      sleep 
+      sleep
     rescue Interrupt => e
       raise SystemExit
       return nil
