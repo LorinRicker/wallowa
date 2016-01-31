@@ -120,7 +120,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **stripcomments.rb** -- This script strips (removes) comment lines from a source-code file, where comment lines are started by hash-marks '#' (for Ruby, Python, Perl, bash, etc.); it removes both stand-alone (single-line) comments and those embedded in source lines. The script uses STDIN and STDOUT, filenames on com-line, including redirection, so this program can be used as a filter in a pipeline.
 
-**teamscram.rb** --
+**teamscram.rb** -- This script started out as a test-driver for **lib/Scramble.rb**, but turned into a pretty neat utility of its own. It creates groupings or "teams" of individuals from a data-file with team-members' names (or cards-by-name-suit, fruits, or anything else you can name) on one-per-line -- it then creates arbitrary groups by first shuffling (randomizing) the name set (pool of people, deck of cards, etc.) and then "dealing" them into subsets (teams, hands, etc.). Useful in a classroom situation where you'd like to create *ad-hoc* programmer teams from the class roster, and keep team memberships well-mixed.
 
 **termchar.rb** --
 
@@ -128,7 +128,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **wordfrequencies.rb** --
 
-**xchart.rb** -- This script displays help-information about the Ruby Exception class hierarchy, together with rescue examples and with color embellishments.
+**xchart.rb** -- This script displays help-information about the Ruby **Exception** class hierarchy, together with rescue examples and with color embellishments.
 
 ## Benchmark Programs
 
@@ -245,4 +245,4 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 29-Jan-2016
+Last update: 30-Jan-2016
