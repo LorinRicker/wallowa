@@ -15,7 +15,7 @@
 module TermChar
 
   def self.terminal_dimensions( show = nil )
-    if RUBY_VERSION >= '2.0'
+    if RUBY_VERSION >= '2.0'  # use Ruby's own top-level constant
       require "io/console"
       tdim = IO.console.winsize
     else
