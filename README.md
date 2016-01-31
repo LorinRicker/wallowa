@@ -36,15 +36,19 @@ There are nine subdirectories (folders) in the repo:
 
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
+Note: References to "VMS" herein are synonymous with "OpenVMS" (old-timers say that the "Open" is silent, thus: "VMS"), the venerable and powerful operating system created in the 1970s by Digital Equipment Corporation on the VAX architecture, later ported to Alpha and now to IA-64 (HP Integrity) architectures, currently marketed by Hewlett Packard Enterprise Co., with current engineering, development and maintenance support by VMS Software Inc. (VSI). "DCL" is the Digital Command Language command-line interpreter (shell) on VMS.
+
 ## Com-Line Utility Programs and the OptionParser Gem
 
 The majority of the utility programs in this section use the OptionParser (optparse) gem to provide a consistent com-line parse look-&-feel for the user (me). Early on, it occurred to me (as it has to so many other coders) that there's a common subset of com-line options that can and should be present in *any* family of utilities, and I've provided for these options in nearly all such programs:
 
-  * **-a** or **--about**          -- display program identification information
-  * **-v** or **--verbose**        -- provide non-silent &/or progress output
-  * **-n** or **--dryrun**         -- test (rehearsal) mode, show but *do not* __do__
-  * **-h** or **-?** or **--help** -- display help text
-  * **-dN** or **--debug=N**       -- show debug information/output (levels N = 1, 2 or 3)
+  * *--about* (or *-a*)           -- display program identification information
+  * *--verbose* (or *-v*)         -- provide non-silent &/or progress output
+  * *--dryrun* (or *-n*)          -- test (rehearsal) mode, show but *do not* actually __do__
+  * *--help* (or *-h* or *-?*)   -- display help text
+  * *--debug=N* (or *-dN*)       -- show debug information/output (levels N = 1, 2 or 3)
+
+All such programs provide a *--help* (*-h*) option which displays specific help text: purpose and options.
 
 Only a few programs in this category do not use OptionParser, and these only require very simple or no command line input; perhaps only an argument value, or nothing at all.
 
@@ -76,11 +80,11 @@ See in particular the description for the script **dcl.rb** below for more infor
   * `search` for `grep`
   * (preliminary ideas for `purge` and `show` have not been implemented, and may be jettisoned as practically inappropriate)
 
-In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract, f$fao, f$length ...` are provided -- this script is sort of a Swiss Army knife of DCL functions and operations transplanted into bash. Individual commands and functions are invoked by command aliases (constructed by a maintenance function in this script), and all command aliases use the bash globbing defeat function `ResetGlobbing`. See also **lib/DCLcommands.rb** and **lib/DCLfunctions** which actually implement the emulated commands and functions.
+In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extract`, `f$fao`, `f$length`, ... are provided -- this script is sort of a Swiss Army knife of DCL functions and operations transplanted into bash. Individual commands and functions are invoked by command aliases (constructed by a maintenance function in this script), and all command aliases use the bash globbing defeat function `ResetGlobbing`. See also **lib/DCLcommands.rb** and **lib/DCLfunctions** which actually implement the emulated commands and functions.
 
 **dclrename.rb** -- An alternate or partner implementation of top-level processing for the DCL `rename` emulated command -- it provides for a test harness and exploratory platform for this process, with an eye to future wildcard processing enhancments.
 
-**dir.rb** -- My career has long been associated with the OpenVMS (old-timers say that the "Open" is silence, thus: "VMS") operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.  `dir` also uses the `ResetGlobbing` function to turn off shell (bash) globbing, allowing the script to receive arguments like `*.rb` unexpanded in ARGV, and to handle wildcard globbing internally.
+**dir.rb** -- My career has long been associated with the VMS operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.  `dir` also uses the `ResetGlobbing` function to turn off shell (bash) globbing, allowing the script to receive arguments like `*.rb` unexpanded in ARGV, and to handle wildcard globbing internally.
 
 **factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
 
@@ -116,13 +120,13 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **ruler.rb** -- Imposes (displays) a character-metric horizontal ruler onto the current terminal, at any cursor-addressable line position of the display, over-writing any text at that position. Color, hash-mark style and position is controllable with command-line options, with reasonable defaults (blue ruler at top of screen/display with hash marks below the ruler).
 
-**stringenhance.rb** -- A somewhat old-fashioned test driver for lib/StringEnhancements.rb methods.
+**stringenhance.rb** -- A somewhat old-fashioned test driver for **lib/StringEnhancements.rb** methods.
 
 **stripcomments.rb** -- This script strips (removes) comment lines from a source-code file, where comment lines are started by hash-marks '#' (for Ruby, Python, Perl, bash, etc.); it removes both stand-alone (single-line) comments and those embedded in source lines. The script uses STDIN and STDOUT, filenames on com-line, including redirection, so this program can be used as a filter in a pipeline.
 
 **teamscram.rb** -- This script started out as a test-driver for **lib/Scramble.rb**, but turned into a pretty neat utility of its own. It creates groupings or "teams" of individuals from a data-file with team-members' names (or cards-by-name-suit, fruits, or anything else you can name) on one-per-line -- it then creates arbitrary groups by first shuffling (randomizing) the name set (pool of people, deck of cards, etc.) and then "dealing" them into subsets (teams, hands, etc.). Useful in a classroom situation where you'd like to create *ad-hoc* programmer teams from the class roster, and keep team memberships well-mixed.
 
-**termchar.rb** --
+**termchar.rb** -- A very simple form of **show terminal** (like VMS) to show the terminal window's geometry (width-by-length, characters-by-lines). Uses **lib/TermChar.rb**.
 
 **tonerow.rb** -- This algorithm/program has been with me since college (a long, long time ago!), where I first implemented it in Fortran and PL/1 (languages taught back then); later I reimplemented it in (at least) Pascal (two compiler/dialects), and a couple of other languages since forgotten -- now resurrected in Ruby.  This script generates a "magic square", given a dodecaphonic (12-tone) row: The square is a 12-by-12 matrix of tones (integers 0 thru 9, with D and E standing for tone (pitch class) values 10 and eleven) -- the matrix represents all conventional combinations and permutations of that 12-tone row, at all 12 transposed pitches, including original and transpositions (rows read left to right), retrogrades (rows right to left), inversions (columns read top to bottom) and retrograde-inversions (columns bottom to top).  A 12-tone row input might look like "45130289D67E" (the row used in Webern's Piano Variations, Op. 27), where "0" is by convention pitch class (or tone) C.  Note that the top-left to bottom-right diagonal of the resulting matrix always has the same pitch class value, for the Webern row/example, the tone 4 representing E.
 
@@ -182,7 +186,7 @@ In addition, a selection of DCL lexical functions `f$edit, f$element, f$extract,
 
 **Demos/Transform - All the World's a Stage.rb** --
 
-## Library (lib/) Support Modules
+## Library (**lib/**) Support Modules
 
 **lib/ANSIseq.rb** (and **ANSISEQ.COM** and **CLS.COM**) --
 
