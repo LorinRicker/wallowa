@@ -68,7 +68,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **bru.rb** -- An intelligent "wrapper" for the powerful **rsync** program (which has way too many options and switches for every conceivable purpose, including ones that you'd never see or use).  This utility provides a simplified command-line options and arguments structure, optional configuration files to "remember" specific backup tasks, simplified/filtered output from the *rsync* subprocess, and more.
 
-**datecalc.rb** --
+**datecalc.rb** -- A date calculator (I'd previously written a similar utility on VMS in Pascal) which can determine a date which is a number of days after or before a given date, the number of days between two dates, and the number of days from "today" until a later date (as a special case of "between").
 
 **dcl.rb** -- Currently, I spend ~50% of my command-line time on DCL/VMS (see description of **dir.rb** below) and ~50% on bash/Linux. Sometimes my fingers don't know whether to type `dir` or `ls`, `copy` or `cp`... Wouldn't it be great if some DCL-style commands were actually available in bash?  Not just command aliases, but entire command syntax and behavior. This script is a DCL emulator -- at least a partial one -- which brings several file commands in DCL-style to bash:
 
@@ -249,4 +249,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 30-Jan-2016
+Last update: 31-Jan-2016
