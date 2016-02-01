@@ -130,7 +130,7 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **tonerow.rb** -- This algorithm/program has been with me since college (a long, long time ago!), where I first implemented it in Fortran and PL/1 (languages taught back then); later I reimplemented it in (at least) Pascal (two compiler/dialects), and a couple of other languages since forgotten -- now resurrected in Ruby.  This script generates a "magic square", given a dodecaphonic (12-tone) row: The square is a 12-by-12 matrix of tones (integers 0 thru 9, with D and E standing for tone (pitch class) values 10 and eleven) -- the matrix represents all conventional combinations and permutations of that 12-tone row, at all 12 transposed pitches, including original and transpositions (rows read left to right), retrogrades (rows right to left), inversions (columns read top to bottom) and retrograde-inversions (columns bottom to top).  A 12-tone row input might look like "45130289D67E" (the row used in Webern's Piano Variations, Op. 27), where "0" is by convention pitch class (or tone) C.  Note that the top-left to bottom-right diagonal of the resulting matrix always has the same pitch class value, for the Webern row/example, the tone 4 representing E.
 
-**wordfrequencies.rb** --
+**wordfrequencies.rb** -- Tallies up the frequencies of words in a document, dropping "little/noise" words (like a, the, but, to, too, etc.), and sorting the resulting list and displaying the "top-N" as requested by the user.
 
 **xchart.rb** -- This script displays help-information about the Ruby **Exception** class hierarchy, together with rescue examples and with color embellishments.
 
