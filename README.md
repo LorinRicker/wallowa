@@ -116,7 +116,7 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **regex.rb** -- Inspired by a technique (suggestion) in the regex chapter of *the Pickaxe Book* (**Programming Ruby 2.0 & 1.9**, Dave Thomas, et al), this program provides a way to experiment with regexes and target strings, displaying the relevant contents of a pattern match's MatchData object. Provides value as an immediate com-line utility, but does not compare in comprehensive functionality to online/web tools like [regex101.com](http://www.regex101.com) or [debuggex.com](http://www.debuggex.com), or to JGS's [RegexBuddy](http://www.regexbuddy.com).
 
-**rel2bin.rb** --
+**rel2bin.rb** -- I keep my program developments (e.g., Ruby scripts) separate from my production commands in **~/bin/**; this script is my "release to **bin/**" tool which: a) checks that the source file in the dev-directory is newer (later) that the script in **~/bin/** -- if it is: b) copies a script from my dev-directory to **bin**/; c) strips off any clumsy file extension, like **.rb**, so that the script name can be used as a simple command verb, like `bru`, `datecalc` or `termchar`; d) embellishes the copied script file with consistent file ownership and an executable **x** protection mask; e) handles **lib/** library script files, copying these to **bin/lib/** so that require\_relative can find them (Ruby scripts, for this special case, the file extension is _retained_).  The current version is Ruby- and shell-centric, but could readily be enhanced for Python and other script languages.
 
 **ruler.rb** -- Imposes (displays) a character-metric horizontal ruler onto the current terminal, at any cursor-addressable line position of the display, over-writing any text at that position. Color, hash-mark style and position is controllable with command-line options, with reasonable defaults (blue ruler at top of screen/display with hash marks below the ruler).
 
@@ -249,4 +249,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 31-Jan-2016
+Last update: 02-Feb-2016
