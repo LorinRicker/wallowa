@@ -110,7 +110,7 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **pgmheaderfixup.rb** --
 
-**process.rb** --
+**process.rb** -- *nix geeks and sys-admins know how to kill an errant process, supposing that she can identify it, usually with pipe-tricks like `ps aux | grep bad_proc_name`. Sometimes you may see this as `ps aux | grep [b]ad_proc_name` just so the grep-process itself doesn't show in the output. This script handles both "show process" and "kill that process" -- its `--kill` option makes that difference, so this one's kind'a bi-modal.  Use directly as `process [options] proc_name`, it's a `SHOW SYSTEM` VMS-equivalent. My bash profile script sets two aliases, `killmy` and `killsys` to do `process --kill` for  personal or system/world processes.
 
 **purgekernel.rb** --
 
@@ -249,4 +249,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 02-Feb-2016
+Last update: 03-Feb-2016
