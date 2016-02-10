@@ -16,20 +16,20 @@
 
 # This makes a nice pipeline with htmldoc (installed separately):
 #   $ mdrender README.md > T.htmldoc && \
-#        hdmldoc T.html -f T.pdf -t pdf14 --textfont sans --webpage && \
+#        htmldoc T.html -f T.pdf -t pdf14 --textfont sans --webpage && \
 #        evince T.pdf
 # Note that htmldoc is not particularly sdtin/out redirection-friendly,
 #   so we use intermediate files (it is a Windows program too)...
 #
 # See:
-#   $ man hdmldoc
+#   $ man htmldoc
 # and:
 #   $ evince /usr/share/doc/htmldoc/htmldoc.pdf &
 
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.2 (01/06/2016)"
+  PROGID = "#{PROGNAME} v0.3 (01/10/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
