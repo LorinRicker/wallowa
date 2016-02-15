@@ -22,28 +22,37 @@
 
 module Ppnumnum
 
-  # This wrapper hand-off a Numeric (Integer, Bignum, etc. ) to the
+  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
   # same-named String method, handling the to_s conversion as a
   # convenience, thus avoiding calls like: 1234567890.to_s.thousands --
   def thousands( sep = ',' )
     self.to_s.thousands( sep )
   end  # thousands
 
-  # This wrapper hand-off a Numeric (Integer, Bignum, etc. ) to the
+  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
   # same-named String method, handling the to_s conversion as a
   # convenience, thus avoiding calls like: 1234567890.to_s.numbernames --
   def numbernames( stanzasep = ',', setcase = :titlecase )
     self.to_s.numbernames( stanzasep, setcase )
   end  # numbernames
 
+  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
+  # same-named String method, handling the to_s conversion as a
+  # convenience, thus avoiding calls like: 1234567890.to_s.asc_numstack --
   def asc_numstack( sep = ",\n" )
     self.to_s.asc_numstack( sep )
   end  # asc_numstack
 
+  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
+  # same-named String method, handling the to_s conversion as a
+  # convenience, thus avoiding calls like: 1234567890.to_s.desc_numstack --
   def desc_numstack( sep = ",\n" )
     self.to_s.desc_numstack( sep )
   end  # desc_numstack
 
+  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
+  # same-named String method, handling the to_s conversion as a
+  # convenience, thus avoiding calls like: 1234567890.to_s.pp_numstack --
   def pp_numstack( options )
     self.to_s.pp_numstack( options )
   end  # pp_numstack

@@ -107,6 +107,11 @@ end                           #
 ###############################
 
 args = ARGV.join( ' ' )
+# Check that only numbers 0..9, arithmetical operators +, -, * and /,
+# decimal, comma, space and parentheses () are present in args:
+pat = /[,.0-9+\-*\/\ \(\)]+/
+raise "Expression error, illegal characters" if args !~ pat
+
 bignum = 0
 cmd = "bignum = #{args}"
 puts "cmd: #{cmd}" if options[:verbose]
