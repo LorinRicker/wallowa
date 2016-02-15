@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.2, 01/23/2016
+# Version 1.3, 02/14/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -22,16 +22,31 @@
 
 module Ppnumnum
 
-  # These wrappers hand-off a Numeric (Integer, Bignum, etc. ) to
-  # the same-named String method, handling the to_s conversion as a
-  # convenience, thus avoiding calls like: 1234567890.to_s.thousands
-  def thousands( sep = "," )
+  # This wrapper hand-off a Numeric (Integer, Bignum, etc. ) to the
+  # same-named String method, handling the to_s conversion as a
+  # convenience, thus avoiding calls like: 1234567890.to_s.thousands --
+  def thousands( sep = ',' )
     self.to_s.thousands( sep )
   end  # thousands
 
+  # This wrapper hand-off a Numeric (Integer, Bignum, etc. ) to the
+  # same-named String method, handling the to_s conversion as a
+  # convenience, thus avoiding calls like: 1234567890.to_s.numbernames --
   def numbernames( stanzasep = ',', setcase = :titlecase )
     self.to_s.numbernames( stanzasep, setcase )
   end  # numbernames
+
+  def asc_numstack( sep = ",\n" )
+    self.to_s.asc_numstack( sep )
+  end  # asc_numstack
+
+  def desc_numstack( sep = ",\n" )
+    self.to_s.desc_numstack( sep )
+  end  # desc_numstack
+
+  def pp_numstack( options )
+    self.to_s.pp_numstack( options )
+  end  # pp_numstack
 
 end  # module
 
@@ -39,8 +54,14 @@ end  # module
 
 module Ppstrnum
 
-  # Separate groups of characters with a separator
-  def groupsep( grp = 3, sep = ",", decpt = '.' )
+  # Separate groups of characters with a separator.  In this regard, see:
+  #   http://en.wikipedia.org/wiki/Decimal_mark for discussion of common
+  # practices and conventions -- herein, the U.S. comma-separator and
+  # decimal point style is coded as the default, but other international
+  # separators and points can be specified parametrically.
+  # See also http://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/
+  #          Dates_and_numbers#Decimal_points
+  def groupsep( grp = 3, sep = ',', decpt = '.' )
     num = self.to_s.strip
     if num.include?(decpt)
       nums = num.split(decpt)
@@ -64,10 +85,37 @@ module Ppstrnum
 
   # Separate a string (usually digits) into thousands --
   # e.g. "23456789" => "23,456,789"
-  # (See Note above, and Numeric.thousands below...)
-  def thousands( sep = "," )
+  # (See also Note above in module Ppnumnum...)
+  def thousands( sep = ',' )
     self.groupsep( 3, sep )
   end  # thousands
+
+  def asc_numstack( sep = ",\n" )
+    self.numbernames
+        .split( ',' ).each { |s| s.strip! }
+        .reverse
+  end  # asc_numstack
+
+  def desc_numstack( sep = ",\n" )
+    self.numbernames
+        .split( ',' ).each { |s| s.strip! }
+  end  # desc_numstack
+
+  def pp_numstack( options )
+    result = Array.new
+    tmp  = ( options[:format] == 'desc' ) ?
+             self.desc_numstack( options[:separator] ) :
+             self.asc_numstack( options[:separator] )
+    if options[:just] == 'right'  # right justification
+      maxl = tmp.each.max { |a,b| a.length <=> b.length }.length  # longest string-component?
+      maxl = options[:indent] if options[:indent] > maxl  # use the widest
+      tmp.each { | el | result << ( ' ' * ( maxl - el.length + 2 ) ) + el }
+    else  # left justification
+      maxl = ( options[:indent] > 2 ) ? options[:indent] : 2
+      tmp.each { | el | result << ( ( ' ' * maxl ) + el ) }
+    end
+    result.join( "#{options[:separator]}\n" )
+  end  # pp_numstack
 
 # -----
 

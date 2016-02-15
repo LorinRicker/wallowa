@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (02/13/2016)"
+  PROGID = "#{PROGNAME} v1.0 (02/14/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -23,27 +23,45 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # -----
 
 require 'optparse'
+require 'pp'
 require_relative 'lib/ppstrnum'
+require_relative 'lib/TermChar'
 
 # ==========
 
 # === Main ===
-options = { :format  => "sep",
-            :noop    => false,
-            :verbose => false,
-            :debug   => DBGLVL0,
-            :about   => false
+options = { :format    => 'sep',
+            :just      => 'right',
+            :separator => ',',
+            :indent     => 2,
+            :noop      => false,
+            :verbose   => false,
+            :debug     => DBGLVL0,
+            :about     => false
           }
 
 optparse = OptionParser.new { |opts|
   opts.on( "-f", "--format[=DISPLAY]", /SEP|WORD|BARE|ASC|DESC/i,
-           "Format to display (SEP: comma separated triads,",
+           "Format to display",
+           " (SEP: comma separated triads,",
            "  BARE: no separator,",
            "  WORD: number-names,",
            "  ASC:  number-names in ascending triads,",
            "  DESC: number-names in descending triads)" ) do |val|
     options[:format] = val.downcase || "sep"
   end  # -f --format
+  opts.on( "-i", "--indent[=INDENTATION]", Integer,
+           "Display indentation width" ) do |val|
+    options[:indent] = val.to_i.abs
+  end  # -i --indent
+  opts.on( "-j", "--just[=JUSTIFICATION]", /LEFT|RIGHT/i,
+           "Format justification, right (D) or left" ) do |val|
+    options[:just] = val.downcase || "right"
+  end  # -j --just
+  opts.on( "-s", "--separator[=SEPARATOR]", String,
+           "Triads separator" ) do |val|
+    options[:separator] = val.to_i.abs
+  end  # -s --separator
   opts.separator ""
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
@@ -101,15 +119,10 @@ when :bare
     result = bignum
 when :word
     result = bignum.numbernames
-when :asc
-    result = bignum.numbernames
-                   .split( ',' )
-                   .reverse { |s| trim( s ) }
-                   .join( ",\n")
-when :desc
-    result = bignum.numbernames
-                   .split( ',' ) { |s| trim( s) }
-                   .join( ",\n")
+when :asc, :desc
+    result = bignum.pp_numstack( options )
+#when :desc
+#    result = bignum.desc_numstack
 end
 
 puts result
