@@ -115,7 +115,14 @@ raise "Expression error, illegal characters" if args !~ pat
 bignum = 0
 cmd = "bignum = #{args}"
 puts "cmd: #{cmd}" if options[:verbose]
-eval( cmd )
+
+# This is, of course, a Bad Thing... to accept arbitrary input from
+# the command line and then execute (eval) it directly.  Hence, the
+# regex-pattern match above, to limit/filter the args to just things
+# that "look like arithmetic expressions" --
+#############
+eval( cmd ) #  <-- Don't try this at home...
+#############
 
 case options[:format].to_sym
 when :sep
