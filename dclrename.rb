@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (01/13/2016)"
+  PROGID = "#{PROGNAME} v1.5 (02/16/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -51,8 +51,9 @@ usage = "    Usage: $ #{PROGNAME} [options] file [file...] " +
         "'rename_pattern'".bold
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--case=CASE", /lower|upper|camel/i,
-           "Convert target filename case: lower, upper, camel" ) do |val|
+  opts.on( "-c", "--case=CASE", /lower|upper|capital|camel|snake/i,
+           "Convert target filename case:",
+           "  lower, UPPER, Capital, camel (CamelCase), snake (snake_case)" ) do |val|
     options[:convertcase] = val.downcase.to_sym
     options[:force]       = true
   end  # -c --case

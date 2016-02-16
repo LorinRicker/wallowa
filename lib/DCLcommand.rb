@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.3, 01/13/2016
+# Version 5.4, 02/16/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -148,8 +148,14 @@ end  # fileCommands
         dstcase = File.join( File.dirname(dst), File.basename(dst).downcase )
       when :upper
         dstcase = File.join( File.dirname(dst), File.basename(dst).upcase )
-      when :camel
-        dstcase = dst  # NYI!!!
+      when :camel, :capital
+        dstcase = dst.split( '_' ).collect( &:capitalize ).join
+      when :snake
+        dstcase = dst.gsub( /::/, '/' )
+                     .gsub( /([A-Z]+)([A-Z][a-z])/,'\1_\2' )
+                     .gsub( /([a-z\d])([A-Z])/,'\1_\2' )
+                     .tr( "-", "_" )
+                     .downcase
       else dstcase = dst
       end  # case options[:convertcase]
       confirmed, doall = askordo( options[:confirm], doall,
