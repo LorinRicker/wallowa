@@ -66,6 +66,8 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **autoinstall.rb** --
 
+**bignum.rb** -- A utility and demo script which exercises the full capabilities of `lib/ppstrnum`'s `thousands`, `numbernames`, `pp_numstack`, `asc_numstack` and `desc_numstack` methods. Accepts the ARGV vector as an arithmetical expression to `eval` (with filtering to avoid arbitrary code attacks). [To-do: create a `ResetGlobbing` alias to allow the use of unquoted `*` for multiplication and exponentiation.]
+
 **bru.rb** -- An intelligent "wrapper" for the powerful **rsync** program (which has way too many options and switches for every conceivable purpose, including ones that you'd never see or use).  This utility provides a simplified command-line options and arguments structure, optional configuration files to "remember" specific backup tasks, simplified/filtered output from the *rsync* subprocess, and more.
 
 **datecalc.rb** -- A date calculator (I'd previously written a similar utility on VMS in Pascal) which can determine a date which is a number of days after or before a given date, the number of days between two dates, and the number of days from "today" until a later date (as a special case of "between").
@@ -249,4 +251,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 03-Feb-2016
+Last update: 15-Feb-2016
