@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.4 (02/16/2016)"
+  PROGID = "#{PROGNAME} v5.5 (02/28/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -228,9 +228,12 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--case=CASE", /lower|upper|capital|camel|snake/i,
+  opts.on( "-c", "--case=CASE",
+              /lower|upper|capital|camel|snake|underscores|spaces/i,
            "Convert target filename case:",
-           "  lower, UPPER, Capital, camel (CamelCase), snake (snake_case)" ) do |val|
+           "  lower, UPPER, Capital,",
+           "  camel (CamelCase), snake (snake_case),",
+           "  underscores (' ' to '_'), spaces ('_' to ' ')" ) do |val|
     options[:convertcase] = val.downcase.to_sym
     options[:force]       = true
   end  # -c --case

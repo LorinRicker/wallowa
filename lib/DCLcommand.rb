@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.4, 02/16/2016
+# Version 5.5, 02/28/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -137,7 +137,6 @@ end  # fileCommands
   # end  # purge
 
 # ==========
-
   # See ri FileUtils::mv
   ## Also see $rby/dclrename.rb
   def self.rename( options, operands )
@@ -156,6 +155,10 @@ end  # fileCommands
                      .gsub( /([a-z\d])([A-Z])/,'\1_\2' )
                      .tr( "-", "_" )
                      .downcase
+      when :underscores
+        dstcase = DCLcommand.squeeconvert( dst, ' ', '_' )
+      when :spaces
+        dstcase = DCLcommand.squeeconvert( dst, '_', ' ' )
       else dstcase = dst
       end  # case options[:convertcase]
       confirmed, doall = askordo( options[:confirm], doall,
@@ -200,6 +203,20 @@ end  # fileCommands
 # ==========
 
 private
+
+  # Strip leading/trailing whitespace from both filename and extension
+  # components of basename, squeeze any runs of +fromch+ to single instances,
+  # then substitute +toch+ for all +fromch+, reassemble --
+  def self.squeeconvert( dst, fromch = ' ', toch = '_' )
+    fnm = File.basename( dst, '.*' ).strip
+    ext = File.extname( dst )
+    dot = ext[0] == '.'
+    ext = ext[1..-1].strip.squeeze( fromch ) if dot
+    ext.gsub!( fromch, toch )
+    fnm.gsub!( fromch, toch )
+    fnm << '.' << ext if dot
+    File.join( File.dirname( dst ), fnm )
+  end  # squeeconvert
 
   def self.askordo( confirm, doall, prompt )
     if ( confirm and not doall )
