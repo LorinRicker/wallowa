@@ -2,7 +2,8 @@
 
 .project
 /.bundle
-/testdata
+/test*
+/Test*
 /tmp
 /misc/*.rb_old
 /misc/*.rb_original
