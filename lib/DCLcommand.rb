@@ -142,7 +142,7 @@ end  # fileCommands
   def self.rename( options, operands )
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
-      case options[:convertcase]
+      case options[:convert]
       when :lower
         dstcase = File.join( File.dirname(dst), File.basename(dst).downcase )
       when :upper
@@ -159,8 +159,10 @@ end  # fileCommands
         dstcase = DCLcommand.squeeconvert( dst, ' ', '_' )
       when :spaces
         dstcase = DCLcommand.squeeconvert( dst, '_', ' ' )
+      when :compress
+        dstcase = DCLcommand.squeecompress( dst, ' -_' )
       else dstcase = dst
-      end  # case options[:convertcase]
+      end  # case options[:convert]
       confirmed, doall = askordo( options[:confirm], doall,
                                   "Rename #{src} to #{dstcase}" )
       begin
@@ -208,15 +210,27 @@ private
   # components of basename, squeeze any runs of +fromch+ to single instances,
   # then substitute +toch+ for all +fromch+, reassemble --
   def self.squeeconvert( dst, fromch = ' ', toch = '_' )
-    fnm = File.basename( dst, '.*' ).strip
+    fnm = File.basename( dst, '.*' ).strip.squeeze( fromch )
     ext = File.extname( dst )
     dot = ext[0] == '.'
     ext = ext[1..-1].strip.squeeze( fromch ) if dot
-    ext.gsub!( fromch, toch )
-    fnm.gsub!( fromch, toch )
+    ext = ext.gsub( fromch, toch ).strip
+    fnm = fnm.gsub( fromch, toch ).strip
     fnm << '.' << ext if dot
     File.join( File.dirname( dst ), fnm )
   end  # squeeconvert
+
+  # Strip leading/trailing whitespace from both filename and extension
+  # components of basename, squeeze any runs of +fromch+ to single instances,
+  # reassemble --
+  def self.squeecompress( dst, squishch = ' -_' )
+    fnm = File.basename( dst, '.*' ).strip.squeeze( squishch )
+    ext = File.extname( dst )
+    dot = ext[0] == '.'
+    ext = ext[1..-1].strip.squeeze( squishch ) if dot
+    fnm << '.' << ext if dot
+    File.join( File.dirname( dst ), fnm )
+  end  # squeecompress
 
   def self.askordo( confirm, doall, prompt )
     if ( confirm and not doall )

@@ -214,7 +214,7 @@ FNC_LINKS = %w{ locase lowercase
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = { :confirm     => false,
-            :convertcase => nil,
+            :convert     => nil,
             :pager       => false,
             :preserve    => false,
             :links       => false,
@@ -228,13 +228,15 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--case=CASE",
-              /lower|upper|capital|camel|snake|underscores|spaces/i,
+  opts.on( "-c", "--convert=FIXUP",
+              /lower|upper|capital|camel|snake|underscores|spaces|compress/i,
            "Convert target filename case:",
            "  lower, UPPER, Capital,",
            "  camel (CamelCase), snake (snake_case),",
-           "  underscores (' ' to '_'), spaces ('_' to ' ')" ) do |val|
-    options[:convertcase] = val.downcase.to_sym
+           "  underscores (' ' to '_'), spaces ('_' to ' '),",
+           "  compress (multi-runs of ' ', '_' or '-'",
+           "  to single instances of that character)" ) do |val|
+    options[:convert] = val.downcase.to_sym
     options[:force]       = true
   end  # -c --case
   opts.on( "-F", "--force",

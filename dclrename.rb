@@ -40,7 +40,7 @@ require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # === Main ===
 options = { :noop        => false,
-            :convertcase => nil,
+            :convert     => nil,
             :force       => false,
             :verbose     => false,
             :debug       => DBGLVL0,
@@ -51,13 +51,15 @@ usage = "    Usage: $ #{PROGNAME} [options] file [file...] " +
         "'rename_pattern'".bold
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--case=CASE",
-              /lower|upper|capital|camel|snake|underscores|spaces/i,
+  opts.on( "-c", "--convert=FIXUP",
+              /lower|upper|capital|camel|snake|underscores|spaces|compress/i,
            "Convert target filename case:",
            "  lower, UPPER, Capital,",
            "  camel (CamelCase), snake (snake_case),",
-           "  underscores (' ' to '_'), spaces ('_' to ' ')" ) do |val|
-    options[:convertcase] = val.downcase.to_sym
+           "  underscores (' ' to '_'), spaces ('_' to ' '),",
+           "  compress (multi-runs of ' ', '_' or '-'",
+           "  to single instances of that character)" ) do |val|
+    options[:convert] = val.downcase.to_sym
     options[:force]       = true
   end  # -c --case
   opts.on( "-F", "--force",
