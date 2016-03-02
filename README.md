@@ -84,7 +84,7 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extract`, `f$fao`, `f$length`, ... are provided -- this script is sort of a Swiss Army knife of DCL functions and operations transplanted into bash. Individual commands and functions are invoked by command aliases (constructed by a maintenance function in this script), and all command aliases use the bash globbing defeat function `ResetGlobbing`. See also **lib/DCLcommands.rb** and **lib/DCLfunctions** which actually implement the emulated commands and functions.
 
-**dclrename.rb** -- An alternate or partner implementation of top-level processing for the DCL `rename` emulated command -- it provides for a test harness and exploratory platform for this process, with an eye to future wildcard processing enhancements. It's also the first place to implement and test additional renaming schemes, like UPPER- and lower-casing, CamelCasing, snake_casing, "convert all spaces to underscores" and its inverse.
+**dclrename.rb** -- An alternate or partner implementation of top-level processing for the DCL `rename` emulated command -- it provides for a test harness and exploratory platform for this process, with an eye to future wildcard processing enhancements. It's also the first place to implement and test additional renaming schemes, like UPPER- and lower-casing, CamelCasing, snake_casing, "convert all spaces to underscores" and its inverse, and compression of multi-runs of ' ' and '_' characters.
 
 **dir.rb** -- My career has long been associated with the VMS operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.  `dir` also uses the `ResetGlobbing` function to turn off shell (bash) globbing, allowing the script to receive arguments like `*.rb` unexpanded in ARGV, and to handle wildcard globbing internally.
 
@@ -251,4 +251,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 28-Feb-2016
+Last update: 02-Mar-2016
