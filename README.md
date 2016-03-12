@@ -60,6 +60,8 @@ A different subset of these programs are launched using a rather tricky (at leas
 
 See in particular the description for the script **dcl.rb** below for more information.
 
+**addtimes.rb** -- Adds or subtracts time intervals (or durations) as provided on the command line or via prompting.  Ever had a finicky time-reporting program (or boss) where you've needed to pre-check task times/durations before you commit them to data entry?  This utility accepts data in hours-minutes-seconds [hh:]mm[:ss] format, and sums those durations.  If subtracting, it prompts for an initial duration from which to subtract data durations.
+
 **adoptdirtree.rb** and **adopt.sh** --
 
 **audiocat.rb** --
@@ -251,4 +253,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 02-Mar-2016
+Last update: 12-Mar-2016
