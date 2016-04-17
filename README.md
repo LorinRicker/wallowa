@@ -32,8 +32,6 @@ There are nine subdirectories (folders) in the repo:
 
   * **templates/** -- a small collection of Ruby program templates, just for getting a new program started in a consistent way
 
-  * **.git/** -- The *wallowa* git/GitHub repo itself
-
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
 Note: References to "VMS" herein are synonymous with "OpenVMS" (old-timers say that the "Open" is silent, thus: "VMS"), the venerable and powerful operating system created in the 1970s by Digital Equipment Corporation on the VAX architecture, later ported to Alpha and now to IA-64 (HP Integrity) architectures, currently marketed by Hewlett Packard Enterprise Co., with current engineering, development and maintenance support by VMS Software Inc. (VSI). "DCL" is the Digital Command Language command-line interpreter (shell) on VMS.
@@ -64,9 +62,13 @@ See in particular the description for the script **dcl.rb** below for more infor
 
 **adoptdirtree.rb** and **adopt.sh** --
 
-**audiocat.rb** --
+**audiocat.rb** -- Pop music is completely "song" oriented -- But the word *song* means something very specific, and is an inappropriate term for music (whether "classical", "art" or other) in general. The "music industry" is completely "track" oriented, where `track = song` -- This is completely and totally wrong for serious music.
 
-**autoinstall.rb** --
+This utility addresses a common problem when ripping music CDs to digital files (I load my collection to my cellphone to play on my long daily commute): It joins (concatenates) multiple separately ripped "tracks" into a single digital file, so that rather than playing random(ized) tracks, I can play a complete piano sonata, concerto or symphony, as the composer intended it to be heard. It handles `.ogg` and `.mp3` audio files. Believe me, Bach's *Goldberg Variations* are meant to be enjoyed as a coherent whole, not in bloody pieces.
+
+**autoinstall.rb** -- Upgrading a Linux distro (such as Ubuntu), especially a bare-metal reinstall, presents a real challenge to getting the newly installed instance completely back in shape with regard to all the various add-on products and packages that you'd installed on your previous Linux instance. Most of the time, you forget most everything that you'd installed -- getting everything (at least all that's important) back on-board is a real problem.
+
+This script is a sophisticated driver for the `apt-get install` command, and uses a simply-structured text file, a `PackageInstallation*.list`, to reinstall everything that's important after a bare-metal Linux rebuild. All that's needed is the discipline to keep a package-installation text file up-to-date with your ongoing configuration.
 
 **bignum.rb** -- A utility and demo script which exercises the full capabilities of `lib/ppstrnum`'s `thousands`, `numbernames`, `pp_numstack`, `asc_numstack` and `desc_numstack` methods. Accepts the ARGV vector as an arithmetical expression to `eval` (with filtering to avoid arbitrary code attacks). [To-do: create a `ResetGlobbing` alias to allow the use of unquoted `*` for multiplication and exponentiation.]
 
@@ -253,4 +255,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 12-Mar-2016
+Last update: 16-Apr-2016
