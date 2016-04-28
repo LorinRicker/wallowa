@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (03/12/2016)"
+  PROGID = "#{PROGNAME} v0.1 (04/28/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -28,7 +28,7 @@ require 'optparse'
 
 # === Main ===
 options = { :operator => "add",
-          #  :«+»      => «+»,
+            :prompt   => false,
             :noop     => false,
             :verbose  => false,
             :debug    => DBGLVL0,
@@ -38,8 +38,11 @@ options = { :operator => "add",
 optparse = OptionParser.new { |opts|
   opts.on( "-o", "--operator=OP",
            /add|subtract|plus|minus/ ) do |val|
-    options[:operator] = val
-  end  # -«+» --«+»
+    options[:operator] = val.to_sym
+  end  # -o --operator=OP
+  opts.on( "-p", "--prompt", "Prompt mode" ) do |val|
+    options[:prompt] = val
+  end  # -p --prompt
   opts.separator ""
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
@@ -85,9 +88,10 @@ end                           #
 ###############################
 
 if ARGV[0]
-  # Add all given args on command-line...
-else
-  # Prompted (empty-command-line) mode...
+  # Add all given args on command-line, even if prompt-mode is requested...
+end
+if options[:prompt]
+  # ...Prompt user for values, show running-tape of accumulated/calc'd time
 end
 
 exit true
