@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.3, 02/14/2016
+# Version 1.4, 05/05/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -274,7 +274,7 @@ module Ppstrnum
                    [  30, 'non'        ],
                    [  27, 'oct'        ],
                    [  24, 'sept'       ],
-                   [  21, 'sex'        ],
+                   [  21, 'sext'       ],
                    [  18, 'quint'      ],
                    [  15, 'quadr'      ],
                    [  12, 'tr'         ],
