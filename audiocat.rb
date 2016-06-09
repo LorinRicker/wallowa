@@ -38,7 +38,7 @@
 
 # ===========
 # Command Line --
-#   $ audiocat [options] out in1 in2 [...]
+#   $ audiocat [options] outfile infile1 infile2 [...]
 #
 #   Default input/output file type is .ogg (can omit the ".ogg" file extension);
 #   use --type mp3 (or specify file extensions as ".mp3") to copy-cat MP3s.
@@ -67,8 +67,8 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.6 (02/08/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v1.7 (06/09/2016)"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
   CONFIGFILE = File.join( CONFIGDIR, "#{PROGNAME}.yaml.rc" )
@@ -100,7 +100,7 @@ def config_save( opt )
   AppConfig.configuration_yaml( CONFIGFILE, opt, true )  # force the save/update
 end  # config_save
 
-def copycat( infiles, outfile, options )
+def copycat( outfile, infiles, options )
   # Copy-catenate infiles to outfile
   ifl, inf = "", ""
   ofl = File.basename outfile
@@ -121,9 +121,14 @@ def copycat( infiles, outfile, options )
     $stderr.puts "%#{PROGNAME}-E-COPYCAT, error in copying: '#{ifl}'"
     pp e
     print e.backtrace.join( "\n" )     # Catch-all, display the unexpected...
-    exit true                          # stop in our tracks
+    exit false                         # stop in our tracks
   end
 end  # copycat
+
+def renfiles( outfile, infile, options )
+  $stderr.puts "%#{PROGNAME}-I-MV, rename \"#{infile}\" \"#{outfile}\"" if options[:verbose]
+  FileUtils.mv( infile, outfile, { :force => true } ) unless options[:dryrun]
+end  # renfiles
 
 def delfiles( infiles, options )
   ifl = ""
@@ -267,7 +272,7 @@ ARGV.each do | f |    # Each remaining file in ARGV is an input filespec...
 end  # ARGV.each
 
 argfiles.uniq.each { |x| infiles << x }
-insize = infiles.size
+infcount = infiles.size
 pp infiles if options[:debug] > DBGLVL0
 
 fnflag = badflag = false
@@ -293,44 +298,49 @@ exit true if fnflag || badflag
 
 $stderr.puts "%#{PROGNAME}-I-OUTFILE, '#{File.basename(outfile)}'" if options[:verbose]
 
-# (Can .ogg and .wav files also be concatenate-copied?  ogg -> Yes!)
-
-# Copy-concatenate all infiles to the single outfile, & conditionally delete infiles
-case options[:type]
-when "ogg"
-  # See $ man oggCat -- Yes, output file first!
-  #   1. oggCat takes no options, use simply as: $ oggCat outfile infile[,...]
-  #   2. But as out/infiles will likely have embedded spaces, surround/guard
-  #      with quotes, e.g.: "Nancarrow - Study 3abcde.ogg"
-  #   3. oggCat barfs out noise messages "StreamMux::operator<<: Warning:
-  #        packet number for stream <0> not matching: expected: nnn got 3"
-  #      for each segment copied... so shunt the noise to /dev/null/ ...
-  noise = options[:debug] <= DBGLVL1 ? "2>/dev/null " : nil
-  cmd = "oggCat #{noise}'#{outfile}'"
-  infiles.each { |inf| cmd += " '#{inf}'" }
-  $stderr.puts "%#{PROGNAME}-I-ECHO, $ #{cmd}" if options[:debug] > DBGLVL0
-  $stdout.puts "%#{PROGNAME}-I-WORKING, be patient - oggCat converting (~2sec/Mb)"
-  %x{ #{cmd} }
-  stat = $?.exitstatus
-  if stat == 0
-    delfiles( infiles, options ) if options[:remove]
-  else
-    $stderr.puts "%#{PROGNAME}-E-STAT, exit: #{stat}"
-    $stderr.puts "-E-INSTALLED, is oggCat (oggvideotools) installed?" if stat == 127
-  end  # if stat != 0
-when "mp3"
-  if options[:debug] > DBGLVL0
-    $stderr.puts "%#{PROGNAME}-I-CALL, copycat()..."
-  else
-    copycat( infiles, outfile, options )
-    delfiles( infiles, options ) if options[:remove]
-  end  # if options[:debug] > DBGLVL0
+if infcount == 1
+  # This case devolves to just a file rename, no infiles deletion needed...
+  renfiles( outfile, infiles[0], options )
+  filez = "file"  # ...just one
 else
-  $stderr.puts "%#{PROGNAME}-E-BADFILE, unsupported file type #{options[:type]}"
-end  # case options[:type]
+  # Copy-concatenate all infiles to the single outfile, & conditionally delete infiles
+  case options[:type]
+  when "ogg"
+    # See $ man oggCat -- Yes, output file first!
+    #   1. oggCat takes no options, use simply as: $ oggCat outfile infile[,...]
+    #   2. But as out/infiles will likely have embedded spaces, surround/guard
+    #      with quotes, e.g.: "Nancarrow - Study 3abcde.ogg"
+    #   3. oggCat barfs out noise messages "StreamMux::operator<<: Warning:
+    #        packet number for stream <0> not matching: expected: nnn got 3"
+    #      for each segment copied... so shunt the noise to /dev/null/ ...
+    noise = options[:debug] <= DBGLVL1 ? "2>/dev/null " : nil
+    cmd = "oggCat #{noise}'#{outfile}'"
+    infiles.each { |inf| cmd += " '#{inf}'" }
+    $stderr.puts "%#{PROGNAME}-I-ECHO, $ #{cmd}" if options[:debug] > DBGLVL0
+    $stdout.puts "%#{PROGNAME}-I-WORKING, be patient - oggCat converting (~Nsec/Mb)"
+    %x{ #{cmd} }
+    stat = $?.exitstatus
+    if stat == 0
+      delfiles( infiles, options ) if options[:remove]
+    else
+      $stderr.puts "%#{PROGNAME}-E-STAT, exit: #{stat}"
+      $stderr.puts "-W-INSTALLED, is oggCat (oggvideotools) installed?" if stat == 127
+      exit stat
+    end  # if stat == 0
+  when "mp3"
+    if options[:debug] > DBGLVL0
+      $stderr.puts "%#{PROGNAME}-I-CALL, copycat()..."
+    else
+      copycat( outfile, infiles, options )
+      delfiles( infiles, options ) if options[:remove]
+    end  # if options[:debug] > DBGLVL0
+  else
+    $stderr.puts "%#{PROGNAME}-E-BADFILE, unsupported file type #{options[:type]}"
+    exit false
+  end  # case options[:type]
+  filez = "files"  # ...several
+end  # if infcount == 1
 
 # Summary...
-if options[:verbose]
-  fsz = insize == 1 ? "file" : "files"
-  $stderr.puts "%#{PROGNAME}-I-COPIED, #{insize} #{fsz} >> #{File.basename outfile}"
-end  # if options[:verbose]
+$stderr.puts "%#{PROGNAME}-I-CONCATENATED, #{infcount} #{filez} >> \"#{File.basename outfile}\"" if options[:verbose]
+exit true
