@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (04/28/2016)"
+  PROGID = "#{PROGNAME} v0.1 (06/30/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -41,7 +41,7 @@ optparse = OptionParser.new { |opts|
     options[:operator] = val.to_sym
   end  # -o --operator=OP
   opts.on( "-p", "--prompt", "Prompt mode" ) do |val|
-    options[:prompt] = val
+    options[:prompt] = true
   end  # -p --prompt
   opts.separator ""
   opts.on( "-n", "--noop", "--dryrun", "--test",
@@ -87,11 +87,30 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+accumulated_interval = 0  # actually accumlates seconds, which is
+                          # finally converted to interval "d hh:mm:ss"
+
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
+  ARGV.each do | arg |
+    accumulate( arg, accumulated_interval )
+  end
 end
 if options[:prompt]
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
+  more_data = true
+  while more_data
+    begin
+      # display current interval as prompt> -- get user's input
+      accumulate( str, accumulated_interval )
+      accint = format_interval( accumulated_interval )
+    rescue # user pressed Ctrl/D or Ctrl/Z end-of-data-input
+      more_data = false
+    end
+  end  # while
 end
+
+finalint = format_interval( accumulated_interval )
+puts "\nAccumulated interval/duration: #{ finalint }\n\n"
 
 exit true
