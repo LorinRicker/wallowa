@@ -20,21 +20,17 @@ require_relative './StringEnhancements'
 
 class TimeInterval << Time
 
-  SEC_IN_MIN = 60
-  SEC_IN_HR  = SEC_IN_MIN * 60
-  SEC_IN_DAY = SEC_IN_HR * 24
-
-  @seconds_in_a = {
-      year: 31557600,
-     month:  2592000,
-      week:   604800,
-       day:    86400,
-      hour:     3600,
+  @@seconds_in_a = {
+      year: 31557600,  # 60 * 60 * 24 * 365.25
+     month:  2592000,  # 60 * 60 * 24 * 30
+      week:   604800,  # 60 * 60 * 24 *  7
+       day:    86400,  # 60 * 60 * 24
+      hour:     3600,  # 60 * 60
     minute:       60,
     second:        1
     }
 
-    @report_units = {
+    @@report_units = {
         year: false,
        month: false,
         week: false,
@@ -51,30 +47,41 @@ class TimeInterval << Time
     @accumulated_interval = initseconds || 0
   end  #  initialize
 
-  def seconds_in( str )
-    # xxx
-  end  # seconds_in
-
   def accumulate( str )
-    @accumulated_interval += seconds_in( str )
+    @accumulated_interval += to_seconds( str )
   end  # accumulate
 
   def to_s
-    # xxx
+    # returns @accumulated_interval as a "d[-| ]hh:mm:ss" string
   end  # to_s
 
+  # Calculate the interval between "start-time" and "now":
+  #   starttime = Time.now
+  #   # ...later ...
+  #   starttime.elapsed
+  #   # ...or
+  #   endtime = Time.now
+  #   starttime.elapsed( endtime )
   def elapsed( ended = Time.now )
       delta = (ended - self).abs.truncate  # don't care about fractional seconds
-    incdays = delta >= SEC_IN_DAY
-         da = delta / SEC_IN_DAY
-      delta = delta % SEC_IN_DAY
-         hr = delta / SEC_IN_HR
-      delta = delta % SEC_IN_HR
-         mi = delta / SEC_IN_MIN
-         se = delta % SEC_IN_MIN
+    incdays = delta >= seconds_in_a[:day]
+         da = delta / seconds_in_a[:day]
+      delta = delta % seconds_in_a[:day]
+         hr = delta / seconds_in_a[:hour]
+      delta = delta % seconds_in_a[:hour]
+         mi = delta / seconds_in_a[:minute]
+         se = delta % seconds_in_a[:minute]
     return incdays ?
            sprintf( "%d %02d:%02d:%02d", da, hr, mi, se ) :
            sprintf( "%02d:%02d:%02d", hr, mi, se )
   end  # elapsed
 
 end  # class TimeInterval
+
+class String
+
+  def to_seconds
+    # Converts a "d[-| ]hh:mm:ss" string to interval of seconds (integer)
+  end  # to_seconds
+
+end  # String
