@@ -26,8 +26,8 @@
 # =================================================
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (02/16/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v2.3 (07/05/2016)"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -42,7 +42,7 @@ require 'fileutils'
 require_relative 'lib/dpkg_utils'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/StringEnhancements'
-require_relative 'lib/TimeEnhancements'
+require_relative 'lib/TimeInterval'
 require_relative 'lib/AskPrompted'
 
 # Meta-characters in the Package Installation File (PIF):
