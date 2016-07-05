@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (06/30/2016)"
+  PROGID = "#{PROGNAME} v0.1 (07/05/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -23,6 +23,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # -----
 
 require 'optparse'
+require_relative 'lib/TimeInterval'
 
 # ==========
 
@@ -87,13 +88,13 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
-accumulated_interval = 0  # actually accumlates seconds, which is
-                          # finally converted to interval "d hh:mm:ss"
+# accumlates seconds, to be displayed as interval "d hh:mm:ss"
+accint = TimeInterval.new
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
   ARGV.each do | arg |
-    accumulate( arg, accumulated_interval )
+    accint.accumulate( arg )
   end
 end
 if options[:prompt]
@@ -102,15 +103,14 @@ if options[:prompt]
   while more_data
     begin
       # display current interval as prompt> -- get user's input
-      accumulate( str, accumulated_interval )
-      accint = format_interval( accumulated_interval )
+      accint.accumulate( str )
+      promptstr = accint.to_s
     rescue # user pressed Ctrl/D or Ctrl/Z end-of-data-input
       more_data = false
     end
   end  # while
 end
 
-finalint = format_interval( accumulated_interval )
-puts "\nAccumulated interval/duration: #{ finalint }\n\n"
+puts "\nAccumulated interval/duration: #{ accint }\n\n"
 
 exit true
