@@ -18,7 +18,7 @@ require_relative './StringEnhancements'
 # A TimeInterval instance tracks temporal durations (intervals) as measured
 # in seconds, with support for formatted output.
 
-class TimeInterval << Time
+class TimeInterval < Time
 
   @@seconds_in_a = {
       year: 31557600,  # 60 * 60 * 24 * 365.25
@@ -52,17 +52,18 @@ class TimeInterval << Time
   end  # accumulate
 
   def to_s
-    # returns @accumulated_interval as a "d[-| ]hh:mm:ss" string
+    # TODO: returns @accumulated_interval as a "d[-| ]hh:mm:ss" string
+    self
   end  # to_s
 
   # Calculate the interval between "start-time" and "now":
-  #   starttime = Time.now
+  #   started = TimeInterval.now  # inherits now from Time
   #   # ...later ...
-  #   starttime.elapsed
+  #   started.elapsed
   #   # ...or
-  #   endtime = Time.now
-  #   starttime.elapsed( endtime )
-  def elapsed( ended = Time.now )
+  #   endtime = TimeInterval.now
+  #   started.elapsed( endtime )
+  def elapsed( ended = TimeInterval.now )
       delta = (ended - self).abs.truncate  # don't care about fractional seconds
     incdays = delta >= seconds_in_a[:day]
          da = delta / seconds_in_a[:day]
@@ -85,3 +86,17 @@ class String
   end  # to_seconds
 
 end  # String
+
+# === Main/test/demo ===
+if $0 == __FILE__
+  require_relative './ANSIseq'
+  puts String.clearscreen
+  puts "\n#{'='*3} TimeInterval demo #{'='*30}"
+  delay = 1
+  started = TimeInterval.now
+  puts "Sleeping for #{delay} seconds..."
+  sleep delay
+  puts started
+  puts "elapsed #{ started.elapsed }"
+  puts "#{'='*52}"
+end
