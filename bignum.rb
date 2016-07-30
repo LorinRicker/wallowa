@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (02/14/2016)"
+  PROGID = "#{PROGNAME} v1.1 (07/30/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -106,15 +106,18 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+ # Strip commas from each arg:
+ARGV.each_with_index { |a,i| ARGV[i] = a.tr( ',', '' ) }
+
 args = ARGV.join( ' ' )
 # Check that only numbers 0..9, arithmetical operators +, -, * and /,
-# decimal, comma, space and parentheses () are present in args:
-pat = /[,.0-9+\-*\/\ \(\)]+/
+# decimal, space and parentheses () are present in args:
+pat = /[.0-9+\-*\/\ \(\)]+/
 raise "Expression error, illegal characters" if args !~ pat
 
 bignum = 0
 cmd = "bignum = #{args}"
-puts "cmd: #{cmd}" if options[:verbose]
+puts "\n  eval( '#{cmd}' )\n\n" if options[:verbose]
 
 # This is, of course, a Bad Thing... to accept arbitrary input from
 # the command line and then execute (eval) it directly.  Hence, the
