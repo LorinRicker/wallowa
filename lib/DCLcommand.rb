@@ -228,7 +228,7 @@ end  # fileCommands
       puts cmd if options[:verbose]
 #      %x{ "#{cmd}" }
       system( "#{cmd}" )
-    when :sys  # SHOW DEVICE
+    when :sys  # SHOW SYSTEM
       %x{ "echo 'SHOW SYSTEM'" }
     when :tim  # SHOW TIME
       cmd = "/bin/date +'%d-%b-%Y %T'"
