@@ -205,6 +205,10 @@ end  # fileCommands
   #
   def self.show( options, what )
     case what[0][0..2].to_sym
+    when :def  # SHOW DEFAULT
+      %x{ "echo 'SHOW DEFAULT'" }
+    when :dev  # SHOW DEVICE
+      %x{ "echo 'SHOW DEVICE D'" }
     when :log  # SHOW LOGICAL
       lnms = ""
       what[1..what.size].each { |w| lnms += " #{w}" }
@@ -212,8 +216,8 @@ end  # fileCommands
       puts cmd if options[:verbose]
 #      %x{ #{cmd} }
       system( "#{cmd}" )
-    when :ter  # SHOW TERMINAL
-      exec( '# SHOW TERMINAL' )
+    when :mem  # SHOW DEVICE
+      %x{ "echo 'SHOW MEMORY'" }
     when :tim  # SHOW TIME
       cmd = "/bin/date +'%d-%b-%Y %T'"
       puts cmd if options[:verbose]
@@ -224,6 +228,16 @@ end  # fileCommands
       puts cmd if options[:verbose]
 #      %x{ "#{cmd}" }
       system( "#{cmd}" )
+    when :sys  # SHOW DEVICE
+      %x{ "echo 'SHOW SYSTEM'" }
+    when :tim  # SHOW TIME
+      cmd = "/bin/date +'%d-%b-%Y %T'"
+      puts cmd if options[:verbose]
+      exec( "#{cmd}" )
+    else
+      ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-show,",
+                       msgtext     = " no such item to show: #{what[0]}" )
+      exit false
     end  # case
   end  # show
 
