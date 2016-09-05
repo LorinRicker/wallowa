@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.5, 02/28/2016
+# Version 5.6, 09/05/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -57,7 +57,7 @@ def self.fileCommands( action, operands, options )
     DCLcommand.search( options, operands )
 
   when :show
-    DCLcommand.show( options, operands[0] )
+    DCLcommand.show( options, operands )
 
   else
     $stderr.puts "%#{PROGNAME}-e-badcommand, not a DCL command: '#{action}'"
@@ -198,8 +198,33 @@ end  # fileCommands
 
 # ==========
 
+  # SHOW item
+  #
+  # Maps a few common DCL SHOW commands to reasonable bash analogues
+  # or to home-made command functions.
+  #
   def self.show( options, what )
-    DCLcommand.nyi( "SHOW" )
+    case what[0][0..2].to_sym
+    when :log  # SHOW LOGICAL
+      lnms = ""
+      what[1..what.size].each { |w| lnms += " #{w}" }
+      cmd = "logicals #{lnms}"
+      puts cmd if options[:verbose]
+#      %x{ #{cmd} }
+      system( "#{cmd}" )
+    when :ter  # SHOW TERMINAL
+      exec( '# SHOW TERMINAL' )
+    when :tim  # SHOW TIME
+      cmd = "/bin/date +'%d-%b-%Y %T'"
+      puts cmd if options[:verbose]
+      exec( "#{cmd}" )
+    when :sym  # SHOW SYMBOL
+#       cmd = "alias | /bin/egrep --color -i #{what[1]}"
+      cmd = "alias #{what[1]}"
+      puts cmd if options[:verbose]
+#      %x{ "#{cmd}" }
+      system( "#{cmd}" )
+    end  # case
   end  # show
 
 # ==========
