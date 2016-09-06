@@ -204,37 +204,43 @@ end  # fileCommands
   # or to home-made command functions.
   #
   def self.show( options, what )
-    require_relative '../lib/TermChar'
     case what[0][0..2].to_sym
     when :def  # SHOW DEFAULT
-      %x{ /bin/pwd }.lines { |l| puts l }
+      str = %x{ /bin/pwd }
     when :dev  # SHOW DEVICE
-      %x{ di -t -fSbcvpaTM -xtmpfs ; echo '' ; lsblk }.lines { |l| puts l }
+      str = %x{ di -t -fSbcvpaTM -xtmpfs ; echo '' ; lsblk }
     when :log  # SHOW LOGICAL
+      ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
+                       msgtext     = " SHOW LOGICAL not yet implemented" )
+      exit false
+      # Unfortunately, %x{...} insists on executing a 'command',
+      #   but excludes all built-ins and functions (like 'logicals')...
+      # So this does not work (yet)...
       lnms = ""
       what[1..what.size].each { |w| lnms += " #{w}" }
-      cmd = "logicals #{lnms}"
-      puts cmd if options[:verbose]
-#      %x{ #{cmd} }
-      system( "#{cmd}" )
+      str = %x{ logicals #{lnms} }
     when :mem  # SHOW DEVICE
-      %x{ free -mtl }.lines { |l| puts l }
+      str = %x{ free -mtl }
     when :sym  # SHOW SYMBOL
-#       cmd = "alias | /bin/egrep --color -i #{what[1]}"
-      cmd = "alias #{what[1]}"
-      puts cmd if options[:verbose]
-#      %x{ "#{cmd}" }
-      system( "#{cmd}" )
+      ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
+                       msgtext     = " SHOW SYMBOL not yet implemented" )
+      exit false
+      # Unfortunately, %x{...} insists on executing a 'command',
+      #   but excludes all built-ins and functions (like 'alias')...
+      # So this does not work (yet)...
+      str = %x{ alias | /bin/egrep --color -i #{what[1]} }
     when :sys  # SHOW SYSTEM
+      require_relative '../lib/TermChar'
       twid = TermChar.terminal_width
-      %x{ ps -e --format pid,euser,%cpu,%mem,rss,stat,args --width #{twid} }.lines { |l| puts l }
+      str = %x{ ps -e --format pid,euser,%cpu,%mem,rss,stat,args --width #{twid} }
     when :tim  # SHOW TIME
-      %x{ /bin/date +'%d-%b-%Y %T' }.lines { |l| puts l }
+      str = %x{ /bin/date +'%d-%b-%Y %T' }
     else
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-show,",
                        msgtext     = " no such item to show: #{what[0]}" )
       exit false
     end  # case
+    str.lines { |s| puts s }
   end  # show
 
 # ==========
