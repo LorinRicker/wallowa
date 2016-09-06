@@ -204,11 +204,12 @@ end  # fileCommands
   # or to home-made command functions.
   #
   def self.show( options, what )
+    require_relative '../lib/TermChar'
     case what[0][0..2].to_sym
     when :def  # SHOW DEFAULT
-      %x{ "echo 'SHOW DEFAULT'" }
+      %x{ /bin/pwd }.lines { |l| puts l }
     when :dev  # SHOW DEVICE
-      %x{ "echo 'SHOW DEVICE D'" }
+      %x{ di -t -fSbcvpaTM -xtmpfs ; echo '' ; lsblk }.lines { |l| puts l }
     when :log  # SHOW LOGICAL
       lnms = ""
       what[1..what.size].each { |w| lnms += " #{w}" }
@@ -217,11 +218,7 @@ end  # fileCommands
 #      %x{ #{cmd} }
       system( "#{cmd}" )
     when :mem  # SHOW DEVICE
-      %x{ "echo 'SHOW MEMORY'" }
-    when :tim  # SHOW TIME
-      cmd = "/bin/date +'%d-%b-%Y %T'"
-      puts cmd if options[:verbose]
-      exec( "#{cmd}" )
+      %x{ free -mtl }.lines { |l| puts l }
     when :sym  # SHOW SYMBOL
 #       cmd = "alias | /bin/egrep --color -i #{what[1]}"
       cmd = "alias #{what[1]}"
@@ -229,11 +226,10 @@ end  # fileCommands
 #      %x{ "#{cmd}" }
       system( "#{cmd}" )
     when :sys  # SHOW SYSTEM
-      %x{ "echo 'SHOW SYSTEM'" }
+      twid = TermChar.terminal_width
+      %x{ ps -e --format pid,euser,%cpu,%mem,rss,stat,args --width #{twid} }.lines { |l| puts l }
     when :tim  # SHOW TIME
-      cmd = "/bin/date +'%d-%b-%Y %T'"
-      puts cmd if options[:verbose]
-      exec( "#{cmd}" )
+      %x{ /bin/date +'%d-%b-%Y %T' }.lines { |l| puts l }
     else
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-show,",
                        msgtext     = " no such item to show: #{what[0]}" )
