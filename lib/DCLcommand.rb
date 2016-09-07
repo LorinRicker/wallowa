@@ -206,9 +206,9 @@ end  # fileCommands
   def self.show( options, what )
     case what[0][0..2].to_sym
     when :def  # SHOW DEFAULT
-      str = %x{ /bin/pwd }
+      %x{ /bin/pwd }
     when :dev  # SHOW DEVICE
-      str = %x{ di -t -fSbcvpaTM -xtmpfs ; echo '' ; lsblk }
+      %x{ di -t -fSbcvpaTM -xtmpfs ; echo '' ; lsblk }
     when :log  # SHOW LOGICAL
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
                        msgtext     = " SHOW LOGICAL not yet implemented" )
@@ -218,9 +218,9 @@ end  # fileCommands
       # So this does not work (yet)...
       lnms = ""
       what[1..what.size].each { |w| lnms += " #{w}" }
-      str = %x{ logicals #{lnms} }
+      %x{ logicals #{lnms} }
     when :mem  # SHOW MEMORY
-      str = %x{ free -mtl }
+      %x{ free -mtl }
     when :sym  # SHOW SYMBOL
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
                        msgtext     = " SHOW SYMBOL not yet implemented" )
@@ -228,19 +228,18 @@ end  # fileCommands
       # Unfortunately, %x{...} insists on executing a 'command',
       #   but excludes all built-ins and functions (like 'alias')...
       # So this does not work (yet)...
-      str = %x{ alias | /bin/egrep --color -i #{what[1]} }
+      %x{ alias | /bin/egrep --color -i #{what[1]} }
     when :sys  # SHOW SYSTEM
       require_relative '../lib/TermChar'
       twid = TermChar.terminal_width
-      str = %x{ ps -e --format pid,euser,%cpu,%mem,rss,stat,args --width #{twid} }
+      %x{ ps -e --format pid,euser,%cpu,%mem,rss,stat,args --width #{twid} }
     when :tim  # SHOW TIME
-      str = %x{ /bin/date +'%d-%b-%Y %T' }
+      %x{ /bin/date +'%d-%b-%Y %T' }
     else
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-show,",
                        msgtext     = " no such item to show: #{what[0]}" )
       exit false
-    end  # case
-    str.lines { |s| puts s }
+    end.lines { |s| puts s }
   end  # show
 
 # ==========
