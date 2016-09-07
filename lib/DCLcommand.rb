@@ -219,7 +219,7 @@ end  # fileCommands
       lnms = ""
       what[1..what.size].each { |w| lnms += " #{w}" }
       str = %x{ logicals #{lnms} }
-    when :mem  # SHOW DEVICE
+    when :mem  # SHOW MEMORY
       str = %x{ free -mtl }
     when :sym  # SHOW SYMBOL
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
