@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.6 (09/05/2016)"
+  PROGID = "#{PROGNAME} v5.7 (09/07/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----

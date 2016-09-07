@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.6, 09/05/2016
+# Version 5.7, 09/07/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -213,9 +213,15 @@ end  # fileCommands
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
                        msgtext     = " SHOW LOGICAL not yet implemented" )
       exit false
-      # Unfortunately, %x{...} insists on executing a 'command',
-      #   but excludes all built-ins and functions (like 'logicals')...
-      # So this does not work (yet)...
+      # %x{...} is a plain (non-bash/etc) subprocess which executes a 'command',
+      # which is not a shell (bash/etc) operation... bash/shell things like all
+      # built-ins (e.g., alias) and functions (e.g., logicals) cannot be invoked
+      # in this way!
+      # So this has to invoke `bash --rcfile xxx.sh`  -- where xxx.sh is a
+      # dynamically created script (named pipe?) to invoke selected ~/bin/login
+      # scripts followed by the desired SHOW LOGICAL/SYMBOL action...
+      # >>> This is likely a decent enough demonstration of concept, but is
+      #     NOT likely very portable to other users!
       lnms = ""
       what[1..what.size].each { |w| lnms += " #{w}" }
       %x{ logicals #{lnms} }
@@ -225,9 +231,7 @@ end  # fileCommands
       ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-e-NYI,",
                        msgtext     = " SHOW SYMBOL not yet implemented" )
       exit false
-      # Unfortunately, %x{...} insists on executing a 'command',
-      #   but excludes all built-ins and functions (like 'alias')...
-      # So this does not work (yet)...
+      # See comment under SHOW LOGICAL above!...
       %x{ alias | /bin/egrep --color -i #{what[1]} }
     when :sys  # SHOW SYSTEM
       require_relative '../lib/TermChar'
