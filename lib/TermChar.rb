@@ -4,7 +4,7 @@
 # TermChar.rb
 #
 # Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.2, 01/30/2016
+# Version 3.0, 09/09/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.

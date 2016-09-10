@@ -11,8 +11,8 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.9 (02/16/2015)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  PROGID = "#{PROGNAME} v3.0 (09/09/2015)"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
 # "$ ps aux | grep [f]oobar" -- where the "...grep [p]attern"
@@ -30,6 +30,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'pp'
 require_relative 'lib/Prompted'
+require_relative 'lib/WhichOS'
 require_relative 'lib/TermChar'
 require_relative 'lib/ANSIseq'
 
@@ -40,22 +41,6 @@ def abort( os )
   STDERR.puts "%#{PROGNAME}-f-nosupp, operating system '#{os}' is not yet supported"
   exit false
 end  # abort( os )
-
-def identify_os
-  begin
-    whichos = RUBY_PLATFORM  # s'posed to exist, but might not for some Rubies
-  rescue NameError => e
-    require 'rbconfig'
-    whichos = RbConfig::CONFIG['host_os']
-  ensure
-    case whichos.downcase
-    when /linux/ then return :linux
-    when /vms/   then return :vms
-    else
-      abort( whichos )
-    end
-  end
-end  # identify_os
 
 def generate_command( options, twidth )
   case options[:os]
@@ -96,7 +81,7 @@ def kill_it( pid, options )
 end  # kill_it
 
 def process( args, options )
-  options[:os] = identify_os
+  options[:os] = WhichOS.identify_os
   STDERR.puts "%#{PROGNAME}-i-os, '#{options[:os]}' operating system" if options[:debug] >= DBGLVL1
   # Switch immediately to testing-mode if the identified OpSys <> the com-line requested one...
   options[:test] = true if options[:platform] && options[:platform] != options[:os]
