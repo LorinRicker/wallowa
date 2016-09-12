@@ -4,7 +4,7 @@
 # TermChar.rb
 #
 # Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 09/09/2016
+# Version 3.0, 09/12/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -14,15 +14,33 @@
 
 module TermChar
 
-  def self.terminal_dimensions( show = nil )
-    if RUBY_VERSION >= '2.0'  # use Ruby's own top-level constant
-      require "io/console"
-      tdim = IO.console.winsize
+  def self.terminal_dimensions( show = nil, os = nil )
+    tdim = [ 24, 80 ]  # old VT-100 dimensions, reasonable fallback?
+    if os
+      whichos = os
     else
-      # Hack to get terminal's display dimensions (# of lines & characters) --
-      # stty size returns terminal's [length width] (#lines, #columns):
-      tdim = %x{stty size}.split.collect { |td| td.to_i }
+      require_relative '../lib/WhichOS'
+      whichos = WhichOS.identify_os
     end
+    # Determine window/term-screen size as [ LENGTH, WIDTH ]
+    case whichos
+    when :linux
+      if RUBY_VERSION >= '2.0'  # use Ruby's own top-level constant
+        require "io/console"
+        tdim = IO.console.winsize
+      else
+        # Hack to get terminal's display dimensions (# of lines & characters) --
+        # stty size returns terminal's [length, width] (#lines, #columns):
+        tdim = %x{stty size}.split.collect { |td| td.to_i }
+      end
+    when :vms
+      tdim = [ %x{ WRITE sys$output F$GETDVI("TT","TT_PAGE") }.chomp,
+               %x{ WRITE sys$output F$GETDVI("TT","DEVBUFSIZ") }.chomp ]
+    # when :unix
+    # when :windows
+    else
+      puts "%TermChar-e-NYI, terminal_dimensions not yet implemented for \\#{whichos}\\"
+    end  # case whichos
     if show
       puts "Terminal width is #{tdim[1]} characters"
       puts "Terminal length is #{tdim[0]} lines"

@@ -4,7 +4,7 @@
 # WhichOS.rb
 #
 # Copyright © 2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 09/09/2016
+# Version 1.0, 09/12/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -22,10 +22,14 @@ module WhichOS
       whichos = RbConfig::CONFIG['host_os']
     ensure
       case whichos.downcase
-      when /linux/   then return :linux
-      when /unix/    then return :unix
-      when /vms/     then return :vms
-      when /windows/ then return :windows
+      when /linux/
+        return :linux
+      when /openvms/
+        return :vms     # don't match just "VMS", might get "Virtual MachineS"
+      when /unix/
+        return :unix
+      when /windows/
+        return :windows
       else
         abort( whichos )
       end

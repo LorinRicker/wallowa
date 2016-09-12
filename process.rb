@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.0 (09/09/2015)"
+  PROGID = "#{PROGNAME} v3.0 (09/12/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -50,10 +50,11 @@ def generate_command( options, twidth )
     cmd   = [ 1, "ps #{psopt} --width #{twidth}" ]
   when :vms
     # Note that pid is always first, and this listing is not customizable --
-    cmd   = [ 2, "SHOW SYSTEM /CLUSTER" ]
+    cmd   = [ 2, 'SHOW SYSTEM /CLUSTER' ]
   else
     abort( options[:os] )
   end
+  STDERR.puts "%#{PROGNAME}-i-cmd, `#{cmd[1]}`" if options[:debug] >= DBGLVL1
   return cmd
 end  # generate_command
 
@@ -62,9 +63,9 @@ def kill_it( pid, options )
     if options[:test]  # rehearse for the right platform...
       case options[:platform]
       when :linux
-        STDOUT.puts ">>> $ kill -s #{options[:signal]} #{pid}".color(:red).bold
+        STDERR.puts ">>> $ kill -s #{options[:signal]} #{pid}".color(:red).bold
       when :vms
-        STDOUT.puts ">>> $ STOP /ID=#{pid}".color(:red).bold
+        STDERR.puts ">>> $ STOP /ID=#{pid}".color(:red).bold
       end
     else  # really do it... equiv -> %x{ kill -kill #{pid} }
       begin
@@ -96,6 +97,7 @@ def process( args, options )
   args.each do | pgm |
     acount += 1
     pgmpat = Regexp.new( pgm, Regexp::IGNORECASE )
+    puts "  >>> `#{command}`"
     %x{ #{command} }.lines do | p |
       lno += 1
       if lno > hdlines
