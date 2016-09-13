@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.0 (09/12/2015)"
+  PROGID = "#{PROGNAME} v3.01 (09/12/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -89,7 +89,7 @@ def process( args, options )
   STDERR.puts "options: #{options}" if options[:debug] >= DBGLVL1
 
   # Set-up for terminal dimensions, especially varying width:
-  termdim = TermChar.terminal_dimensions( options[:verbose] )
+  termdim = TermChar.terminal_dimensions( options[:verbose], options[:os] )
 
   hdlines, command = generate_command( options, termdim[1] )
   lno = pcount = acount = 0
