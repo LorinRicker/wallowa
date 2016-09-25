@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.7, 09/07/2016
+# Version 5.8, 09/25/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -237,6 +237,8 @@ end  # fileCommands
       require_relative '../lib/TermChar'
       twid = TermChar.terminal_width
       %x{ ps -e --format pid,euser,%cpu,%mem,rss,stat,args --width #{twid} }
+    # when :ter  # SHOW TERMINAL
+    #   %x{ /home/lorin/bin/termchar }
     when :tim  # SHOW TIME
       %x{ /bin/date +'%d-%b-%Y %T' }
     else
