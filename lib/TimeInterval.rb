@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 07/05/2016
+# Version 2.0, 10/01/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -90,6 +90,8 @@ end  # String
 # === Main/test/demo ===
 if $0 == __FILE__
   require_relative './ANSIseq'
+  require 'pry'               #
+  binding.pry                 #
   puts String.clearscreen
   puts "\n#{'='*3} TimeInterval demo #{'='*30}"
   delay = 1
