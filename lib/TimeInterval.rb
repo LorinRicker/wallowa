@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 10/01/2016
+# Version 2.0, 10/16/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -40,15 +40,22 @@ class TimeInterval < Time
       second:  true,
       }
 
-  attr_reader :accumulated_interval
+  attr_reader :accumulated_interval,
+              :start_time
+  attr_accessor :end_time
 
   # Use 'initseconds' to provide an initial interval in seconds
-  def initialize( initseconds = nil )
+  def initialize( start_ts = Time.now,
+                  initseconds = nil,
+                  end_ts = nil )
+    @start_time = start_ts
     @accumulated_interval = initseconds || 0
+    @end_time = end_ts
   end  #  initialize
 
-  def accumulate( str )
-    @accumulated_interval += to_seconds( str )
+  def accumulate( int )
+    @accumulated_interval += int
+    @end_time = @accumulated_interval if ! @end_time
   end  # accumulate
 
   def to_s
@@ -63,7 +70,7 @@ class TimeInterval < Time
   #   # ...or
   #   endtime = TimeInterval.now
   #   started.elapsed( endtime )
-  def elapsed( ended = TimeInterval.now )
+  def elapsed( ended )
       delta = (ended - self).abs.truncate  # don't care about fractional seconds
     incdays = delta >= seconds_in_a[:day]
          da = delta / seconds_in_a[:day]
@@ -83,22 +90,25 @@ class String
 
   def to_seconds
     # Converts a "d[-| ]hh:mm:ss" string to interval of seconds (integer)
+    self
   end  # to_seconds
 
 end  # String
 
 # === Main/test/demo ===
 if $0 == __FILE__
+  require 'pp'
   require_relative './ANSIseq'
-  require 'pry'               #
-  binding.pry                 #
-  puts String.clearscreen
+  puts ''.clearscreen
   puts "\n#{'='*3} TimeInterval demo #{'='*30}"
-  delay = 1
-  started = TimeInterval.now
+  delay = 7
+  starttime = TimeInterval.new( start_ts = Time.now )
+  puts starttime
   puts "Sleeping for #{delay} seconds..."
   sleep delay
-  puts started
-  puts "elapsed #{ started.elapsed }"
+  starttime.accumulate( delay )
+  puts starttime.end_time
+  puts starttime.start_time
+  puts "elapsed #{ starttime.accumulated_interval }"
   puts "#{'='*52}"
 end
