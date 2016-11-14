@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (10/16/2016)"
+  PROGID = "#{PROGNAME} v0.1 (11/13/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -23,7 +23,9 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 # -----
 
 require 'optparse'
+require 'pp'
 require_relative 'lib/TimeInterval'
+require_relative 'lib/GetPrompted'
 
 # ==========
 
@@ -99,18 +101,14 @@ if ARGV[0]
 end
 if options[:prompt]
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
-  more_data = true
-  while more_data
-    begin
-      # display current interval as prompt> -- get user's input
-      accint.accumulate( str )
-      promptstr = accint.to_s
-    rescue # user pressed Ctrl/D or Ctrl/Z end-of-data-input
-      more_data = false
-    end
+  pstr = "0"
+  while pstr = getprompted( "#{pstr} > ", pstr, true )
+    # display current interval as prompt> -- get user's input
+    accint.accumulate( pstr )
+    pstr = accint.accumulated_interval.to_s
   end  # while
 end
 
-puts "\nAccumulated interval/duration: #{ accint }\n\n"
+puts "\n\nAccumulated interval/duration: #{ accint.accumulated_interval }\n\n"
 
 exit true

@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 10/25/2016
+# Version 2.0, 11/13/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -21,24 +21,24 @@ require_relative './StringEnhancements'
 class TimeInterval < Time
 
   @@seconds_in_a = {
-      year: 31557600,  # 60 * 60 * 24 * 365.25
-     month:  2592000,  # 60 * 60 * 24 * 30
-      week:   604800,  # 60 * 60 * 24 *  7
-       day:    86400,  # 60 * 60 * 24
-      hour:     3600,  # 60 * 60
-    minute:       60,
-    second:        1
-    }
+      YEAR: 31557600,  # 60 * 60 * 24 * 365.25
+     MONTH:  2592000,  # 60 * 60 * 24 * 30
+      WEEK:   604800,  # 60 * 60 * 24 *  7
+       DAY:    86400,  # 60 * 60 * 24
+      HOUR:     3600,  # 60 * 60
+    MINUTE:       60,
+    SECOND:        1
+  }.freeze
 
     @@report_units = {
-        year: false,
-       month: false,
-        week: false,
-         day:  true,
-        hour:  true,
-      minute:  true,
-      second:  true,
-      }
+        YEAR: false,
+       MONTH: false,
+        WEEK: false,
+         DAY:  true,
+        HOUR:  true,
+      MINUTE:  true,
+      SECOND:  true,
+    }.freeze
 
   attr_reader :accumulated_interval,
               :start_time
@@ -54,13 +54,36 @@ class TimeInterval < Time
   end  #  initialize
 
   def accumulate( int )
-    @accumulated_interval += int
+    @accumulated_interval += int.to_i
     @end_time = @accumulated_interval if ! @end_time
   end  # accumulate
 
   def to_s
+    int1 = self
+    s = ""
     # TODO: returns @accumulated_interval as a "d[-| ]hh:mm:ss" string
-    self
+    return "00:00" if int1 == 0
+    while int1 > 0
+      case
+      when int1 >= DAY
+        int2 = int1.div( DAY )
+        int1 = int1.mod( DAY )
+        s = sprintf( "%d ", int2 )
+      when int1 >= HOUR
+        int2 = int1.div( HOUR )
+        int1 = int1.mod( HOUR )
+        s = sprintf( "#{s}:%02d", int2 )
+      when int1 >= MINUTE
+        int2 = int1.div( MINUTE )
+        int1 = int1.mod( MINUTE )
+        s = sprintf( "#{s}:%02d", int2 )
+      when int1 >= SECOND
+        int2 = int1.div( SECOND )
+        int1 = int1.mod( SECOND )
+        s = sprintf( "#{s}:%02d", int2 )
+      end
+    end  # while
+    return s
   end  # to_s
 
   # Calculate the interval between "start-time" and "now":
