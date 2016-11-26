@@ -53,8 +53,29 @@ class TimeInterval < Time
     @end_time = end_ts
   end  #  initialize
 
-  def accumulate( int )
-    @accumulated_interval += int.to_i
+  def accumulate( interval )
+    puts "interval: #{interval}"
+    case interval
+    when /(\d{1,2}):(\d{1,2}):(\d\d)/
+      puts "hour-case"
+      i = $1.to_i * @@seconds_in_a[:hour] \
+        + $2.to_i * @@seconds_in_a[:minute] \
+        + $3.to_i * @@seconds_in_a[:second]
+    when /(\d{1,2}):(\d\d)/
+      puts "minute-case"
+      i = $1.to_i * @@seconds_in_a[:minute] \
+        + $2.to_i * @@seconds_in_a[:second]
+    when /0?:(\d\d)/
+      puts "second-case"
+      i = $1.to_i * @@seconds_in_a[:second]
+    when /(\d+)/
+      puts "default-case"
+      i = $1.to_i * @@seconds_in_a[:minute]
+    else
+      i = 0
+      puts "%TimeInterval-e-entry, format error"
+    end  # case
+    @accumulated_interval += i
     @end_time = @accumulated_interval if ! @end_time
   end  # accumulate
 
@@ -100,7 +121,7 @@ class TimeInterval < Time
   #   endtime = TimeInterval.now
   #   started.elapsed( endtime )
   def elapsed( ended )
-      delta = (ended - self).abs.truncate  # don't care about fractional seconds
+      delta = ( ended - @start_time.to_i ).abs.truncate  # don't care about fractional seconds
     incdays = delta >= @@seconds_in_a[:day]
          da = delta / @@seconds_in_a[:day]
       delta = delta % @@seconds_in_a[:day]
@@ -128,7 +149,7 @@ end  # String
 if $0 == __FILE__
   require 'pp'
   require_relative './ANSIseq'
-  puts String.clearscreen
+  puts ''.clearscreen
   puts "\n#{'='*3} TimeInterval demo #{'='*30}"
   delay = 7
   starttime = TimeInterval.new( start_ts = Time.now )
@@ -138,6 +159,6 @@ if $0 == __FILE__
   starttime.accumulate( delay )
   puts starttime.end_time
   puts starttime.start_time
-  puts "elapsed #{ starttime.accumulated_interval }"
+  puts "elapsed #{ starttime.elapsed( starttime.end_time ) }"
   puts "#{'='*52}"
 end
