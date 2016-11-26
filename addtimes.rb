@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (11/26/2016)"
+  PROGID = "#{PROGNAME} v1.0 (11/26/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -26,6 +26,7 @@ require 'optparse'
 require 'pp'
 require_relative 'lib/TimeInterval'
 require_relative 'lib/GetPrompted'
+require_relative 'lib/ANSIseq'
 
 # ==========
 
@@ -92,16 +93,17 @@ end                           #
 
 # accumlates seconds, to be displayed as interval "d hh:mm:ss"
 accint = TimeInterval.new
+pstr = "  0 00:00:00"
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
   ARGV.each do | arg |
     accint.accumulate( arg )
+    pstr = accint.to_s
   end
 end
 if options[:prompt]
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
-  pstr = "  0 00:00:00"
   # display current interval as prompt> -- get user's input, no default answer:
   while pstr = getprompted( "#{pstr} > ", "", true )
     break if pstr == ""
@@ -110,6 +112,7 @@ if options[:prompt]
   end  # while
 end
 
-puts "\nAccumulated interval/duration: #{ accint.to_s }\n"
+pstr = $stdout.tty? ? accint.to_s.bold.underline : accint.to_s
+puts "\nAccumulated interval/duration: #{ pstr }\n"
 
 exit true
