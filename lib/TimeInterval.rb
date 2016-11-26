@@ -55,11 +55,11 @@ class TimeInterval < Time
 
   def accumulate( interval )
     case interval
-    when /(\d{1,3})[ -](\d{1,2})[:.](\d{1,2})[:.](\d\d)/
+    when /(\d{1,3})[ -](\d{1,2})[:.](\d{1,2})([:.](\d\d))?/
       i = $1.to_i * @@seconds_in_a[:day]    \
         + $2.to_i * @@seconds_in_a[:hour]   \
         + $3.to_i * @@seconds_in_a[:minute] \
-        + $4.to_i * @@seconds_in_a[:second]
+        + $5.to_i * @@seconds_in_a[:second]
     when /(\d{1,2})[:.](\d{1,2})[:.](\d\d)/
       i = $1.to_i * @@seconds_in_a[:hour]   \
         + $2.to_i * @@seconds_in_a[:minute] \
@@ -89,7 +89,7 @@ class TimeInterval < Time
       da, acc = acc.divmod( @@seconds_in_a[:day] )
       # acc = acc.modulo( @@seconds_in_a[:day] )
       s = sprintf( "%3d ", da )
-    else s = "0 "
+    else s = "  0 "
     end
     if acc >= @@seconds_in_a[:hour]
       hr, acc = acc.divmod( @@seconds_in_a[:hour] )

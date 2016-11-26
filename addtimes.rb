@@ -44,7 +44,8 @@ optparse = OptionParser.new { |opts|
            /add|subtract|plus|minus/ ) do |val|
     options[:operator] = val.to_sym
   end  # -o --operator=OP
-  opts.on( "-p", "--prompt", "Prompt mode" ) do |val|
+  opts.on( "-p", "--prompt", "Prompt mode; can be used/combined with",
+                             "arguments (timeints) on com-line" ) do |val|
     options[:prompt] = true
   end  # -p --prompt
   opts.separator ""
@@ -74,8 +75,21 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "  Adds (or subtracts) time intervals or durations." +
-                "\n\n  Usage: #{PROGNAME} [options] tdur1 [tdur2...]" +
-                "\n\n    where tdurN is a time duration or interval\n\n"
+                "\n\n  Usage: #{PROGNAME} [options] timeint1 [timeint2...]" +
+                "\n\n  where each timeintN is a time interval or duration." +
+                "\n\n  A timeint value is entered as:" +
+                "\n\n    M          - Minutes: an integer (no punctuation)" +
+                "\n    MM:SS        - Minutes and Seconds" +
+                "\n    HH:MM:SS     - Hours, Minutes and Seconds" +
+                "\n    D HH:MM[:SS] - Days, Hours, Minutes and (optional) Seconds" +
+                "\n\n  Note: to facilitate timeint entry from the Numeric Keypad," +
+                "\n  a period or dot '.' can substitute for a colon ':', and" +
+                "\n  a dash '-' can substitute for the space ' ' after Days." +
+                "\n\n  Examples: 5 (five minutes); 1:30 (a minute and a half);" +
+                "\n            2:20:02 (two hours, twenty minutes and two seconds);" +
+                "\n            3 3:30:03 (3 days, 3 hours, thirty minutes and three seconds);" +
+                "\n            or equivalents: 1.30; 2.20.02; 3-3.30.03;; or even 3-3:30.03" +
+                "\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -112,7 +126,7 @@ if options[:prompt]
   end  # while
 end
 
-pstr = $stdout.tty? ? accint.to_s.bold.underline : accint.to_s
+pstr = $stdout.tty? ? accint.to_s.trim.bold.underline : accint.to_s
 puts "\nAccumulated interval/duration: #{ pstr }\n"
 
 exit true
