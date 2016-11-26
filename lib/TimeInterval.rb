@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 11/25/2016
+# Version 2.0, 11/26/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -55,8 +55,13 @@ class TimeInterval < Time
 
   def accumulate( interval )
     case interval
+    when /(\d{1,3})[ -](\d{1,2})[:.](\d{1,2})[:.](\d\d)/
+      i = $1.to_i * @@seconds_in_a[:day]    \
+        + $2.to_i * @@seconds_in_a[:hour]   \
+        + $3.to_i * @@seconds_in_a[:minute] \
+        + $4.to_i * @@seconds_in_a[:second]
     when /(\d{1,2})[:.](\d{1,2})[:.](\d\d)/
-      i = $1.to_i * @@seconds_in_a[:hour] \
+      i = $1.to_i * @@seconds_in_a[:hour]   \
         + $2.to_i * @@seconds_in_a[:minute] \
         + $3.to_i * @@seconds_in_a[:second]
     when /(\d{1,2})[:.](\d\d)/
@@ -83,7 +88,7 @@ class TimeInterval < Time
     if acc >= @@seconds_in_a[:day]
       da, acc = acc.divmod( @@seconds_in_a[:day] )
       # acc = acc.modulo( @@seconds_in_a[:day] )
-      s = sprintf( "%d ", da )
+      s = sprintf( "%3d ", da )
     else s = "0 "
     end
     if acc >= @@seconds_in_a[:hour]

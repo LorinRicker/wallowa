@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (11/25/2016)"
+  PROGID = "#{PROGNAME} v0.1 (11/26/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -101,7 +101,7 @@ if ARGV[0]
 end
 if options[:prompt]
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
-  pstr = "0 00:00:00"
+  pstr = "  0 00:00:00"
   # display current interval as prompt> -- get user's input, no default answer:
   while pstr = getprompted( "#{pstr} > ", "", true )
     break if pstr == ""
@@ -110,6 +110,6 @@ if options[:prompt]
   end  # while
 end
 
-puts "\n\nAccumulated interval/duration: #{ accint.to_s }\n\n"
+puts "\nAccumulated interval/duration: #{ accint.to_s }\n"
 
 exit true
