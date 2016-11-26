@@ -31,29 +31,38 @@ require_relative 'lib/ANSIseq'
 # ==========
 
 # === Main ===
-options = { :operator => "add",
+options = { :operator => :add,
+            :start    => nil,
             :prompt   => false,
             :noop     => false,
             :verbose  => false,
             :debug    => DBGLVL0,
-            :about   => false
+            :about    => false
           }
 
 optparse = OptionParser.new { |opts|
   opts.on( "-o", "--operator=OP",
-           /add|subtract|plus|minus/ ) do |val|
-    options[:operator] = val.to_sym
+           /add|subtract|plus|minus/,
+           "'add' (default, 'plus') or 'subtract' ('minus')" ) do |val|
+    options[:operator] = val.downcase.to_sym
+    options[:operator] = :add      if options[:operator] == :plus
+    options[:operator] = :subtract if options[:operator] == :minus
   end  # -o --operator=OP
+  opts.on( "-s", "--start=TIMEINT", "Starting time interval value;",
+                 "required for --operator=minus|subtract" ) do |val|
+    options[:start] = val
+  end  # -s --start
   opts.on( "-p", "--prompt", "Prompt mode; can be used/combined with",
                              "arguments (timeints) on com-line" ) do |val|
     options[:prompt] = true
   end  # -p --prompt
   opts.separator ""
-  opts.on( "-n", "--noop", "--dryrun", "--test",
-           "Dry-run (test & display, no-op) mode" ) do |val|
-    options[:noop]  = true
-    options[:verbose] = true  # Dry-run implies verbose...
-  end  # -n --noop
+  # -n --dryrun not implemented, not needed for this program:
+  # opts.on( "-n", "--noop", "--dryrun", "--test",
+  #          "Dry-run (test & display, no-op) mode" ) do |val|
+  #   options[:noop]  = true
+  #   options[:verbose] = true  # Dry-run implies verbose...
+  # end  # -n --noop
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
@@ -78,7 +87,7 @@ optparse = OptionParser.new { |opts|
                 "\n\n  Usage: #{PROGNAME} [options] timeint1 [timeint2...]" +
                 "\n\n  where each timeintN is a time interval or duration." +
                 "\n\n  A timeint value is entered as:" +
-                "\n\n    M          - Minutes: an integer (no punctuation)" +
+                "\n\n    M            - Minutes: an integer (no punctuation)" +
                 "\n    MM:SS        - Minutes and Seconds" +
                 "\n    HH:MM:SS     - Hours, Minutes and Seconds" +
                 "\n    D HH:MM[:SS] - Days, Hours, Minutes and (optional) Seconds" +
@@ -105,14 +114,22 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
-# accumlates seconds, to be displayed as interval "d hh:mm:ss"
-accint = TimeInterval.new
+if ( options[:operator] == :subtract ) && ( ! options[:start] )
+  puts "%#{PROGNAME}-e-required, --start=TIMEINT required for subtract operations"
+  exit false
+end
+
+# accumlates seconds, t+o be displayed as interval "d hh:mm:ss"
+accint = TimeInterval.new( opts = options )
 pstr = "  0 00:00:00"
+
+accint.accumulate( options[:start], :add ) if options[:start]
+pstr = accint.to_s
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
   ARGV.each do | arg |
-    accint.accumulate( arg )
+    accint.accumulate( arg, options[:operator] )
     pstr = accint.to_s
   end
 end
@@ -121,7 +138,7 @@ if options[:prompt]
   # display current interval as prompt> -- get user's input, no default answer:
   while pstr = getprompted( "#{pstr} > ", "", true )
     break if pstr == ""
-    accint.accumulate( pstr )
+    accint.accumulate( pstr, options[:operator] )
     pstr = accint.to_s
   end  # while
 end

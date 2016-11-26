@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 11/26/2016
+# Version 3.0, 11/26/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -45,15 +45,18 @@ class TimeInterval < Time
   attr_accessor :end_time
 
   # Use 'initseconds' to provide an initial interval in seconds
-  def initialize( start_ts = Time.now,
+  def initialize( opts = nil,
+                  start_ts = Time.now,
                   initseconds = nil,
                   end_ts = nil )
     @start_time = start_ts
     @accumulated_interval = initseconds || 0
     @end_time = end_ts
+    @opts = opts
+    pp @opts if @opts[:verbose]
   end  #  initialize
 
-  def accumulate( interval )
+  def accumulate( interval, operator = :add )
     case interval
     when /(\d{1,3})[ -](\d{1,2})[:.](\d{1,2})([:.](\d\d))?/
       i = $1.to_i * @@seconds_in_a[:day]    \
@@ -74,16 +77,22 @@ class TimeInterval < Time
     else
       i = 0
       puts "%TimeInterval-e-entry, format error"
+      exit false
     end  # case
-    @accumulated_interval += i
+    puts "interval: '#{interval}' or #{i} seconds" if @opts[:verbose]
+    case operator
+    when :add, :plus
+      @accumulated_interval += i
+    when :subtract, :minus
+      @accumulated_interval -= i
+    end  # case
     @end_time = @accumulated_interval if ! @end_time
   end  # accumulate
 
   def to_s
-    acc = @accumulated_interval
+    return "  0 00:00:00" if @accumulated_interval == 0
     s = ""
-    # TODO: returns @accumulated_interval as a "d[-| ]hh:mm:ss" string
-    return "00:00" if acc == 0
+    acc = @accumulated_interval
     da, hr, mi, se = 0
     if acc >= @@seconds_in_a[:day]
       da, acc = acc.divmod( @@seconds_in_a[:day] )
