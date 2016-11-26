@@ -54,22 +54,17 @@ class TimeInterval < Time
   end  #  initialize
 
   def accumulate( interval )
-    puts "interval: #{interval}"
     case interval
-    when /(\d{1,2}):(\d{1,2}):(\d\d)/
-      puts "hour-case"
+    when /(\d{1,2})[:.](\d{1,2})[:.](\d\d)/
       i = $1.to_i * @@seconds_in_a[:hour] \
         + $2.to_i * @@seconds_in_a[:minute] \
         + $3.to_i * @@seconds_in_a[:second]
-    when /(\d{1,2}):(\d\d)/
-      puts "minute-case"
+    when /(\d{1,2})[:.](\d\d)/
       i = $1.to_i * @@seconds_in_a[:minute] \
         + $2.to_i * @@seconds_in_a[:second]
-    when /0?:(\d\d)/
-      puts "second-case"
+    when /0?[:.](\d\d)/
       i = $1.to_i * @@seconds_in_a[:second]
     when /(\d+)/
-      puts "default-case"
       i = $1.to_i * @@seconds_in_a[:minute]
     else
       i = 0
@@ -81,7 +76,6 @@ class TimeInterval < Time
 
   def to_s
     acc = @accumulated_interval
-    puts "acc: #{acc}"
     s = ""
     # TODO: returns @accumulated_interval as a "d[-| ]hh:mm:ss" string
     return "00:00" if acc == 0
