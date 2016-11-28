@@ -123,14 +123,12 @@ end
 accint = TimeInterval.new( opts = options )
 pstr = "  0 00:00:00"
 
-accint.accumulate( options[:start], :add ) if options[:start]
-pstr = accint.to_s
+pstr = accint.accumulate( options[:start], :add ) if options[:start]
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
   ARGV.each do | arg |
-    accint.accumulate( arg, options[:operator] )
-    pstr = accint.to_s
+    pstr = accint.accumulate( arg, options[:operator] )
   end
 end
 if options[:prompt]
@@ -138,8 +136,11 @@ if options[:prompt]
   # display current interval as prompt> -- get user's input, no default answer:
   while pstr = getprompted( "#{pstr} > ", "", true )
     break if pstr == ""
-    accint.accumulate( pstr, options[:operator] )
-    pstr = accint.to_s
+    if ( pstr == '!' ) || ( pstr == '-' )
+      pstr = accint.undo( options[:operator] )
+    else
+      pstr = accint.accumulate( pstr, options[:operator] )
+    end
   end  # while
 end
 

@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 11/26/2016
+# Version 3.1, 11/27/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -49,6 +49,7 @@ class TimeInterval < Time
                   start_ts = Time.now,
                   initseconds = nil,
                   end_ts = nil )
+    @interval_stack = []
     @start_time = start_ts
     @accumulated_interval = initseconds || 0
     @end_time = end_ts
@@ -56,7 +57,7 @@ class TimeInterval < Time
     pp @opts if @opts[:verbose]
   end  #  initialize
 
-  def accumulate( interval, operator = :add )
+  def accumulate( interval, operator = :add, intpush = true )
     case interval
     when /(\d{1,3})[ -](\d{1,2})[:.](\d{1,2})([:.](\d\d))?/
       i = $1.to_i * @@seconds_in_a[:day]    \
@@ -87,7 +88,28 @@ class TimeInterval < Time
       @accumulated_interval -= i
     end  # case
     @end_time = @accumulated_interval if ! @end_time
+    @interval_stack.push( interval ) if intpush
+    if @opts[:verbose]
+      puts "@interval_stack:"
+      pp @interval_stack
+    end
+    self.to_s
   end  # accumulate
+
+  def undo( operator = :add )
+    last_interval = @interval_stack.pop
+    if @opts[:verbose]
+      puts "@interval_stack:"
+      pp @interval_stack
+    end
+    case operator
+    when :add, :plus
+      accumulate( last_interval, :subtract, intpush = false )
+    when :subtract, :minus
+      accumulate( last_interval, :add, intpush = false )
+    end  # case
+    self.to_s
+  end
 
   def to_s
     return "  0 00:00:00" if @accumulated_interval == 0
