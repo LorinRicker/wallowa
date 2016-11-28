@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (11/26/2016)"
+  PROGID = "#{PROGNAME} v1.1 (11/28/2016)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -127,12 +127,12 @@ end
 accint = TimeInterval.new( opts = options )
 pstr = "  0 00:00:00"
 
-pstr = accint.accumulate( options[:start], :add ) if options[:start]
+pstr = accint.accumulate( options[:start] ) if options[:start]
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
   ARGV.each do | arg |
-    pstr = accint.accumulate( arg, options[:operator] )
+    pstr = accint.accumulate( arg )
   end
 end
 if options[:prompt]
@@ -141,9 +141,9 @@ if options[:prompt]
   while pstr = getprompted( "#{pstr} > ", "", true )
     break if pstr == ""
     if ( pstr == '!' ) || ( pstr == '-' )
-      pstr = accint.undo( options[:operator] )
+      pstr = accint.undo
     else
-      pstr = accint.accumulate( pstr, options[:operator] )
+      pstr = accint.accumulate( pstr )
     end
   end  # while
 end

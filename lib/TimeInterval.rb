@@ -4,7 +4,7 @@
 # TimeInterval.rb
 #
 # Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.1, 11/27/2016
+# Version 3.2, 11/28/2016
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -57,7 +57,7 @@ class TimeInterval < Time
     pp @opts if @opts[:verbose]
   end  #  initialize
 
-  def accumulate( interval, operator = :add, intpush = true )
+  def parse_interval( interval )
     case interval
     when /(\d{1,3})[ -](\d{1,2})[:.](\d{1,2})([:.](\d\d))?/
       i = $1.to_i * @@seconds_in_a[:day]    \
@@ -81,14 +81,18 @@ class TimeInterval < Time
       exit false
     end  # case
     puts "interval: '#{interval}' or #{i} seconds" if @opts[:verbose]
-    case operator
+    return i
+  end
+
+  def accumulate( interval )
+    case @opts[:operator]
     when :add, :plus
-      @accumulated_interval += i
+      @accumulated_interval += parse_interval( interval )
     when :subtract, :minus
-      @accumulated_interval -= i
+      @accumulated_interval -= parse_interval( interval )
     end  # case
     @end_time = @accumulated_interval if ! @end_time
-    @interval_stack.push( interval ) if intpush
+    @interval_stack.push( interval )
     if @opts[:verbose]
       puts "@interval_stack:"
       pp @interval_stack
@@ -96,19 +100,19 @@ class TimeInterval < Time
     self.to_s
   end  # accumulate
 
-  def undo( operator = :add )
+  def undo
     last_interval = @interval_stack.pop
     if @opts[:verbose]
       puts "@interval_stack:"
       pp @interval_stack
     end
-    case operator
+    case @opts[:operator]
     when :add, :plus
-      accumulate( last_interval, :subtract, intpush = false )
+      @accumulated_interval -= parse_interval( last_interval )
     when :subtract, :minus
-      accumulate( last_interval, :add, intpush = false )
+      @accumulated_interval += parse_interval( last_interval )
     end  # case
-    self.to_s
+     self.to_s
   end
 
   def to_s
