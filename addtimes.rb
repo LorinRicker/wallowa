@@ -41,6 +41,10 @@ options = { :operator => :add,
           }
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-p", "--prompt", "Prompt mode; can be used/combined with the",
+                             "arguments (timeints) on the command-line" ) do |val|
+    options[:prompt] = true
+  end  # -p --prompt
   opts.on( "-o", "--operator=OP",
            /add|subtract|plus|minus/,
            "'add' (default, 'plus') or 'subtract' ('minus')" ) do |val|
@@ -48,14 +52,10 @@ optparse = OptionParser.new { |opts|
     options[:operator] = :add      if options[:operator] == :plus
     options[:operator] = :subtract if options[:operator] == :minus
   end  # -o --operator=OP
-  opts.on( "-s", "--start=TIMEINT", "Starting time interval value;",
-                 "required for --operator=minus|subtract" ) do |val|
+  opts.on( "-s", "--start=TIMEINT", "Starting time interval value; this option",
+                 "is required for --operator=minus|subtract" ) do |val|
     options[:start] = val
   end  # -s --start
-  opts.on( "-p", "--prompt", "Prompt mode; can be used/combined with",
-                             "arguments (timeints) on com-line" ) do |val|
-    options[:prompt] = true
-  end  # -p --prompt
   opts.separator ""
   # -n --dryrun not implemented, not needed for this program:
   # opts.on( "-n", "--noop", "--dryrun", "--test",
@@ -83,7 +83,7 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "  Adds (or subtracts) time intervals or durations." +
+  opts.banner = "  Adds or subtracts time intervals or durations." +
                 "\n\n  Usage: #{PROGNAME} [options] timeint1 [timeint2...]" +
                 "\n\n  where each timeintN is a time interval or duration." +
                 "\n\n  A timeint value is entered as:" +
@@ -91,13 +91,17 @@ optparse = OptionParser.new { |opts|
                 "\n    MM:SS        - Minutes and Seconds" +
                 "\n    HH:MM:SS     - Hours, Minutes and Seconds" +
                 "\n    D HH:MM[:SS] - Days, Hours, Minutes and (optional) Seconds" +
-                "\n\n  Note: to facilitate timeint entry from the Numeric Keypad," +
-                "\n  a period or dot '.' can substitute for a colon ':', and" +
-                "\n  a dash '-' can substitute for the space ' ' after Days." +
-                "\n\n  Examples: 5 (five minutes); 1:30 (a minute and a half);" +
-                "\n            2:20:02 (two hours, twenty minutes and two seconds);" +
-                "\n            3 3:30:03 (3 days, 3 hours, thirty minutes and three seconds);" +
-                "\n            or equivalents: 1.30; 2.20.02; 3-3.30.03;; or even 3-3:30.03" +
+                "\n\n  Note 1: To facilitate timeint entry from the Numeric Keypad, a '.' (dot/period)" +
+                "\n          can substitute for a colon ':', and a '-' (dash) can substitute for the" +
+                "\n          ' ' (space) after Days." +
+                "\n\n  Note 2: If a data entry error (typo) is made, use either '!' (bang) or '-' (minus)" +
+                "\n          to undo (reverse) that entry.  An input stack (LIFO) is maintained, so an" +
+                "\n          arbitrary number of reversals can be done." +
+                "\n\n  Examples:   12      = twelve minutes, zero seconds;" +
+                "\n                 1:30 = a minute and a half;" +
+                "\n              2:20:02 = two hours, twenty minutes and two seconds;" +
+                "\n            3 3:30:03 = three days, three hours, thirty minutes and three seconds;" +
+                "\n            or equivalents: 1.30; 2.20.02; 3-03.30.03; or even 3-03:30.03" +
                 "\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
