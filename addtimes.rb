@@ -3,7 +3,7 @@
 
 # addtimes.rb
 #
-# Copyright © 2016 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2016-2017 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (11/28/2016)"
+  PROGID = "#{PROGNAME} v1.2 (01/19/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -125,9 +125,8 @@ end
 
 # accumlates seconds, t+o be displayed as interval "d hh:mm:ss"
 accint = TimeInterval.new( opts = options )
-pstr = "  0 00:00:00"
 
-pstr = accint.accumulate( options[:start] ) if options[:start]
+pstr = options[:start] ? accint.accumulate( options[:start] ) : "  0 00:00:00"
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
