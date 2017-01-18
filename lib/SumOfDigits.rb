@@ -4,7 +4,7 @@
 # SumOfDigits.rb
 #
 # Copyright © 2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 01/12/2017
+# Version 1.1, 01/18/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -52,6 +52,8 @@ module SumOfDigits
     ds = self.to_s
     round = 0
     result = { "rounds" => 0 }
+    result["sum1digit"] = self
+    result["str1digit"] = ds
     while ds.length > len
       round += 1
       sum = 0
