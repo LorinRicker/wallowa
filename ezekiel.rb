@@ -123,12 +123,13 @@ end                           #
 # Initializations --
 pstr = 'phrase'
 
+# Create a hash of { "A" => 1, "B" => 2, ... }
 alphahash = Hash.new( 0 )  # return 0 (zero) for any undefined hash element
 (1..26).each { |v| alphahash[(v-1+ASCII_A).chr] = v +options[:offset]}
 pp alphahash if options[:debug] > 1
 
 if ARGV[0]
-  # Add all given args on command-line, even if prompt-mode is requested...
+  # Process all phrases (args) on command-line, even if prompt-mode is requested...
   ARGV.each do | arg |
     cross_sum = ezekiel( arg, alphahash )
     puts "\nEzekiel(\"#{arg.upcase}\") --> #{cross_sum["Ezekiel\#"]}\n"
@@ -136,8 +137,8 @@ if ARGV[0]
   end
 end
 if options[:prompt]
-  # ...Prompt user for values, show running-tape of accumulated/calc'd time
-  # display current interval as prompt> -- get user's input, no default answer:
+  # ...Prompt user for phrases/words, calculate Ezekiel-# for each...
+  # "empty" response ([Enter]) and Ctrl/D to end/terminate...
   while wordphrase = getprompted( "\n#{pstr}", "", true )
     break if wordphrase == ""
     cross_sum = ezekiel( wordphrase, alphahash )
