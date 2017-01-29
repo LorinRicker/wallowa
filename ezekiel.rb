@@ -29,7 +29,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (01/18/2017)"
+  PROGID = "#{PROGNAME} v1.1 (01/29/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 ASCII_A = 65  # ASCII code character value for letter 'A'
@@ -46,6 +46,7 @@ require 'pp'
 require_relative 'lib/SumOfDigits'
 require_relative 'lib/GetPrompted'
 require_relative 'lib/ANSIseq'
+require_relative 'lib/AboutProgram'
 
 # ==========
 def ezekiel( wordphrase, alphahash )
@@ -96,10 +97,7 @@ optparse = OptionParser.new { |opts|
   end  # -d --debug
   # --- About option ---
   opts.on_tail( "-a", "--about", "Display program info" ) do |val|
-    $stdout.puts "#{PROGID}"
-    $stdout.puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
+    options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "  Computes the gematria (cross-sum) of a word-phrase ala 'The Ezekiel Code'." +
