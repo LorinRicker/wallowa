@@ -3,7 +3,7 @@
 
 # stripcomments.rb
 #
-# Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -23,7 +23,7 @@
 
 PROGNAME = File.basename $0
   PROGID = "#{PROGNAME} v1.2 02/10/2015"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 COMMENTMARK = '#'   # for Ruby, Perl, Python & bash (etc.) source files
 

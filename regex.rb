@@ -4,7 +4,7 @@
 # regex.rb
 # (renamed from 'RegexRevealed.rb' to conform to rel2bin.rb conventions)
 #
-# Copyright © 2011-2016 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2011-2017 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -14,7 +14,7 @@
 
 PROGNAME = File.basename $0
   PROGID = "#{PROGNAME} v1.9 (11/19/2014)"
-  AUTHOR = "Lorin Ricker, Castle Rock, Colorado, USA"
+  AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
 DBGLVL1 = 1
@@ -114,10 +114,8 @@ optparse = OptionParser.new { |opts|
   end  # -d --debug
   # --- About option ---
   opts.on_tail( "-a", "--about", "Display program info" ) do |val|
-    $stdout.puts "#{PROGID}"
-    $stdout.puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
+    require_relative 'lib/AboutProgram'
+    options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "\n  Usage: #{PROGNAME} [options]       # Ctrl/D or 'exit' to exit\n\n"

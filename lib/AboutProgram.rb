@@ -16,7 +16,7 @@ def about_program( programid, rubycoder, exitif )
   $stdout.puts "#{programid} ...on Ruby v#{RUBY_VERSION}"
   $stdout.puts "#{rubycoder}"
   if exitif
-    exit( true )  # just terminate program
+    exit( true )    # just terminate program
   else
     return( true )  # return true for options[:about]
   end

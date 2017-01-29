@@ -46,7 +46,6 @@ require 'pp'
 require_relative 'lib/SumOfDigits'
 require_relative 'lib/GetPrompted'
 require_relative 'lib/ANSIseq'
-require_relative 'lib/AboutProgram'
 
 # ==========
 def ezekiel( wordphrase, alphahash )
@@ -97,6 +96,7 @@ optparse = OptionParser.new { |opts|
   end  # -d --debug
   # --- About option ---
   opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+    require_relative 'lib/AboutProgram'
     options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---

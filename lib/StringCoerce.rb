@@ -3,7 +3,7 @@
 
 # StringCoerce.rb
 #
-# Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 0.2, 04/14/2012
 #
 # This program is free software, under the terms and conditions of the

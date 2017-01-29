@@ -3,7 +3,7 @@
 
 # fibonacci.rb
 #
-# Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 0.4, 06/04/2014
 # Version 0.5, 01/12/2016, adds a com-line ARGV[0] for interactive tests,
 #                          pretty-printing the results.

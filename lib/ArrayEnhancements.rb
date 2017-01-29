@@ -3,7 +3,7 @@
 
 # ArrayEnhancements.rb
 #
-# Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 1.0, 07/05/2014
 #
 # This program is free software, under the terms and conditions of the

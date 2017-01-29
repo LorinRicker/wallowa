@@ -3,7 +3,7 @@
 
 # DCLcommand.rb
 #
-# Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 5.8, 09/25/2016
 #
 # This program is free software, under the terms and conditions of the

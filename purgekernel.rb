@@ -3,7 +3,7 @@
 
 # purgekernel.rb
 #
-# Copyright © 2015-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -103,10 +103,8 @@ optparse = OptionParser.new { |opts|
   end  # -d --debug
   # --- About option ---
   opts.on_tail( "-a", "--about", "Display program info" ) do |val|
-    $stdout.puts "#{PROGID}"
-    $stdout.puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
+    require_relative 'lib/AboutProgram'
+    options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "\n  Usage: #{PROGNAME} [options] [ kernel-ident ... ]" +

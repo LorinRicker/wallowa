@@ -3,7 +3,7 @@
 
 # ANSIseq.rb
 #
-# Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 4.2, 12/06/2016
 #
 # This program is free software, under the terms and conditions of the

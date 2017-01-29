@@ -3,7 +3,7 @@
 
 # WhichOS.rb
 #
-# Copyright © 2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2016-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 1.0, 09/12/2016
 #
 # This program is free software, under the terms and conditions of the

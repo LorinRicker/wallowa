@@ -3,7 +3,7 @@
 
 # fileenhance.rb
 #
-# Copyright © 2011-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 0.5, 01/24/2016
 #
 # This program is free software, under the terms and conditions of the

@@ -3,7 +3,7 @@
 
 # dpkg_utils.rb
 #
-# Copyright © 2014-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2014-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: v0.3  01/27/2015
 #
 # This program is free software, under the terms and conditions of the

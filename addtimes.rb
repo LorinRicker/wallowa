@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (01/19/2017)"
+  PROGID = "#{PROGNAME} v1.3 (01/29/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -77,10 +77,8 @@ optparse = OptionParser.new { |opts|
   end  # -d --debug
   # --- About option ---
   opts.on_tail( "-a", "--about", "Display program info" ) do |val|
-    $stdout.puts "#{PROGID}"
-    $stdout.puts "#{AUTHOR}"
-    options[:about] = true
-    exit true
+    require_relative 'lib/AboutProgram'
+    options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "  Adds or subtracts time intervals or durations." +

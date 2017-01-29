@@ -3,7 +3,7 @@
 
 # appconfig.rb
 #
-# Copyright © 2012-2016 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2017 Lorin Ricker <Lorin@RickerNet.us>
 # Version 1.0, 02/01/2015
 #
 # This program is free software, under the terms and conditions of the
