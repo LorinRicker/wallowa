@@ -41,6 +41,7 @@ Note: References to "VMS" herein are synonymous with "OpenVMS" (old-timers say t
 The majority of the utility programs in this section use the OptionParser (optparse) gem to provide a consistent com-line parse look-&-feel for the user (me). Early on, it occurred to me (as it has to so many other coders) that there's a common subset of com-line options that can and should be present in *any* family of utilities, and I've provided for these options in nearly all such programs:
 
   * *--about* (or *-a*)           -- display program identification information
+                                     (see lib/AboutProgram.rb)
   * *--verbose* (or *-v*)         -- provide non-silent &/or progress output
   * *--dryrun* (or *-n*)          -- test (rehearsal) mode, show but *do not* actually __do__
   * *--help* (or *-h* or *-?*)   -- display help text
@@ -92,6 +93,8 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **dir.rb** -- My career has long been associated with the VMS operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.  `dir` also uses the `ResetGlobbing` function to turn off shell (bash) globbing, allowing the script to receive arguments like `*.rb` unexpanded in ARGV, and to handle wildcard globbing internally.
 
+**ezekiel.rb** -- This program is a *toy* which plays with the (bogus) numerology/gematria espoused by the 2007 novel "The Ezekiel Code" by Gary Val Tenuta (Outskirts Press).  Tenuta's numerology (algorithm, referred to as "cross-adding") is spelled out in Chapter ~2~ of the novel.  The plot of this story hinges upon the "great significances" of various phrases and words as cross-added by this numerology -- See the companion text file `Ezekiel Numerology Test Phrases.cross_sums` for a (nearly) complete list of cross-added phrases/words (and noting a few errors in the novel-author's own sums).  The author of this program in no way endorses, or even believes in, the numerological and/or religious notions and ideas put forth ion that novel; however, it is amusing to play with (and cross-check) the various sums and cross-sums from that work of fiction -- if only to demonstrate that one can "make great significance" out of damn near any/every cross-sum you can compute!
+
 **factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
 
 **filecomp.rb** -- An upscale wrapper for the basic two-file `diff` utility, performs a fast check for file equality or non-equality using an intelligent combination of fast comparisons based on message digests (SHA-1 (default) or SHA-[256,384,512]), files times (mtime, atime, ctime), file sizes (byte-counts), and/or file-type "magic numbers" (internal first-bytes signature). Files that are "the same" are simply reported as "file1 == file2"; files that are "different" are reported as "file1 <> file2" and, for these, offers to invoke one of several GUI or character-based "file differences" utilities (`meld` is the GUI default tool). These tools are available based on which file-diff tools are actually installed on your system -- the `--help` option displays those diff-tools that are available. Can compare an explicitly named pair of files, or a file-group compared with that same group in another directory.
@@ -100,9 +103,9 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **fixcopyright.rb** -- Updates copyright notice lines, like "Copyright (c) year-year" and/or "Copyright © year" to a year-range ending with either the current year or a specific year as given by the `--copyrightyear=YEAR` option. Either modifies the source file directly (default), or for the faint-of-heart, makes a `*.*.backup` copy if `--backup` is specified.
 
-**how-big-is-smallest-bignum.rb** -- Determines (or discovers) the "boundary" between the largest Integer value and the smallest Bignum value on a given system/architecture, using a binary-search-like algorithm to detect the point at which the next Integer value becomes an actual Bignum value.
+**how-big-is-smallest-bignum.rb** -- Determines (or discovers) the "boundary" between the largest Integer value and the smallest Bignum value on a given system/architecture, using a binary-search-like algorithm to detect the point at which the next Integer value becomes an actual Bignum value.  This demonstration becomes irrelevant with Ruby versions from Ruby v2.4 and later, as classes FixNum and BigNum become obsolete, internalized and merged into class Integer.
 
-**how-big-is-smallest-bignum2.rb** -- An alternative approach to the same problem (above), this one contributed by Andrew Grimm on http://stackoverflow.com/questions/535721/ruby-max-integer (6-Jan-2012).
+**how-big-is-smallest-bignum2.rb** -- An alternative approach to the same problem (above), this one contributed by Andrew Grimm on http://stackoverflow.com/questions/535721/ruby-max-integer (6-Jan-2012).  This demonstration also becomes irrelevant with Ruby versions from Ruby v2.4 and later, as classes FixNum and BigNum become obsolete, internalized and merged into class Integer.
 
 **how-many-chords-on-piano.rb** -- This script finally answers the age-old question: "How many distinct chords can be played on the piano?", and it contains more internal comments than code, so see the source code for more information.  Also, this particular question/issue is discussed more thoroughly here: http://therockjack.com/2014/02/17/how-long-until-we-run-out-of-notes/, which in turn leads to this: https://www.quora.com/How-long-will-it-be-until-we-run-out-of-combinations-of-notes-for-a-classical-music-composition/answer/Lorin-Ricker ...enjoy.
 
@@ -116,7 +119,9 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **pgmheaderfixup.rb** --
 
-**process.rb** -- *nix geeks and sys-admins know how to kill an errant process, supposing that she can identify it, usually with pipe-tricks like `ps aux | grep bad_proc_name`. Sometimes you may see this as `ps aux | grep [b]ad_proc_name` just so the grep-process itself doesn't show in the output. This script handles both "show process" and "kill that process" -- its `--kill` option makes that difference, so this one's kind'a bi-modal.  Use directly as `process [options] proc_name`, it's a `SHOW SYSTEM` VMS-equivalent. My bash profile script sets two aliases, `killmy` and `killsys` to do `process --kill` for  personal or system/world processes. Because of obvious parallels between Linux and VMS, this script is designed to work for both operating systems, although it has not (yet) been tested and deployed on VMS (as of Jan'16, I have received a beta release of Ruby v2.2 for OpenVMS, and am participating in check-out testing for this port). This script was also the subject of a Ruby introductory presentation at OpenVMS Bootcamp 2014, Boston.
+**process.rb** -- *nix geeks and sys-admins know how to kill an errant process, supposing that s/he can identify it, usually with pipe-tricks like `ps aux | grep bad_proc_name`. Sometimes you may see this as `ps aux | grep [b]ad_proc_name` just so the grep-process itself doesn't show in the output. This script handles both "show process" and "kill that process" -- its `--kill` option makes that difference, so this one's kind'a bi-modal.  Use directly as `process [options] proc_name`, it's a `SHOW SYSTEM` VMS-equivalent.
+
+My bash profile script sets two aliases, `killmy` to do `process --kill` (and `killsys` for `sudo /home/user/bin/process --kill`) for personal or system/world processes. Because of obvious parallels between Linux and VMS, this script is designed to work for both operating systems, although it has not (yet) been tested and deployed on VMS (as of Jan'16, I have received a beta release of Ruby v2.2 for OpenVMS, and am participating in check-out testing for this port). This script was also the subject of a Ruby introductory presentation at OpenVMS Bootcamp 2014, Boston.
 
 **purgekernel.rb** --
 
@@ -134,7 +139,9 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 
 **termchar.rb** -- A very simple form of **show terminal** (like VMS) to show the terminal window's geometry (width-by-length, characters-by-lines). Uses **lib/TermChar.rb**. Uses one of two methods -- either `IO.console.winsize` (for Ruby v2.0+) or output of  `%x{stty size}` -- to determine terminal geometry depending on Ruby version running this script.
 
-**tonerow.rb** -- This algorithm/program has been with me since college (a long, long time ago!), where I first implemented it in Fortran and PL/1 (languages taught back then); later I reimplemented it in (at least) Pascal (two compiler/dialects), and a couple of other languages since forgotten -- now resurrected in Ruby.  This script generates a "magic square", given a dodecaphonic (12-tone) row: The square is a 12-by-12 matrix of tones (integers 0 thru 9, with D and E standing for tone (pitch class) values 10 and eleven) -- the matrix represents all conventional combinations and permutations of that 12-tone row, at all 12 transposed pitches, including original and transpositions (rows read left to right), retrogrades (rows right to left), inversions (columns read top to bottom) and retrograde-inversions (columns bottom to top).  A 12-tone row input might look like "45130289D67E" (the row used in Webern's Piano Variations, Op. 27), where "0" is by convention pitch class (or tone) C.  Note that the top-left to bottom-right diagonal of the resulting matrix always has the same pitch class value, for the Webern row/example, the tone 4 representing E.
+**tonerow.rb** -- This algorithm/program has been with me since college (a long, long time ago!), where I first implemented it in Fortran and PL/1 (languages taught back then); later I reimplemented it in (at least) Pascal (two compiler/dialects), and a couple of other languages since forgotten -- now resurrected in Ruby.  This script generates a "magic square", given a dodecaphonic (12-tone) row: The square is a 12-by-12 matrix of tones (integers 0 thru 9, with D and E standing for tone (pitch class) values 10 and eleven) -- the matrix represents all conventional combinations and permutations of that 12-tone row, at all 12 transposed pitches, including original and transpositions (rows read left to right), retrogrades (rows right to left), inversions (columns read top to bottom) and retrograde-inversions (columns bottom to top).
+
+A 12-tone row input might look like "45130289D67E" (the row used in Webern's Piano Variations, Op. 27), where "0" is by convention pitch class (or tone) C.  Note that the top-left to bottom-right diagonal of the resulting matrix always has the same pitch class value, for the Webern row/example, the tone 4 representing E.
 
 **wordfrequencies.rb** -- Tallies up the frequencies of words in a document, dropping "little/noise" words (like a, the, but, to, too, etc.), and sorting the resulting list and displaying the "top-N" as requested by the user.
 
@@ -193,6 +200,19 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **Demos/Transform - All the World's a Stage.rb** --
 
 ## Library (**lib/**) Support Modules
+
+**lib/AboutProgram.rb** -- Provides method `about_program`, which can be called by an OptionParser *--about* or *-a* option, e.g.:  
+    # --- About option ---
+    opts.on_tail( "-a", "--about", "Display program info" ) do |val|
+      require_relative 'lib/AboutProgram'
+      options[:about] = about_program( PROGID, AUTHOR, true )
+    end  # -a --about
+A command-line use might produce something like:  
+
+    $ bru -a
+    bru v2.7 (09/07/2015) ...on Ruby v2.4.0
+    Lorin Ricker, Elbert, Colorado, USA
+Note that the method `about_program` includes the version-number of the Ruby interpreter which runs the script.
 
 **lib/ANSIseq.rb** (and **ANSISEQ.COM** and **CLS.COM**) --
 
@@ -255,4 +275,4 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **lib/TimeEnhancements.rb** --
 
 -----
-Last update: 16-Apr-2016
+Last update: 29-January-2017
