@@ -40,8 +40,7 @@ Note: References to "VMS" herein are synonymous with "OpenVMS" (old-timers say t
 
 The majority of the utility programs in this section use the OptionParser (optparse) gem to provide a consistent com-line parse look-&-feel for the user (me). Early on, it occurred to me (as it has to so many other coders) that there's a common subset of com-line options that can and should be present in *any* family of utilities, and I've provided for these options in nearly all such programs:
 
-  * *--about* (or *-a*)           -- display program identification information
-                                     (see lib/AboutProgram.rb)
+  * *--about* (or *-a*)           -- display program identification information (see lib/AboutProgram.rb)
   * *--verbose* (or *-v*)         -- provide non-silent &/or progress output
   * *--dryrun* (or *-n*)          -- test (rehearsal) mode, show but *do not* actually __do__
   * *--help* (or *-h* or *-?*)   -- display help text
@@ -222,7 +221,7 @@ Note that the method `about_program` includes the version-number of the Ruby int
 
 **lib/ArrayEnhancements.rb** --
 
-**lib/AskPrompted.rb** --
+**lib/AskPrompted.rb**, **lib/GetPrompted.rb** and **lib/Prompted.rb** --
 
 **lib/binary.rb** --
 
@@ -248,15 +247,9 @@ Note that the method `about_program` includes the version-number of the Ruby int
 
 **lib/FindAllPosBeginEnd.rb** --
 
-**lib/GetPrompted.rb** --
-
 **lib/ppstrnum.rb** --
 
 **lib/pquts.rb** --
-
-**lib/Prompted.rb** --
-
-**lib/require_relative.rb** --
 
 **lib/Scramble.rb** --
 
@@ -268,11 +261,15 @@ Note that the method `about_program` includes the version-number of the Ruby int
 
 **lib/StringUpdater.rb** --
 
+**lib/SumOfDigits.rb** --
+
 **lib/TermChar.rb** --
 
 **lib/Thousands.rb** --
 
 **lib/TimeEnhancements.rb** --
+
+**lib/WhichOS.rb** --
 
 -----
 Last update: 29-January-2017
