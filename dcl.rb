@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.7 (09/07/2016)"
+  PROGID = "#{PROGNAME} v5.9 (02/03/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -229,15 +229,16 @@ ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
   opts.on( "-c", "--convert=FIXUP",
-              /lower|upper|capital|camel|snake|underscores|spaces|compress/i,
+              /lower|upper|capital|camel|snake|underscores|spaces|compress|collapse/i,
            "Convert target filename case:",
            "  lower, UPPER, Capital,",
            "  camel (CamelCase), snake (snake_case),",
            "  underscores (' ' to '_'), spaces ('_' to ' '),",
            "  compress (multi-runs of ' ', '_' or '-'",
-           "  to single instances of that character)" ) do |val|
+           "  to single instances of that character),",
+           "  collapse all spaces away" ) do |val|
     options[:convert] = val.downcase.to_sym
-    options[:force]       = true
+    options[:force]   = true
   end  # -c --case
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|

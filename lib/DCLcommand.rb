@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.8, 09/25/2016
+# Version 5.9, 02/03/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -161,6 +161,8 @@ end  # fileCommands
         dstcase = DCLcommand.squeeconvert( dst, '_', ' ' )
       when :compress
         dstcase = DCLcommand.squeecompress( dst, ' -_' )
+      when :collapse
+        dstcase = DCLcommand.squeecollapse( dst, ' ' )
       else dstcase = dst
       end  # case options[:convert]
       confirmed, doall = askordo( options[:confirm], doall,
@@ -274,6 +276,17 @@ private
     ext = File.extname( dst )
     dot = ext[0] == '.'
     ext = ext[1..-1].strip.squeeze( squishch ) if dot
+    fnm << '.' << ext if dot
+    File.join( File.dirname( dst ), fnm )
+  end  # squeecompress
+
+  # Collapse all whitespace from both filename and extension
+  # components of basename, reassemble --
+  def self.squeecollapse( dst, scrunch = ' ' )
+    fnm = File.basename( dst, '.*' ).gsub( scrunch, '' )
+    ext = File.extname( dst )
+    dot = ext[0] == '.'
+    ext = ext[1..-1].gsub( scrunch, '' ) if dot
     fnm << '.' << ext if dot
     File.join( File.dirname( dst ), fnm )
   end  # squeecompress
