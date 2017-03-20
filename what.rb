@@ -30,7 +30,7 @@ PROGNAME = File.basename $0
 begin  # poor-man's help parsing:
   puts "usage:  what program_name [...]"
   exit false
-end if ARGV.length == 0 || ARGV[0] == '-?' || ARGV[0].include?( '-h' )
+end if ARGV.empty? || ARGV[0] == '-?' || ARGV[0].include?( '-h' )
 
 suffixes = [""]
 suffixes.concat( ENV.fetch( "PathExt", "" ).split (File::PATH_SEPARATOR ) )
