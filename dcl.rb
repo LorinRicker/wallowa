@@ -152,7 +152,7 @@ def help_available( tag, links, perline )
   i      = 0
   links.each do | c |  # concatenate c ,-sep & measured list of commands
     i   += 1
-    hlp += c
+    hlp += c.bold
     hlp += ", " if i < links.size
     hlp += "\n" + " "*hlplen if i % perline == 0 && i < links.size
   end  # links.each
@@ -214,7 +214,7 @@ FNC_LINKS = %w{ locase lowercase
 ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = { :confirm     => false,
-            :convert     => nil,
+            :case        => nil,
             :whitespace  => nil,
             :pager       => false,
             :preserve    => false,
@@ -229,19 +229,21 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--convert=fixup",
+  opts.on( "-c", "--case=fixup",
               /lower|upper|capital|camel|snake/i,
-           "Convert target filename case, " + "fixup".underline + " is one of:",
+           "(rename only) Convert target filename case,",
+           "fixup".underline + " is one of:",
            "  " + "lower".underline + ", " + "UPPER".underline + ", " +
                   "Capital".underline + ",",
            "  " + "camel".underline + " (CamelCase), " +
                   "snake".underline + " (snake_case)" ) do | val |
-             options[:convert] = val.downcase.to_sym
+             options[:case] = val.downcase.to_sym
              options[:force]   = true
   end  # -c --case
   opts.on( "-w", "--whitespace=fixup",
              /underscores|spaces|compress|collapse/i,
-          "Convert target filename whitespace, " + "fixup".underline + " is one of:",
+          "(rename only) Convert target filename whitespace,",
+          "fixup".underline + " is one of:",
            "  " + "underscores".underline + " (' ' to '_'),",
            "  " + "spaces".underline + " ('_' to ' '),",
            "  " + "compress".underline + " (multi-runs of ' ', '_' or '-'",
@@ -250,6 +252,11 @@ optparse = OptionParser.new { |opts|
     options[:whitespace] = val.downcase.to_sym
     options[:force]   = true
   end  # -w --whitespace
+  opts.on( "-m", "--pager", "--less", "--more",
+  "(search only) Use pager (less) for",
+  "long output (/PAGE)" ) do |val|
+    options[:pager] = true
+  end  # -m --pager
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true
@@ -262,10 +269,6 @@ optparse = OptionParser.new { |opts|
            "Interactive mode (/CONFIRM)" ) do |val|
     options[:confirm] = true
   end  # -i --interactive --confirm
-  opts.on( "-m", "--pager", "--less", "--more",
-           "Use pager (less) for long output (/PAGE)" ) do |val|
-    options[:pager] = true
-  end  # -m --pager
   opts.on( "-p", "--preserve",
            "Preserves file metadata",
            "  (owner, permissions, datetimes)" ) do |val|
@@ -294,9 +297,17 @@ optparse = OptionParser.new { |opts|
     options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] dclfunc"   +
-                "\n\n   where dclfunc is the DCL command or" +
-                " lexical function to execute.\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] " + "dclfunc".bold +
+                "\n   e.g.: #{PROGNAME} " + "copy".bold + " srcfile [srcfile...] dstpath" +
+                "\n     or: #{PROGNAME} " + "rename".bold + " [options] file [file...] " +
+               "'rename_pattern'".bold +
+                "\n\n   where dclfunc is a DCL command or" +
+                " lexical function to execute," +
+                "\n   and 'rename_pattern' is either a destination directory or a" +
+                "\n   wildcard pattern such as '.../path/*.*', 'fname.*' or '*.ext'," +
+                "\n   and quotes '' or \"\" are necessary to prevent globbing." +
+                "\n   Use alias command " + "dclshow".underline +
+                " for exemplar aliases and symlinks.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     help_available( '  Available commands: ', CMD_LINKS, 8 )

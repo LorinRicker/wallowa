@@ -143,7 +143,7 @@ end  # fileCommands
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
       # Convert and whitespace options can be used together (one of each):
-      case options[:convert]
+      case options[:case]
       when :lower
         dstcase = File.join( File.dirname(dst), File.basename(dst).downcase )
       when :upper
@@ -158,7 +158,7 @@ end  # fileCommands
                      .downcase
       when :underscores
         dstcase = DCLcommand.squeeconvert( dst, ' ', '_' )
-      end  # case options[:convert]
+      end  # case options[:case]
       # Convert and whitespace options can be used together (one of each):
       case options[:whitespace]
       when :spaces

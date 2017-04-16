@@ -40,7 +40,7 @@ require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # === Main ===
 options = { :noop        => false,
-            :convert     => nil,
+            :case        => nil,
             :whitespace  => nil,
             :force       => false,
             :verbose     => false,
@@ -52,14 +52,14 @@ usage = "    Usage: $ #{PROGNAME} [options] file [file...] " +
         "'rename_pattern'".bold
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--convert=fixup",
+  opts.on( "-c", "--case=fixup",
               /lower|upper|capital|camel|snake/i,
            "Convert target filename case, " + "fixup".underline + " is one of:",
            "  " + "lower".underline + ", " + "UPPER".underline + ", " +
                   "Capital".underline + ",",
            "  " + "camel".underline + " (CamelCase), " +
                   "snake".underline + " (snake_case)" ) do | val |
-             options[:convert] = val.downcase.to_sym
+             options[:case] = val.downcase.to_sym
              options[:force]   = true
   end  # -c --case
   opts.on( "-w", "--whitespace=fixup",
@@ -102,8 +102,8 @@ optparse = OptionParser.new { |opts|
   # --- Set the banner & Help option ---
   opts.banner = "\n#{usage}" +
                 "\n\n    where 'rename_pattern' is either a destination directory or a" +
-                "\n    wildcard pattern such as '.../path/*.*', 'fname.*' or '*.ext';" +
-                "\n    quotes '' may be needed to prevent globbing.\n\n"
+                "\n    wildcard pattern such as '.../path/*.*', 'fname.*' or '*.ext'," +
+                "\n    and quotes '' or \"\" are necessary to prevent globbing.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
