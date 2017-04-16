@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.9 (02/03/2017)"
+  PROGID = "#{PROGNAME} v5.10 (04/16/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -215,6 +215,7 @@ ALL_LINKS = CMD_LINKS + FNC_LINKS
 
 options = { :confirm     => false,
             :convert     => nil,
+            :whitespace  => nil,
             :pager       => false,
             :preserve    => false,
             :links       => false,
@@ -228,18 +229,27 @@ options = { :confirm     => false,
 ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-c", "--convert=FIXUP",
-              /lower|upper|capital|camel|snake|underscores|spaces|compress|collapse/i,
-           "Convert target filename case:",
-           "  lower, UPPER, Capital,",
-           "  camel (CamelCase), snake (snake_case),",
-           "  underscores (' ' to '_'), spaces ('_' to ' '),",
-           "  compress (multi-runs of ' ', '_' or '-'",
-           "  to single instances of that character),",
-           "  collapse all spaces away" ) do |val|
-    options[:convert] = val.downcase.to_sym
-    options[:force]   = true
+  opts.on( "-c", "--convert=fixup",
+              /lower|upper|capital|camel|snake/i,
+           "Convert target filename case, " + "fixup".underline + " is one of:",
+           "  " + "lower".underline + ", " + "UPPER".underline + ", " +
+                  "Capital".underline + ",",
+           "  " + "camel".underline + " (CamelCase), " +
+                  "snake".underline + " (snake_case)" ) do | val |
+             options[:convert] = val.downcase.to_sym
+             options[:force]   = true
   end  # -c --case
+  opts.on( "-w", "--whitespace=fixup",
+             /underscores|spaces|compress|collapse/i,
+          "Convert target filename whitespace, " + "fixup".underline + " is one of:",
+           "  " + "underscores".underline + " (' ' to '_'),",
+           "  " + "spaces".underline + " ('_' to ' '),",
+           "  " + "compress".underline + " (multi-runs of ' ', '_' or '-'",
+           "    to single instances of that character),",
+           "  " + "collapse".underline + " all spaces away" ) do |val|
+    options[:whitespace] = val.downcase.to_sym
+    options[:force]   = true
+  end  # -w --whitespace
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true

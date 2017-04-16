@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.9, 02/03/2017
+# Version 5.10, 04/16/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -142,6 +142,7 @@ end  # fileCommands
   def self.rename( options, operands )
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
+      # Convert and whitespace options can be used together (one of each):
       case options[:convert]
       when :lower
         dstcase = File.join( File.dirname(dst), File.basename(dst).downcase )
@@ -157,6 +158,9 @@ end  # fileCommands
                      .downcase
       when :underscores
         dstcase = DCLcommand.squeeconvert( dst, ' ', '_' )
+      end  # case options[:convert]
+      # Convert and whitespace options can be used together (one of each):
+      case options[:whitespace]
       when :spaces
         dstcase = DCLcommand.squeeconvert( dst, '_', ' ' )
       when :compress
@@ -164,7 +168,7 @@ end  # fileCommands
       when :collapse
         dstcase = DCLcommand.squeecollapse( dst, ' ' )
       else dstcase = dst
-      end  # case options[:convert]
+      end  # case options[:whitespace]
       confirmed, doall = askordo( options[:confirm], doall,
                                   "Rename #{src} to #{dstcase}" )
       begin
