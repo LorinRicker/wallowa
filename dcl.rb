@@ -216,6 +216,10 @@ ALL_LINKS = CMD_LINKS + FNC_LINKS
 options = { :confirm     => false,
             :case        => nil,
             :whitespace  => nil,
+            :fnprefix    => nil,  # filename prefix text
+            :fnsuffix    => nil,  # filename suffix text
+            :xtprefix    => nil,  # file extension prefix text
+            :xtsuffix    => nil,  # file extension suffix text
             :pager       => false,
             :preserve    => false,
             :links       => false,
@@ -252,6 +256,26 @@ optparse = OptionParser.new { |opts|
     options[:whitespace] = val.downcase.to_sym
     options[:force]   = true
   end  # -w --whitespace
+  opts.on( "--nameprefix='PREFIXSTR'",
+           "(rename only) Concatenate PREFIXSTR onto",
+           "the beginning of the filename (basename)" ) do |val|
+    options[:fnprefix] = val.to_str
+  end  # --nameprefix
+  opts.on( "--namesuffix='SUFFIXSTR'",
+  "(rename only) Concatenate SUFFIXSTR onto",
+  "the end of the filename (basename)" ) do |val|
+    options[:fnsuffix] = val.to_str
+  end  # --namesuffix
+  opts.on( "--extprefix='PREFIXSTR'",
+           "(rename only) Concatenate PREFIXSTR onto",
+           "the beginning of the file's extension" ) do |val|
+    options[:xtprefix] = val.to_str
+  end  # --exteprefix
+  opts.on( "--extsuffix='SUFFIXSTR'",
+           "(rename only) Concatenate SUFFIXSTR onto",
+           "the end of the file's extension" ) do |val|
+    options[:xtsuffix] = val.to_str
+  end  # --extsuffix
   opts.on( "-m", "--pager", "--less", "--more",
   "(search only) Use pager (less) for",
   "long output (/PAGE)" ) do |val|

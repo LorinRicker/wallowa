@@ -42,6 +42,10 @@ require_relative 'lib/FileEnhancements'  # includes AppConfig class
 options = { :noop        => false,
             :case        => nil,
             :whitespace  => nil,
+            :fnprefix    => nil,  # filename prefix text
+            :fnsuffix    => nil,  # filename suffix text
+            :xtprefix    => nil,  # file extension prefix text
+            :xtsuffix    => nil,  # file extension suffix text
             :force       => false,
             :verbose     => false,
             :debug       => DBGLVL0,
@@ -73,6 +77,26 @@ optparse = OptionParser.new { |opts|
     options[:whitespace] = val.downcase.to_sym
     options[:force]   = true
   end  # -w --whitespace
+  opts.on( "--nameprefix='PREFIXSTR'",
+           "(rename only) Concatenate PREFIXSTR onto",
+           "the beginning of the filename (basename)" ) do |val|
+    options[:fnprefix] = val.to_str
+  end  # --nameprefix
+  opts.on( "--namesuffix='SUFFIXSTR'",
+  "(rename only) Concatenate SUFFIXSTR onto",
+  "the end of the filename (basename)" ) do |val|
+    options[:fnsuffix] = val.to_str
+  end  # --namesuffix
+  opts.on( "--extprefix='PREFIXSTR'",
+           "(rename only) Concatenate PREFIXSTR onto",
+           "the beginning of the file's extension" ) do |val|
+    options[:xtprefix] = val.to_str
+  end  # --exteprefix
+  opts.on( "--extsuffix='SUFFIXSTR'",
+           "(rename only) Concatenate SUFFIXSTR onto",
+           "the end of the file's extension" ) do |val|
+    options[:xtsuffix] = val.to_str
+  end  # --extsuffix
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true
@@ -118,6 +142,11 @@ if options[:debug] >= DBGLVL3 #
   binding.pry                 #
 end                           #
 ###############################
+
+pp options[:fnprefix]
+pp options[:fnsuffix]
+pp options[:xtprefix]
+pp options[:xtsuffix]
 
 if ARGV.length < 2
   $stderr.puts "%#{PROGNAME}-f-args, insufficient arguments"

@@ -145,34 +145,59 @@ end  # fileCommands
       # Convert and whitespace options can be used together (one of each):
       case options[:case]
       when :lower
-        dstcase = File.join( File.dirname(dst), File.basename(dst).downcase )
+        dst = File.join( File.dirname(dst), File.basename(dst).downcase )
       when :upper
-        dstcase = File.join( File.dirname(dst), File.basename(dst).upcase )
+        dst = File.join( File.dirname(dst), File.basename(dst).upcase )
       when :camel, :capital
-        dstcase = dst.split( '_' ).collect( &:capitalize ).join
+        dst = dst.split( '_' ).collect( &:capitalize ).join
       when :snake
-        dstcase = dst.gsub( /::/, '/' )
-                     .gsub( /([A-Z]+)([A-Z][a-z])/,'\1_\2' )
-                     .gsub( /([a-z\d])([A-Z])/,'\1_\2' )
-                     .tr( "-", "_" )
-                     .downcase
+        dst = dst.gsub( /::/, '/' )
+                    .gsub( /([A-Z]+)([A-Z][a-z])/,'\1_\2' )
+                    .gsub( /([a-z\d])([A-Z])/,'\1_\2' )
+                    .tr( "-", "_" )
+                    .downcase
       when :underscores
-        dstcase = DCLcommand.squeeconvert( dst, ' ', '_' )
+        dst = DCLcommand.squeeconvert( dst, ' ', '_' )
       end  # case options[:case]
       # Convert and whitespace options can be used together (one of each):
       case options[:whitespace]
       when :spaces
-        dstcase = DCLcommand.squeeconvert( dst, '_', ' ' )
+        dst = DCLcommand.squeeconvert( dst, '_', ' ' )
       when :compress
-        dstcase = DCLcommand.squeecompress( dst, ' -_' )
+        dst = DCLcommand.squeecompress( dst, ' -_' )
       when :collapse
-        dstcase = DCLcommand.squeecollapse( dst, ' ' )
-      else dstcase = dst
+        dst = DCLcommand.squeecollapse( dst, ' ' )
       end  # case options[:whitespace]
+      if options[:fnprefix]   # glue a prefix string to basename
+                              # 'foo.txt' -> 'PREFIXfoo.txt'
+        dst = File.join( File.dirname( src ),
+                         options[:fnprefix] + File.basename( src ) )
+      end  # if
+      if options[:fnsuffix]   # glue a suffix string to basename
+                              # 'foo.txt' -> 'fooSUFFIX.txt'
+        xtn = File.extname( src )
+        bsn = File.basename( src, xtn )
+        dst = File.join( File.dirname( src ),
+                         bsn + options[:fnsuffix] + xtn )
+      end  # if
+      if options[:xtprefix]   # glue a prefix string to extension
+                              # 'foo.txt' -> 'foo.PREFIXtxt'
+        xtn = File.extname( src )
+        bsn = File.basename( src, xtn )
+        xtn = '.' + options[:xtprefix] + xtn[1..xtn.size]
+        dst = File.join( File.dirname( src ), bsn + xtn )
+        puts "dst: \"#{dst}\""
+      end  # if
+      if options[:xtsuffix]   # glue a suffix string to extension
+                              # 'foo.txt' -> 'foo.txtSUFFIX'
+        dst = File.join( File.dirname( src ),
+                         File.basename( src ) + options[:xtsuffix] )
+        puts "dst: \"#{dst}\""
+      end  # if
       confirmed, doall = askordo( options[:confirm], doall,
-                                  "Rename #{src} to #{dstcase}" )
+                                  "Rename #{src} to #{dst}" )
       begin
-        FileUtils.mv( src, dstcase,
+        FileUtils.mv( src, dst,
                       filter( options,
                               [ :force, :noop, :verbose ] )
                     ) if confirmed
