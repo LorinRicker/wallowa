@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (04/16/2017)"
+  PROGID = "#{PROGNAME} v1.9 (04/30/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -156,6 +156,8 @@ end
 
 $stdout.puts "%#{PROGNAME}-i-noop, dry-run..." if options[:noop]
 
-DCLcommand.rename( options, ARGV )
+dcloptions, operands = DCLcommand.parse_dcl_qualifiers( ARGV )
+options.merge!( dcloptions )
+DCLcommand.rename( options, operands )
 
 exit true
