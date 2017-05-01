@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.9 (04/30/2017)"
+  PROGID = "#{PROGNAME} v1.10 (04/30/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
@@ -46,6 +46,7 @@ options = { :noop        => false,
             :fnsuffix    => nil,  # filename suffix text
             :xtprefix    => nil,  # file extension prefix text
             :xtsuffix    => nil,  # file extension suffix text
+            :vmsversion  => nil,  # strip VMS version field ;NNN
             :force       => false,
             :verbose     => false,
             :debug       => DBGLVL0,
@@ -97,6 +98,11 @@ optparse = OptionParser.new { |opts|
            "the end of the file's extension" ) do |val|
     options[:xtsuffix] = val.to_str
   end  # --extsuffix
+  opts.on( "--vmsversion",
+           "(rename only) Strip any VMS version number ;N",
+           "from the end of the file name.ext" ) do |val|
+    options[:vmsversion] = true
+  end  # --vmsversion
   opts.on( "-F", "--force",
            "Force rename to replace existing files" ) do |val|
     options[:force] = true

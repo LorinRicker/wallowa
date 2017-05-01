@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.10 (04/16/2017)"
+  PROGID = "#{PROGNAME} v5.11 (04/30/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -220,6 +220,7 @@ options = { :confirm     => false,
             :fnsuffix    => nil,  # filename suffix text
             :xtprefix    => nil,  # file extension prefix text
             :xtsuffix    => nil,  # file extension suffix text
+            :vmsversion  => nil,  # strip VMS version field ;NNN
             :pager       => false,
             :preserve    => false,
             :links       => false,
@@ -276,6 +277,11 @@ optparse = OptionParser.new { |opts|
            "the end of the file's extension" ) do |val|
     options[:xtsuffix] = val.to_str
   end  # --extsuffix
+  opts.on( "--vmsversion",
+  "(rename only) Strip any VMS version number ;N",
+  "from the end of the file name.ext" ) do |val|
+    options[:vmsversion] = true
+  end  # --vmsversion
   opts.on( "-m", "--pager", "--less", "--more",
   "(search only) Use pager (less) for",
   "long output (/PAGE)" ) do |val|
