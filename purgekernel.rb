@@ -18,7 +18,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.4 (03/12/2017)"
+  PROGID = "#{PROGNAME} v0.5 (03/20/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -49,12 +49,14 @@ require_relative 'lib/ANSIseq'
 
 # ==========
 
+logfiledefault = "./" + PROGNAME + "_" +
+                 Time.now.strftime("%Y-%m-%d-%H%M") + ".log"
+
 options = { :show        => nil,
             :lessthan    => nil,
             :greaterthan => nil,
             :confirm     => nil,
-            :logfile     => "./" + PROGNAME + "_" +
-                            Time.now.strftime("%Y-%m-%d_%H%M") + ".log",
+            :logfile     => logfiledefault,
             :noop        => true,  # nil,
             :verbose     => false,
             :debug       => DBGLVL0,
@@ -66,9 +68,7 @@ ARGV[0] = '--help' if ARGV.size == 0  # force help if naked command-line
 optparse = OptionParser.new { |opts|
   opts.on( "-s", "--show", "--list",
            "List currently installed Linux kernel packages" ) do |val|
-    options[:show] = val
-    # If we're showing, we're not doing anything else...
-    options[:lessthan] = options[:greaterthan] = options[:confirm] = nil
+    options[:show] = true
   end  # -s --show
   opts.on( "-g", "--greaterthan=LoValue", Integer,
            "Purge version-numbers #{'greater than'.bold} LoValue ..." ) do |val|
@@ -80,11 +80,11 @@ optparse = OptionParser.new { |opts|
   end  # -l --lessthan
   opts.on( "-i", "--confirm", "--interactive",
            "Interactive/confirm mode" ) do |val|
-    options[:confirm] = val
+    options[:confirm] = true
   end  # -i --confirm -- interactive
   opts.on( "-e", "--logfile", "--errlog",
            "Log-file (default: '#{options[:logfile]}')" ) do |val|
-    options[:logfile] = val
+    options[:logfile] = val ? val : logfiledefault
   end  # -e --logfile --errlog
   opts.on( "-n", "--dryrun", "Test (rehearse) the kernel package purge" ) do |val|
     options[:noop] = true
@@ -125,6 +125,9 @@ end                           #
 ###############################
 
 options[:verbose] = options[:debug] >= DBGLVL1
+
+# If we're showing, we're not doing anything else...
+options[:lessthan] = options[:greaterthan] = options[:confirm] = nil if options[:show]
 
 # A template-name array for the Linux kernel packages:
 lkptemplates = [ "linux-image-#{MAGICSTR}-generic",
