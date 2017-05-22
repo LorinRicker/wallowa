@@ -24,7 +24,7 @@ end
  BINPATH = File.dirname( LINKPATH )
 
 PROGNAME = File.basename( DCLNAME ).upcase   # not "$0" here!...
-  PROGID = "#{PROGNAME} v5.11 (04/30/2017)"
+  PROGID = "#{PROGNAME} v5.11 (05/21/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -267,16 +267,16 @@ optparse = OptionParser.new { |opts|
   "the end of the filename (basename)" ) do |val|
     options[:fnsuffix] = val.to_str
   end  # --namesuffix
-  opts.on( "--extprefix='PREFIXSTR'",
-           "(rename only) Concatenate PREFIXSTR onto",
-           "the beginning of the file's extension" ) do |val|
+  opts.on( "--typeprefix='PREFIXSTR'",
+           "(rename only) Concatenate PREFIXSTR onto the",
+           "beginning of the file's type or extension" ) do |val|
     options[:xtprefix] = val.to_str
-  end  # --exteprefix
-  opts.on( "--extsuffix='SUFFIXSTR'",
-           "(rename only) Concatenate SUFFIXSTR onto",
-           "the end of the file's extension" ) do |val|
+  end  # --typeeprefix
+  opts.on( "--typesuffix='SUFFIXSTR'",
+           "(rename only) Concatenate SUFFIXSTR onto the",
+           "end of the file's type or extension" ) do |val|
     options[:xtsuffix] = val.to_str
-  end  # --extsuffix
+  end  # --typesuffix
   opts.on( "--vmsversion",
   "(rename only) Strip any VMS version number ;N",
   "from the end of the file name.ext" ) do |val|

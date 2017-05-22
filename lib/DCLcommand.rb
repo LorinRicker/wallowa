@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.10, 04/16/2017
+# Version 5.11, 05/21/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -142,7 +142,7 @@ end  # fileCommands
   def self.rename( options, operands )
     doall = false
     DCLcommand.parse2ops( options, operands ) do | src, dst |
-      # Convert and whitespace options can be used together (one of each):
+      # Convert case and whitespace options can be used together (one of each):
       case options[:case]
       when :lower
         dst = File.join( File.dirname(dst), File.basename(dst).downcase )
@@ -159,7 +159,7 @@ end  # fileCommands
       when :underscores
         dst = DCLcommand.squeeconvert( dst, ' ', '_' )
       end  # case options[:case]
-      # Convert and whitespace options can be used together (one of each):
+      # Convert case and whitespace options can be used together (one of each):
       case options[:whitespace]
       when :spaces
         dst = DCLcommand.squeeconvert( dst, '_', ' ' )
@@ -172,13 +172,16 @@ end  # fileCommands
                               # 'foo.txt' -> 'PREFIXfoo.txt'
         dst = File.join( File.dirname( src ),
                          options[:fnprefix] + File.basename( src ) )
+        puts "dst: \"#{dst}\""
       end  # if
+      # Use any combination of prefix and suffix operations as needed:
       if options[:fnsuffix]   # glue a suffix string to basename
                               # 'foo.txt' -> 'fooSUFFIX.txt'
         xtn = File.extname( src )
         bsn = File.basename( src, xtn )
         dst = File.join( File.dirname( src ),
                          bsn + options[:fnsuffix] + xtn )
+        puts "dst: \"#{dst}\""
       end  # if
       if options[:xtprefix]   # glue a prefix string to extension
                               # 'foo.txt' -> 'foo.PREFIXtxt'
