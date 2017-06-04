@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.11, 05/21/2017
+# Version 5.12, 06/03/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -20,6 +20,7 @@ WILDSPLAT = '*'
 WILDQUEST = '?'
 
 require_relative '../lib/GetPrompted'
+require_relative '../lib/FileParse'
 
 # ==========
 
@@ -141,6 +142,8 @@ end  # fileCommands
   ## Also see $rby/dclrename.rb
   def self.rename( options, operands )
     doall = false
+    # Check for DCL-style * wildcards, and if present, expand them
+    #   check for existing file by this name or require --force:
     DCLcommand.parse2ops( options, operands ) do | src, dst |
       # Convert case and whitespace options can be used together (one of each):
       case options[:case]
@@ -152,10 +155,10 @@ end  # fileCommands
         dst = dst.split( '_' ).collect( &:capitalize ).join
       when :snake
         dst = dst.gsub( /::/, '/' )
-                    .gsub( /([A-Z]+)([A-Z][a-z])/,'\1_\2' )
-                    .gsub( /([a-z\d])([A-Z])/,'\1_\2' )
-                    .tr( "-", "_" )
-                    .downcase
+                 .gsub( /([A-Z]+)([A-Z][a-z])/,'\1_\2' )
+                 .gsub( /([a-z\d])([A-Z])/,'\1_\2' )
+                 .tr( "-", "_" )
+                 .downcase
       when :underscores
         dst = DCLcommand.squeeconvert( dst, ' ', '_' )
       end  # case options[:case]
@@ -170,31 +173,28 @@ end  # fileCommands
       end  # case options[:whitespace]
       if options[:fnprefix]   # glue a prefix string to basename
                               # 'foo.txt' -> 'PREFIXfoo.txt'
-        dst = File.join( File.dirname( src ),
-                         options[:fnprefix] + File.basename( src ) )
+        dstdirn, dstname, dsttype = File.fileparse( dst )
+        dst = File.join( dstdir, options[:fnprefix] + dstname + dsttype )
         puts "dst: \"#{dst}\""
       end  # if
       # Use any combination of prefix and suffix operations as needed:
       if options[:fnsuffix]   # glue a suffix string to basename
                               # 'foo.txt' -> 'fooSUFFIX.txt'
-        xtn = File.extname( src )
-        bsn = File.basename( src, xtn )
-        dst = File.join( File.dirname( src ),
-                         bsn + options[:fnsuffix] + xtn )
+        dstdirn, dstname, dsttype = File.fileparse( dst )
+        dst = File.join( dstdirn, dstname + options[:fnsuffix] + dsttype )
         puts "dst: \"#{dst}\""
       end  # if
       if options[:xtprefix]   # glue a prefix string to extension
                               # 'foo.txt' -> 'foo.PREFIXtxt'
-        xtn = File.extname( src )
-        bsn = File.basename( src, xtn )
-        xtn = '.' + options[:xtprefix] + xtn[1..xtn.size]
-        dst = File.join( File.dirname( src ), bsn + xtn )
+        dstdirn, dstname, dsttype = File.fileparse( dst )
+        dsttype = '.' + options[:xtprefix] + dsttype[1..dsttype.size]
+        dst = File.join( dstdirn, dstname + dsttype )
         puts "dst: \"#{dst}\""
       end  # if
       if options[:xtsuffix]   # glue a suffix string to extension
                               # 'foo.txt' -> 'foo.txtSUFFIX'
-        dst = File.join( File.dirname( src ),
-                         File.basename( src ) + options[:xtsuffix] )
+        dstdirn, dstname, dsttype = File.fileparse( dst )
+        dst = File.join( dstdirn, dstname + dsttype + options[:xtsuffix] )
         puts "dst: \"#{dst}\""
       end  # if
       confirmed, doall = askordo( options[:confirm], doall,
@@ -330,6 +330,18 @@ private
     end
   end  # askordo
 
+  def self.confirmprompted( prompt )
+    response = getprompted( "#{prompt} (yes,No,all,quit)", "N" )
+    case response[0].downcase
+    when 'a'
+      return [ true, true ]    # do all the rest...
+    when 'y'
+      return [ true, false ]   # and keep asking...
+    when 'n'
+      return [ false, false ]  # and keep asking...
+    end  # case response.downcase
+  end  # confirmprompted
+
   def self.parse_dcl_qualifiers( argvector )
     dcloptions = Hash.new
     fspecs     = []
@@ -349,18 +361,6 @@ private
     end
     return [ dcloptions, fspecs ]
   end  # parse_dcl_qualifiers
-
-  def self.confirmprompted( prompt )
-    response = getprompted( "#{prompt} (yes,No,all,quit)", "N" )
-    case response[0].downcase
-    when 'a'
-      return [ true, true ]    # do all the rest...
-    when 'y'
-      return [ true, false ]   # and keep asking...
-    when 'n'
-      return [ false, false ]  # and keep asking...
-    end  # case response.downcase
-  end  # confirmprompted
 
   def self.filter( options, legalopts )
     # FileUtils options can be [ :force, :noop, :preserve, :verbose ],
@@ -392,7 +392,7 @@ private
     calledby = cb[1]  # first group = $1
 
     # In this semantic, want to check that target file:
-    #   a) does _not_ yet exist if create/touch-ing;
+    #   a) _does_not_ yet exist if create/touch-ing;
     #   b) _does_ exist if deleting it...
     # unless --force (-F)...
     if calledby.to_sym == :create
@@ -433,28 +433,22 @@ private
 
     # Decompose the wildcarded rename pattern --
     #   the Last Argument is the pattern ---v
-    pat      = File.expand_path( operands.pop )
-    dironly  = File.directory?( pat )
+    pat     = File.expand_path( operands.pop )
+    dironly = File.directory?( pat )
     if dironly
       patdirn  = pat
       patdirn += '/' if patdirn[-1] != '/'
     else
-      patdirn  = File.dirname( pat )
-      pattype  = File.extname( pat )
-      patname  = File.basename( pat, pattype )
+      patdirn, patname, pattype = File.fileparse( pat )
       namewild = globwildcards =~ patname
       typewild = globwildcards =~ pattype
-      typewild = namewild if pattype == ''        # honor '*' as '*.*'
+      typewild = namewild if pattype == ''  # honor '*' as '*.*'
     end
 
     idx = 1  # file counter
     operands.each do | elem |
       expandwild( elem ).each do | f |
-        src     = File.expand_path( f )
-        srcdirn = File.dirname( src )
-        srctype = File.extname( src )
-        srcname = File.basename( src, srctype )
-
+        srcdirnn, srcname, srctype, src = File.fileparse( f )
         dstname  = namewild ? srcname : patname
         dstname += typewild ? srctype : pattype
         if dironly

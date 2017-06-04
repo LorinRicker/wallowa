@@ -17,7 +17,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.11 (05/21/2017)"
+  PROGID = "#{PROGNAME} v1.12 (06/03/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 WILDSPLAT = '*'
