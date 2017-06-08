@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.01 (09/12/2015)"
+  PROGID = "#{PROGNAME} v4.00 (05/17/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -69,11 +69,14 @@ def kill_it( pid, options )
       end
     else  # really do it... equiv -> %x{ kill -kill #{pid} }
       begin
-        Process.kill( options[:signal].to_sym, pid.to_i )
-        # N.B. -- Will VMS Ruby's Std-Library support Process.kill?
-        #         If not, then must do %x{ STOP /ID=#{pid} }
+        case options[:platform]
+        when :linux
+          Process.kill( options[:signal].to_sym, pid.to_i )
+        when :vms
+        vmscmd = %x{ STOP /ID=#{pid} }
+        end
       rescue Errno::ESRCH => e  # 'No such process'
-        puts "%#{PROGNAME}-w-noproc, this process has been terminated (parent process killed)"
+        puts "%#{PROGNAME}-w-noproc, process was previously terminated (parent process killed)"
         # continue...
       end
     end
@@ -97,7 +100,7 @@ def process( args, options )
   args.each do | pgm |
     acount += 1
     pgmpat = Regexp.new( pgm, Regexp::IGNORECASE )
-    puts "  >>> `#{command}`"
+    puts "  >>> `#{command}`" if options[:debug] >= DBGLVL1
     %x{ #{command} }.lines do | p |
       lno += 1
       if lno > hdlines
@@ -108,7 +111,7 @@ def process( args, options )
             STDOUT.puts p     # display it & count it...
             pcount += 1
             pid = p.split[0]  # process-id is FIRST field...
-            kill_it( pid, options) if options[:kill]
+            kill_it( pid, options ) if options[:kill]
           end
         end
       elsif not options[:raw]         # Print the ps-header,
@@ -194,4 +197,5 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+pp options
 process( ARGV, options )

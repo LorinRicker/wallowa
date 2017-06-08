@@ -4,7 +4,7 @@
 # TermChar.rb
 #
 # Copyright © 2012-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 09/12/2016
+# Version 3.1, 05/17/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -34,8 +34,8 @@ module TermChar
         tdim = %x{stty size}.split.collect { |td| td.to_i }
       end
     when :vms
-      tdim = [ %x{ WRITE sys$output F$GETDVI("TT","TT_PAGE") }.chomp,
-               %x{ WRITE sys$output F$GETDVI("TT","DEVBUFSIZ") }.chomp ]
+      tdim = [ %x{ WRITE sys$output F$GETDVI("TT","TT_PAGE") }.chomp.to_i,
+               %x{ WRITE sys$output F$GETDVI("TT","DEVBUFSIZ") }.chomp.to_i ]
     # when :unix
     # when :windows
     else
