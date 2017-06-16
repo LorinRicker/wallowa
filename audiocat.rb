@@ -67,7 +67,7 @@
 #   tagtool       -- (GUI) editing of Ogg Vorbis comments (single/multi-files)
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.7 (06/09/2016)"
+  PROGID = "#{PROGNAME} v1.8 (06/10/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -86,7 +86,7 @@ require 'fileutils'
 require_relative 'lib/appconfig'
 require_relative 'lib/filemagic'
 require_relative 'lib/ANSIseq'
-require_relative 'lib/FileEnhancements'
+require_relative 'lib/FileParse'
 
 # ==========
 
