@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (07/30/2016)"
+  PROGID = "#{PROGNAME} v2.0 (06/16/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -26,6 +26,7 @@ require 'optparse'
 require 'pp'
 require_relative 'lib/ppstrnum'
 require_relative 'lib/TermChar'
+require_relative 'lib/WhichOS'
 
 # ==========
 
@@ -33,7 +34,8 @@ require_relative 'lib/TermChar'
 options = { :format    => 'sep',
             :just      => 'right',
             :separator => ',',
-            :indent     => 2,
+            :indent    => 2,
+            :os        => :linux,
             :noop      => false,
             :verbose   => false,
             :debug     => DBGLVL0,
@@ -86,9 +88,9 @@ optparse = OptionParser.new { |opts|
     options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] EXPRESSION" +
-                "\n\n    where EXPRESSION is a numeric expression to" +
-                "\n    valuate and display in the selected format\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] \"EXPRESSION\"" +
+                "\n\n    where \"EXPRESSION\" is a numeric expression to" +
+                "\n    evaluate and display in the selected format\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -104,7 +106,9 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
- # Strip commas from each arg:
+options[:os] = WhichOS.identify_os
+
+# Strip commas from each arg:
 ARGV.each_with_index { |a,i| ARGV[i] = a.tr( ',', '' ) }
 
 args = ARGV.join( ' ' )
@@ -138,6 +142,11 @@ when :asc, :desc
 #    result = bignum.desc_numstack
 end
 
-puts result
+case options[:os]
+when :linux
+  puts result
+when :vms
+  # tuck result into a DCL GLobal Symbol
+end  # case
 
 exit true
