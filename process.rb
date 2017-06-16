@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.00 (05/17/2017)"
+  PROGID = "#{PROGNAME} v4.04 (06/16/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # A really simple script to perform a prompted-kill-process,
@@ -29,7 +29,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 require 'optparse'
 require 'pp'
-require_relative 'lib/Prompted'
+require_relative 'lib/SimplePrompted'
 require_relative 'lib/WhichOS'
 require_relative 'lib/TermChar'
 require_relative 'lib/ANSIseq'
@@ -59,9 +59,9 @@ def generate_command( options, twidth )
 end  # generate_command
 
 def kill_it( pid, options )
-  if askprompted( "Kill this process #{pid}", "N" )
+  if simpleprompted( "Kill this process #{pid}", "N" )
     if options[:test]  # rehearse for the right platform...
-      case options[:platform]
+      case options[:os]
       when :linux
         STDERR.puts ">>> $ kill -s #{options[:signal]} #{pid}".color(:red).bold
       when :vms
@@ -69,11 +69,12 @@ def kill_it( pid, options )
       end
     else  # really do it... equiv -> %x{ kill -kill #{pid} }
       begin
-        case options[:platform]
+        case options[:os]
         when :linux
           Process.kill( options[:signal].to_sym, pid.to_i )
         when :vms
-        vmscmd = %x{ STOP /ID=#{pid} }
+          STDERR.puts ">>> $ STOP /ID=#{pid}".color(:red).bold if options[:debug] >= DBGLVL1
+          vmscmd = %x{ STOP /ID=#{pid} }
         end
       rescue Errno::ESRCH => e  # 'No such process'
         puts "%#{PROGNAME}-w-noproc, process was previously terminated (parent process killed)"
@@ -137,6 +138,8 @@ end  # process
 
 options = { :signal   => "KILL",
             :platform => nil,
+            :kill     => false,
+            :test     => false,
             :verbose  => false,
             :debug    => DBGLVL0,
             :about    => false
@@ -197,5 +200,5 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
-pp options
 process( ARGV, options )
+exit true
