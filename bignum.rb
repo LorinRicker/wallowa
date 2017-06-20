@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.2 (06/20/2017)"
+  PROGID = "#{PROGNAME} v2.3 (06/20/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -42,7 +42,7 @@ options = { :format    => 'sep',
             :separator => ',',
             :indent    => 2,
             :os        => :linux,
-            :dclsymbol => nil,
+            :varname   => nil,
             :dclscope  => DCLSCOPE_LOCAL,
             :noop      => false,
             :verbose   => false,
@@ -75,17 +75,21 @@ optparse = OptionParser.new { |opts|
 
   opts.separator ""
   opts.on( "-r", "--variable[=VARNAME]", String,
-           "Variable (symbol) name for expression result",
-           " (default variable name is #{DEFAULT_VARNAME}" ) do |val|
-    options[:dclsymbol] = ( val || DEFAULT_VARNAME ).upcase
+           "Variable (symbol) name for expression result;",
+           "  default variable name is #{DEFAULT_VARNAME}, which",
+           "  is always suffixed with the index-number for",
+           "  that argument position, e.g., #{DEFAULT_VARNAME}1,",
+           "  #{DEFAULT_VARNAME}2,... -rr becomes R1, R2, R3,..." ) do |val|
+    options[:varname] = ( val || DEFAULT_VARNAME ).upcase
   end  # -r --variable
+
   opts.separator "\n#{VMSONLY_BORDER}"
   opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
            "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
     options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
                       DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
   end  # -x --scope
-  opts.separator "\n\n    Option(s) ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
+  opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
 
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
@@ -145,7 +149,7 @@ ARGV.each_with_index { | arg, idx |
 
   bignum = 0
   cmd = "bignum = #{arg}"
-  puts "\n  eval( '#{cmd}' )\n\n" if options[:verbose]
+  puts "\n  eval( '#{cmd}' )" if options[:verbose]
 
   # This is, of course, a Bad Thing... to accept arbitrary input from
   # the command line and then execute (eval) it directly.  Hence, the
@@ -170,14 +174,26 @@ ARGV.each_with_index { | arg, idx |
 
   case options[:os]
   when :linux, :unix, :windows
-    STDOUT.puts result
-  when :vms
-    if options[:dclsymbol]
-      # tuck result into a DCL Variable/Symbol
-      require 'RTL'
-      RTL::set_symbol( options[:dclsymbol], result, options[:dclscope] )
+    if options[:varname]
+      # Tuck result into a shell environment variable -- Note that, for non-VMS,
+      # this is *useless* (mostly), as the environment variable is created in
+      # the (sub)process which is running this Ruby script, thus the parent process
+      # (which com-line-ran the script) never sees the env-variable!
+      envvar = options[:varname] + "#{idx+1}"
+      ENV[envvar] = result
+      STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
     else
-    STDOUT.puts result
+      STDOUT.puts result
+    end  # if
+  when :vms
+    if options[:varname]
+      # Tuck result into a DCL Variable/Symbol --
+      require 'RTL'
+      dclsym = options[:varname] + "#{idx+1}"
+      RTL::set_symbol( dclsym, result, options[:dclscope] )
+      STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
+    else
+      STDOUT.puts result
     end  # if
   end  # case
 
