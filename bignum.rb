@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.1 (06/19/2017)"
+  PROGID = "#{PROGNAME} v2.2 (06/20/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -21,9 +21,11 @@ DBGLVL2 = 2  ######################################################
 DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 
-DEFAULT_DCLSYMBOL = "BIGNUM_RESULT"
-VMSONLY_BORDER    = "    " + "=== VMS only " + '=' * 70
-VMSONLY_BORDEREND = "    " + '=' * ( VMSONLY_BORDER.length - 4 )
+DEFAULT_VARNAME   = "BIGNUM_RESULT"
+VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
+VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
+DCLSCOPE_LOCAL    = 1
+DCLSCOPE_GLOBAL   = 2
 # -----
 
 require 'optparse'
@@ -41,6 +43,7 @@ options = { :format    => 'sep',
             :indent    => 2,
             :os        => :linux,
             :dclsymbol => nil,
+            :dclscope  => DCLSCOPE_LOCAL,
             :noop      => false,
             :verbose   => false,
             :debug     => DBGLVL0,
@@ -50,11 +53,11 @@ options = { :format    => 'sep',
 optparse = OptionParser.new { |opts|
   opts.on( "-f", "--format[=DISPLAY]", /SEP|WORD|BARE|ASC|DESC/i,
            "Format to display:",
-           "  SEP: comma separated triads (default),",
+           "  SEP: comma separated groups (default),",
            "  BARE: no separator,",
            "  WORD: number-names,",
-           "  ASC:  number-names in ascending triads,",
-           "  DESC: number-names in descending triads" ) do |val|
+           "  ASC:  number-names in ascending groups,",
+           "  DESC: number-names in descending groups" ) do |val|
     options[:format] = val.downcase || "sep"
   end  # -f --format
   opts.on( "-i", "--indent[=INDENTATION]", Integer,
@@ -65,18 +68,25 @@ optparse = OptionParser.new { |opts|
            "Format justification: right (default) or left" ) do |val|
     options[:just] = val.downcase || "right"
   end  # -j --just
-  opts.on( "-s", "--separator[=SEPARATOR]", String,
-           "Triads separator (default is ',' comma)" ) do |val|
+  opts.on( "-g", "--separator[=SEPARATOR]", String,
+           "Group separator (default is ',' comma)" ) do |val|
     options[:separator] = val.to_i.abs
   end  # -s --separator
-  opts.separator "\n#{VMSONLY_BORDER}"
+
+  opts.separator ""
   opts.on( "-r", "--variable[=VARNAME]", String,
-           "DCL variable (symbol) name for expression result",
-           " (default variable name is #{DEFAULT_DCLSYMBOL},",
-           "  but ignored if not hosted on VMS (OpenVMS))" ) do |val|
-    options[:dclsymbol] = ( val || DEFAULT_DCLSYMBOL ).upcase
-  end  # -r --symbol  --variable
-  opts.separator "#{VMSONLY_BORDEREND}\n\n"
+           "Variable (symbol) name for expression result",
+           " (default variable name is #{DEFAULT_VARNAME}" ) do |val|
+    options[:dclsymbol] = ( val || DEFAULT_VARNAME ).upcase
+  end  # -r --variable
+  opts.separator "\n#{VMSONLY_BORDER}"
+  opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
+           "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
+    options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
+                      DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
+  end  # -x --scope
+  opts.separator "\n\n    Option(s) ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
+
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
@@ -100,9 +110,9 @@ optparse = OptionParser.new { |opts|
     options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] \"EXPRESSION\"" +
-                "\n\n    where \"EXPRESSION\" is a numeric expression to evaluate and display in" +
-                "\n    the selected format.  Enclose the expression in double-quotes, e.g." +
+  opts.banner = "\n  Usage: #{PROGNAME} [options] \"EXPRESSION1\" [ \"EXPRESSION2\" ]..." +
+                "\n\n    where each \"EXPRESSION\" is a numeric expression to evaluate and display" +
+                "\n    in the selected format.  Enclose each expression in double-quotes, e.g." +
                 "\n    \"2**64\" to ensure that special characters such as asterisk/splats are" +
                 "\n    not misinterpreted.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
@@ -127,43 +137,50 @@ pp options if options[:debug] >= DBGLVL2
 # Strip commas from each arg:
 ARGV.each_with_index { |a,i| ARGV[i] = a.tr( ',', '' ) }
 
-args = ARGV.join( ' ' )
-# Check that only numbers 0..9, arithmetical operators +, -, * and /,
-# decimal, space and parentheses () are present in args:
-pat = /[.0-9+\-*\/\ \(\)]+/
-raise "Expression error, illegal characters" if args !~ pat
+ARGV.each_with_index { | arg, idx |
+  # Check that only numbers 0..9, arithmetical operators +, -, * and /,
+  # decimal, space and parentheses () are present in arg:
+  pat = /[.0-9+\-*\/\ \(\)]+/
+  raise "Expression error, illegal characters" if arg !~ pat
 
-bignum = 0
-cmd = "bignum = #{args}"
-puts "\n  eval( '#{cmd}' )\n\n" if options[:verbose]
+  bignum = 0
+  cmd = "bignum = #{arg}"
+  puts "\n  eval( '#{cmd}' )\n\n" if options[:verbose]
 
-# This is, of course, a Bad Thing... to accept arbitrary input from
-# the command line and then execute (eval) it directly.  Hence, the
-# regex-pattern match above, to limit/filter the args to just things
-# that "look like arithmetic expressions" --
-#############
-eval( cmd ) #  <-- Don't try this at home...
-#############
+  # This is, of course, a Bad Thing... to accept arbitrary input from
+  # the command line and then execute (eval) it directly.  Hence, the
+  # regex-pattern match above, to limit/filter the arg to just things
+  # that "look like arithmetic expressions" --
+  #############
+  eval( cmd ) #  <-- Don't try this at home...
+  #############
 
-case options[:format].to_sym
-when :sep
-    result = bignum.thousands
-when :bare
-    result = bignum
-when :word
-    result = bignum.numbernames
-when :asc, :desc
-    result = bignum.pp_numstack( options )
-#when :desc
-#    result = bignum.desc_numstack
-end
+  case options[:format].to_sym
+  when :sep
+      result = bignum.thousands
+  when :bare
+      result = bignum.to_s
+  when :word
+      result = bignum.numbernames
+  when :asc, :desc
+      result = bignum.pp_numstack( options )
+  #when :desc
+  #    result = bignum.desc_numstack
+  end
 
-case options[:os]
-when :linux
-  puts result
-when :vms
-  # tuck result into a DCL GLobal Symbol
-  puts result
-end  # case
+  case options[:os]
+  when :linux, :unix, :windows
+    STDOUT.puts result
+  when :vms
+    if options[:dclsymbol]
+      # tuck result into a DCL Variable/Symbol
+      require 'RTL'
+      RTL::set_symbol( options[:dclsymbol], result, options[:dclscope] )
+    else
+    STDOUT.puts result
+    end  # if
+  end  # case
+
+}  # ARGV.each_with_index
 
 exit true
