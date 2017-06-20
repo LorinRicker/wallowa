@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.3 (06/20/2017)"
+  PROGID = "#{PROGNAME} v2.4 (06/20/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -58,7 +58,7 @@ optparse = OptionParser.new { |opts|
            "  WORD: number-names,",
            "  ASC:  number-names in ascending groups,",
            "  DESC: number-names in descending groups" ) do |val|
-    options[:format] = val.downcase || "sep"
+    options[:format] = ( val || "sep" ).downcase
   end  # -f --format
   opts.on( "-i", "--indent[=INDENTATION]", Integer,
            "Display indentation width (default is 2 spaces)" ) do |val|
@@ -66,7 +66,7 @@ optparse = OptionParser.new { |opts|
   end  # -i --indent
   opts.on( "-j", "--just[=JUSTIFICATION]", /LEFT|RIGHT/i,
            "Format justification: right (default) or left" ) do |val|
-    options[:just] = val.downcase || "right"
+    options[:just] = ( val || "right" ).downcase
   end  # -j --just
   opts.on( "-g", "--separator[=SEPARATOR]", String,
            "Group separator (default is ',' comma)" ) do |val|
@@ -87,7 +87,7 @@ optparse = OptionParser.new { |opts|
   opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
            "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
     options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
-                      DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
+                           DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
   end  # -x --scope
   opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
 
@@ -138,14 +138,15 @@ options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
 
+# Check that only numbers 0..9, arithmetical operators +, -, *, / and %,
+# &, |, <, >, =, decimal-point, space and parentheses () are present in arg:
+pat = /[.0-9+\-*\/%&<=>\ \(\)]+/
+
 # Strip commas from each arg:
 ARGV.each_with_index { |a,i| ARGV[i] = a.tr( ',', '' ) }
 
 ARGV.each_with_index { | arg, idx |
-  # Check that only numbers 0..9, arithmetical operators +, -, * and /,
-  # decimal, space and parentheses () are present in arg:
-  pat = /[.0-9+\-*\/\ \(\)]+/
-  raise "Expression error, illegal characters" if arg !~ pat
+#  arg.each_codepoint { |a| raise "Expression error, illegal characters" if a !~ pat }
 
   bignum = 0
   cmd = "bignum = #{arg}"
