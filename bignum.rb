@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.4 (06/20/2017)"
+  PROGID = "#{PROGNAME} v2.5 (06/21/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -31,13 +31,14 @@ DCLSCOPE_GLOBAL   = 2
 require 'optparse'
 require 'pp'
 require_relative 'lib/ppstrnum'
-require_relative 'lib/TermChar'
 require_relative 'lib/WhichOS'
+## require_relative 'lib/TermChar'
 
 # ==========
 
 # === Main ===
-options = { :format    => 'sep',
+options = { :math      => nil,
+            :format    => 'sep',
             :just      => 'right',
             :separator => ',',
             :indent    => 2,
@@ -51,6 +52,10 @@ options = { :format    => 'sep',
           }
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-x", "--math[=EXACT]", String, /EXACT|NORMAL|INEXACT/i,
+           "Display exact or normal (default) math results" ) do |val|
+    options[:math] = true if ( val || "exact" ).upcase[0] == "E"
+  end  # -x --math
   opts.on( "-f", "--format[=DISPLAY]", /SEP|WORD|BARE|ASC|DESC/i,
            "Format to display:",
            "  SEP: comma separated groups (default),",
@@ -138,19 +143,39 @@ options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
 
-# Check that only numbers 0..9, arithmetical operators +, -, *, / and %,
-# &, |, <, >, =, decimal-point, space and parentheses () are present in arg:
-pat = /[.0-9+\-*\/%&<=>\ \(\)]+/
+#####################################################
+# If included, math results are "exact":            #
+#   36/16 => 9/4                                    #
+# Not included generates "normal" math results:     #
+#   36/16 => 2                                      #
+require 'mathn' if options[:math] # Unified numbers #
+#####################################################
 
-# Strip commas from each arg:
-ARGV.each_with_index { |a,i| ARGV[i] = a.tr( ',', '' ) }
+# Ruby's Math module defines 26 basic trig and transcendental funtions:
+mathpat1 = Regexp.new(
+          / \b(                    # word-boundary, then Capture Group 1
+                a?(cos|sin|tan)h?  # cos, sin, tan, acos, asin, atan,
+                                   # cosh, sinh, tanh, acosh, asinh, atanh
+              | atan2              # atan2
+              | (cb|sq)rt          # cbrt (cube-root), sqrt (square-root)
+              | erfc?              # erf, erfc (error-function and its complement)
+              | (fr|ld)?exp        # exp, frexp, ldexp
+              | l?gamma            # gamman, lgamma
+              | hypot              # hypot (hypotenuse of a right-triangle with sides a,b)
+              | log(2|10)?         # log (natural), log2, log10
+              ) \s*\(              #   => "sin(..." or "sin (..." or "sin    (..."
+          /x )
+mathpat2 = Regexp.new( /(\bE\b | \bPI\b )/x )    # "e" or "pi"
 
-ARGV.each_with_index { | arg, idx |
-#  arg.each_codepoint { |a| raise "Expression error, illegal characters" if a !~ pat }
+ARGV.each_with_index do | arg, idx |
+
+  # If an expression contains one or more Math module trig/transc functions,
+  # prefix these with module name 'Math.' --
+  arg = arg.gsub( mathpat1, 'Math.\1(' )  # use single-quotes around 'Math.\1(' !!
+  arg = arg.gsub( mathpat2, 'Math::\1'  )
 
   bignum = 0
   cmd = "bignum = #{arg}"
-  puts "\n  eval( '#{cmd}' )" if options[:verbose]
 
   # This is, of course, a Bad Thing... to accept arbitrary input from
   # the command line and then execute (eval) it directly.  Hence, the
@@ -159,6 +184,12 @@ ARGV.each_with_index { | arg, idx |
   #############
   eval( cmd ) #  <-- Don't try this at home...
   #############
+  options[:format] = "nonNumeric" if ! bignum.kind_of?( Numeric )
+
+  if options[:debug] >= DBGLVL1 or options[:verbose]
+    STDOUT.puts "\n  eval( '#{cmd}' )"
+    STDOUT.puts "  raw: #{bignum.inspect}\n\n"
+  end
 
   case options[:format].to_sym
   when :sep
@@ -169,6 +200,8 @@ ARGV.each_with_index { | arg, idx |
       result = bignum.numbernames
   when :asc, :desc
       result = bignum.pp_numstack( options )
+  when :nonNumeric
+    result = bignum.inspect  # pp-type format
   #when :desc
   #    result = bignum.desc_numstack
   end
@@ -198,6 +231,6 @@ ARGV.each_with_index { | arg, idx |
     end  # if
   end  # case
 
-}  # ARGV.each_with_index
+end  # ARGV.each_with_index
 
 exit true
