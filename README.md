@@ -1,5 +1,7 @@
 # wallowa
 
+Last update: 23-June-2017
+
 ## Overview
 
 This repository is unconventional in that it serves as a collection-point for a rather large number of Ruby com-line utilities and educational programs, primarily designed and developed for a Ruby Immersion Bootcamp (multi-week class), but also for individual use and sharing within the Ruby Community.
@@ -70,8 +72,6 @@ This utility addresses a common problem when ripping music CDs to digital files 
 
 This script is a sophisticated driver for the `apt-get install` command, and uses a simply-structured text file, a `PackageInstallation*.list`, to reinstall everything that's important after a bare-metal Linux rebuild. All that's needed is the discipline to keep a package-installation text file up-to-date with your ongoing configuration.
 
-**bignum.rb** -- A utility and demo script which exercises the full capabilities of `lib/ppstrnum`'s `thousands`, `numbernames`, `pp_numstack`, `asc_numstack` and `desc_numstack` methods. Accepts the ARGV vector as an arithmetical expression to `eval` (with filtering to avoid arbitrary code attacks). [To-do: create a `ResetGlobbing` alias to allow the use of unquoted `*` for multiplication and exponentiation.]
-
 **bru.rb** -- An intelligent "wrapper" for the powerful **rsync** program (which has way too many options and switches for every conceivable purpose, including ones that you'd never see or use).  This utility provides a simplified command-line options and arguments structure, optional configuration files to "remember" specific backup tasks, simplified/filtered output from the *rsync* subprocess, and more.
 
 **datecalc.rb** -- A date calculator (I'd previously written a similar utility on VMS in Pascal) which can determine a date which is a number of days after or before a given date, the number of days between two dates, and the number of days from "today" until a later date (as a special case of "between").
@@ -91,6 +91,8 @@ In addition, a selection of DCL lexical functions `f$edit`, `f$element`, `f$extr
 **dclrename.rb** -- An alternate or partner implementation of top-level processing for the DCL `rename` emulated command -- it provides for a test harness and exploratory platform for this process, with an eye to future wildcard processing enhancements. It's also the first place to implement and test additional renaming schemes, like UPPER- and lower-casing, CamelCasing, snake_casing, "convert all spaces to underscores" and its inverse, and compression of multi-runs of ' ' and '_' characters.
 
 **dir.rb** -- My career has long been associated with the VMS operating system, and my fingers and eyes have spent thousands of hours on the DCL command line. I guess I've viewed tens-of-thousands of directory listings, so I've developed habits and preferences based on that long use and exposure.  When I came to embrace Linux and its shells for my desktop and laptop systems, I found the output of the `ls -la` command particularly frustrating -- the essential information's all there, but it's entirely in the wrong order!  Well, why can't I do Linux directory listings in (near) VMS/DCL format?  This script does just that.  `dir` also uses the `ResetGlobbing` function to turn off shell (bash) globbing, allowing the script to receive arguments like `*.rb` unexpanded in ARGV, and to handle wildcard globbing internally.
+
+**eval.rb** -- A utility and demo script which exercises the full capabilities of `lib/ppstrnum`'s `thousands`, `numbernames`, `pp_numstack`, `asc_numstack` and `desc_numstack` methods. Accepts the ARGV vector as an arithmetical expression to `eval` (with filtering to avoid arbitrary code attacks).  This script has evolved: 1. It was originally conceived as a means to evaluate numeric (arithmetic) expressions involving `Bignum` numbers (a deprecated class with v2.4+, all's Integer and Numeric now).  Then, 2. Recognized how to make this work for Math trigonometric and transcendental methods too; this added a heap of functionality.  Then, 3. Ephiphany: The core `eval` method works generically for `String` methods, and possibly other things.  Trend here is towards generality, eliminating assumptions about "how it ought to work."
 
 **ezekiel.rb** -- This program is a *toy* which plays with the (bogus) numerology/gematria espoused by the 2007 novel "The Ezekiel Code" by Gary Val Tenuta (Outskirts Press).  Tenuta's numerology (algorithm, referred to as "cross-adding") is spelled out in Chapter ~2~ of the novel.  The plot of this story hinges upon the "great significances" of various phrases and words as cross-added by this numerology -- See the companion text file `Ezekiel Numerology Test Phrases.cross_sums` for a (nearly) complete list of cross-added phrases/words (and noting a few errors in the novel-author's own sums).  The author of this program in no way endorses, or even believes in, the numerological and/or religious notions and ideas put forth ion that novel; however, it is amusing to play with (and cross-check) the various sums and cross-sums from that work of fiction -- if only to demonstrate that one can "make great significance" out of damn near any/every cross-sum you can compute!
 
@@ -141,6 +143,8 @@ My bash profile script sets two aliases, `killmy` to do `process --kill` (and `k
 **tonerow.rb** -- This algorithm/program has been with me since college (a long, long time ago!), where I first implemented it in Fortran and PL/1 (languages taught back then); later I reimplemented it in (at least) Pascal (two compiler/dialects), and a couple of other languages since forgotten -- now resurrected in Ruby.  This script generates a "magic square", given a dodecaphonic (12-tone) row: The square is a 12-by-12 matrix of tones (integers 0 thru 9, with D and E standing for tone (pitch class) values 10 and eleven) -- the matrix represents all conventional combinations and permutations of that 12-tone row, at all 12 transposed pitches, including original and transpositions (rows read left to right), retrogrades (rows right to left), inversions (columns read top to bottom) and retrograde-inversions (columns bottom to top).
 
 A 12-tone row input might look like "45130289D67E" (the row used in Webern's Piano Variations, Op. 27), where "0" is by convention pitch class (or tone) C.  Note that the top-left to bottom-right diagonal of the resulting matrix always has the same pitch class value, for the Webern row/example, the tone 4 representing E.
+
+**what.rb** -- Attribution:  This "code fragment" comes directly and unaltered  (well, almost) by cut-&-paste (well, almost) from Avdi Grimm's [RubyTapas education series](https://rubytapas.com) (https://rubytapas.com), Episode 471 entitled ['Which'](https://www.rubytapas.com/2017/03/20/episode-471-which/) (https://www.rubytapas.com/2017/03/20/episode-471-which/). This code snippet is just too good, deserves to be used in a real-live tool! You, dear reader, are strongly encouraged to read Avdi's lucid code design walkthru in the RubyTapas episode above...
 
 **wordfrequencies.rb** -- Tallies up the frequencies of words in a document, dropping "little/noise" words (like a, the, but, to, too, etc.), and sorting the resulting list and displaying the "top-N" as requested by the user.
 
@@ -270,6 +274,3 @@ Note that the method `about_program` includes the version-number of the Ruby int
 **lib/TimeEnhancements.rb** --
 
 **lib/WhichOS.rb** --
-
------
-Last update: 29-January-2017
