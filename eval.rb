@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # -*- encoding: utf-8 -*-
 
-# bignum.rb
+# eval.rb
 #
 # Copyright © 2016-2017 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
@@ -11,8 +11,16 @@
 # See the file 'gpl' distributed within this project directory tree.
 #
 
+# 1. Originally conceived: As a means to evaluate numeric (arithmetic)
+#    expressions involving Bignums (a deprecated class with v2.4+,
+#    all's Integer and Numeric now).
+# 2. Recognized: How to make this work for Math trig/transcendental
+#    methods too.
+# 3. Ephiphany: The core eval method works generically for String methods,
+#    and possibly other things.
+
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.5 (06/21/2017)"
+  PROGID = "#{PROGNAME} v3.0 (06/23/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -21,7 +29,7 @@ DBGLVL2 = 2  ######################################################
 DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 
-DEFAULT_VARNAME   = "BIGNUM_RESULT"
+DEFAULT_VARNAME   = "EVAL_RESULT"
 VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
 VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
 DCLSCOPE_LOCAL    = 1
@@ -174,8 +182,8 @@ ARGV.each_with_index do | arg, idx |
   arg = arg.gsub( mathpat1, 'Math.\1(' )  # use single-quotes around 'Math.\1(' !!
   arg = arg.gsub( mathpat2, 'Math::\1'  )
 
-  bignum = 0
-  cmd = "bignum = #{arg}"
+  evaltmp = 0
+  cmd = "evaltmp = #{arg}"
 
   # This is, of course, a Bad Thing... to accept arbitrary input from
   # the command line and then execute (eval) it directly.  Hence, the
@@ -184,26 +192,26 @@ ARGV.each_with_index do | arg, idx |
   #############
   eval( cmd ) #  <-- Don't try this at home...
   #############
-  options[:format] = "nonNumeric" if ! bignum.kind_of?( Numeric )
+  options[:format] = "nonNumeric" if ! evaltmp.kind_of?( Numeric )
 
   if options[:debug] >= DBGLVL1 or options[:verbose]
     STDOUT.puts "\n  eval( '#{cmd}' )"
-    STDOUT.puts "  raw: #{bignum.inspect}\n\n"
+    STDOUT.puts "  raw: #{evaltmp.inspect}\n\n"
   end
 
   case options[:format].to_sym
   when :sep
-      result = bignum.thousands
+      result = evaltmp.thousands
   when :bare
-      result = bignum.to_s
+      result = evaltmp.to_s
   when :word
-      result = bignum.numbernames
+      result = evaltmp.numbernames
   when :asc, :desc
-      result = bignum.pp_numstack( options )
+      result = evaltmp.pp_numstack( options )
   when :nonNumeric
-    result = bignum.inspect  # pp-type format
+    result = evaltmp.inspect  # pp-type format
   #when :desc
-  #    result = bignum.desc_numstack
+  #    result = evaltmp.desc_numstack
   end
 
   case options[:os]
