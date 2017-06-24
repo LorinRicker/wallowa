@@ -38,17 +38,45 @@ DCLSCOPE_GLOBAL   = 2
 
 require 'optparse'
 require 'pp'
-require_relative 'lib/ppstrnum'
 require_relative 'lib/WhichOS'
 ## require_relative 'lib/TermChar'
 
+# Expose methods which may be used by User on command-line:
+require_relative 'lib/ppstrnum'
+require_relative 'lib/StringEnhancements'
+
 # ==========
+
+def display_methods( v, verbo )
+  pubmethods = Array.new
+  cmd = "pubmethods = #{v}.methods.sort"
+  STDOUT.puts ">>> cmd: \"#{cmd}\"" if verbo
+  eval( cmd )
+  scrwidth = 40
+  line = ""
+  firstletter = ''
+  pubmethods.each do | pmethod |
+    pm = pmethod.to_s
+    if ( line != "" ) and ( pm[0] == firstletter )
+      line = line + "\t" + pm
+    else
+      line = line + pm
+      firstletter = pm[0]
+    end
+    if ( line.length >= scrwidth )
+      STDOUT.puts line
+      line = ""
+      firstletter = pm[0]
+    end
+  end  # pubmethods.each
+end  # display_methods
 
 # === Main ===
 options = { :math      => nil,
             :format    => 'sep',
             :just      => 'right',
             :separator => ',',
+            :methods   => nil,
             :indent    => 2,
             :os        => :linux,
             :varname   => nil,
@@ -85,6 +113,14 @@ optparse = OptionParser.new { |opts|
            "Group separator (default is ',' comma)" ) do |val|
     options[:separator] = val.to_i.abs
   end  # -s --separator
+  opts.on( "-m", "--methods[=RubyClassName]", String,
+           "Display methods for a Ruby Class" ) do |val|
+    options[:methods] = val.capitalize!
+    if val
+      display_methods( val, true )
+      exit 1
+    end
+  end  # -m --methods
 
   opts.separator ""
   opts.on( "-r", "--variable[=VARNAME]", String,
