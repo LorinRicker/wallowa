@@ -10,6 +10,11 @@
 *.rb.backup
 *.rb_old
 *.rb_original
+*.rb.*
+*.md5
+*.sha*
+*.ripemd*
+
 PreliminaryIdeas/*
 *.txt
 *.sublime*
