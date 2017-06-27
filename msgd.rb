@@ -18,7 +18,7 @@
 # advanced message digest algorithms with Ruby for VMS?
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (06/25/2017)"
+  PROGID = "#{PROGNAME} v1.1 (06/27/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -81,27 +81,83 @@ def digest_files( args, options )
   end  # args.each
 end # digest_files
 
+def display_instructions
+  STDOUT.puts <<~EOInstructions
+  #{PROGID} -- #{AUTHOR}
+
+  Examples:
+    $ #{PROGNAME} foo.txt               # Create MD5 (default) digest of foo.txt
+    $ #{PROGNAME} foo1 foo2 foo3        # Compute MD5 digests of three files
+    $ #{PROGNAME} --digest=sha512 foo4  # Create SHA512 digest of foo4
+    $ #{PROGNAME} foo2 > foo2.md5       # Output MD5 digest to file foo2.md5
+    $ #{PROGNAME} --check foo2.md5      # Check (recompute) actual digest of
+                                 #   file in foo2.md5 using MD5 algorithm,
+                                 #   and file named in this signature file
+    $ #{PROGNAME} -c -msha512 foo2.md5  # Check actual digest of file in foo.md5, but
+                                 #   is ".md5" file extension a lie (wrong)?
+
+  Conventions:
+    * Default message (hash) digest algorithm is MD5.
+    * Available algorithms are MD5, SHA1, SHA256, SHA384, SHA512 and RIPEMD160;
+        see https://en.wikipedia.org/wiki/Cryptographic_hash_function and/or
+        https://en.wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions
+        for (much) more information.
+    * This program is intended as a drop-in replacement for *nix utility commands
+        like md5sum and sha(256,384,512)sum, and attempts to produce output which
+        is formatted identically to these programs:
+        "hash-digest-value  path-filename"  -- Note: two spaces between values.
+    * If command-line's file argument(s) is entered as a simple file name (and
+        found in the current directory), then "path-filename" is simply the
+        "file.ext" -- If the file argument includes any portion of a path, then
+        the file's specification is fully expanded to the absolute file-spec:
+        "/path/.../file.ext"
+    * Simple file names (in output digest files) are "portable" in the sense that
+        no reliance on file path conventions are required; the file to process is
+        assumed to be found in "the current directory."
+    * Name output digest files (>) with a file extension which is the same as
+        the message digest algorith -- ".md5" for MD5, ".sha384" for SHA384, etc.
+    * If --check (-c) is used, then the file argument(s) is (are) processed as
+        (output) digest files, not as files to calculate a digest for.
+    * If --check (-c) is used with --digest=DIGEST (-mDIGEST), then "DIGEST" is
+        the hash algorithm which is used.
+    * If --check (-c) is used without --digest (-m), then the hash digest algorithm
+        is determined by (a regexp pattern match is attempted) from the file's type;
+        please name output digest files accordingly.  File extensions like these will
+        work: foo.txt.md5, foo.txtmd5, FOO.TXT_MD5 or FOO.MD5 (VMS), or foo.md5
+    * Regexp pattern matching for hash algorithms is case insensitive.
+    * This utility program brings modern message digest functionality to the VMS
+        (OpenVMS) environment, supplementing its native CHECKSUM command.
+  EOInstructions
+end # display_instructions
+
 # === Main ===
-options = { :digest    => nil,
-            :check     => false,
-            :noop      => false,
-            :verbose   => false,
-            :debug     => DBGLVL0,
-            :about     => false
+options = { :digest       => nil,
+            :check        => false,
+            :instructions => nil,
+            :noop         => false,
+            :verbose      => false,
+            :debug        => DBGLVL0,
+            :about        => false
           }
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
-  opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
+  opts.on( "-m", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
            "Message digest to use:",
            "  MD5 (d), SHA[256,384,512], SHA1 or R[IPEMD]160" ) do |val|
   options[:digest] = val || "MD5"
-  end  # -s --digest
+  end  # -m --digest
   opts.on( "-c", "--check",
-           "Red msg-digest(s) from file(s) and cross-check them;",
+           "Cross-check message-digest(s) from file(s); files",
           "  file1 [file2]... must be message-digest output files" ) do |val|
     options[:check] = true
-  end  # -r --variable
+  end  # -c --check
+  opts.on( "--instructions",
+           "Display extended instructions for #{PROGNAME}" ) do |val|
+    options[:instructions] = true
+    display_instructions
+    exit true
+  end  # --instructions
 
   opts.separator "\n#{VMSONLY_BORDER}"
   # opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
@@ -135,8 +191,10 @@ optparse = OptionParser.new { |opts|
   end  # -a --about
   # --- Set the banner & Help option ---
   opts.banner = "\n#{USAGE_MSG}" +
-                "\n\n    where file1 ..." +
-                "\n    xxx.\n\n"
+                "\n\n    where file1 ... is (are) either:" +
+                "\n      a) File(s) to calculate a message (hash) digest;" +
+                "\n      b) Digest file(s) to cross-check." +
+                "\n\n  See Instructions (--instructions) for more information.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
