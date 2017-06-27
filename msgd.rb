@@ -40,6 +40,46 @@ require_relative 'lib/filemagic'
 
 # ==========
 
+def check_files( args, options )
+  mdpat = Regexp.new( /.*(SHA1|SHA256|SHA384|SHA512|MD5|RIPEMD160|RMD160).*/i )
+  failed_count = 0
+  args.each do | cname |
+    lines = IO.readlines( cname )
+    lines.each do | line |
+      cdigest, fname = line.split
+      if ( ! options[:digest] )
+        fext = File.extname( cname )
+        if m = mdpat.match( fext )  # assignment, not equality-test!
+          options[:digest] = m[0][1..m.length+1].upcase
+          STDERR.puts "%#{PROGNAME}-i-matched, auto-matched message digest #{m[0]}" if options[:verbose]
+        else
+          STDERR.puts "%#{PROGNAME}-e-nomatch, failed to auto-match any message digest"
+          exit false
+        end
+      end  # if
+      mdigest = fname.msgdigest( options[:digest] )
+      if mdigest == cdigest
+        STDOUT.puts "#{fname}: OK"
+      else
+        STDOUT.puts "#{fname}: FAILED"
+        failed_count += 1
+      end
+    end  # lines.each
+  end  # args.each
+  if failed_count > 0
+    msg = "#{PROGNAME}: WARNING: #{failed_count} computed checksum" +
+          "#{failed_count > 1 ? 's' : ''} did NOT match"
+    STDOUT.puts msg
+  end  # if failed_count > 0
+end  # check_files
+
+def digest_files( args, options )
+  args.each do | fname |
+    fname = File.expand_path( fname ) if File.dirname( fname ) != '.'
+    mdigest = fname.msgdigest( options[:digest] )
+    STDOUT.puts "#{mdigest}  #{fname}"
+  end  # args.each
+end # digest_files
 
 # === Main ===
 options = { :digest    => nil,
@@ -116,46 +156,11 @@ options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
 
-mdpat = Regexp.new( /.*(SHA1|SHA256|SHA384|SHA512|MD5|RIPEMD160|RMD160).*/i )
-
-failed_count = 0
-
 if ARGV.length > 0
   if options[:check]  # check existing *.mdigest file against actual source file(s) --
-    ARGV.each do | cname |
-      lines = IO.readlines( cname )
-      lines.each do | line |
-        cdigest, fname = line.split
-        if ( ! options[:digest] )
-          fext = File.extname( cname )
-          if m = mdpat.match( fext )  # assignment, not equality-test!
-            options[:digest] = m[0][1..m.length+1].upcase
-            STDERR.puts "%#{PROGNAME}-i-matched, auto-matched message digest #{m[0]}" if options[:verbose]
-          else
-            STDERR.puts "%#{PROGNAME}-e-nomatch, failed to auto-match any message digest"
-            exit false
-          end
-        end  # if
-        mdigest = fname.msgdigest( options[:digest] )
-        if mdigest == cdigest
-          STDOUT.puts "#{fname}: OK"
-        else
-          STDOUT.puts "#{fname}: FAILED"
-          failed_count += 1
-        end
-      end  # lines.each
-    end  # ARGV.each
-    if failed_count > 0
-      msg = "#{PROGNAME}: WARNING: #{failed_count} computed checksum" +
-            "#{failed_count > 1 ? 's' : ''} did NOT match"
-      STDOUT.puts msg
-    end  # if failed_count > 0
+    check_files( ARGV, options )
   else  # generate "msgdigest  filename" output(s), which can be redirected --
-    ARGV.each do | fname |
-      fname = File.expand_path( fname ) if File.dirname( fname ) != '.'
-      mdigest = fname.msgdigest( options[:digest] )
-      STDOUT.puts "#{mdigest}  #{fname}"
-    end  # ARGV.each
+    digest_files( ARGV, options )
   end
 else
   STDOUT.puts USAGE_MSG
