@@ -27,16 +27,23 @@ DBGLVL2 = 2  ######################################################
 DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 
+USAGE_MSG = "  Usage: #{PROGNAME} [options] file1 [ file2 ]..."
+
+VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
+VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
+
 require 'optparse'
 require 'pp'
 require_relative 'lib/WhichOS'
+require_relative 'lib/filemagic'
 ## require_relative 'lib/TermChar'
 
 # ==========
 
 
 # === Main ===
-options = { :math      => nil,
+options = { :digest    => nil,
+            :check     => false,
             :noop      => false,
             :verbose   => false,
             :debug     => DBGLVL0,
@@ -44,27 +51,24 @@ options = { :math      => nil,
           }
 
 optparse = OptionParser.new { |opts|
-  opts.on( "-x", "--math[=EXACT]", String, /EXACT|NORMAL|INEXACT/i,
-           "Display exact or normal (default) math results" ) do |val|
-    options[:math] = true if ( val || "exact" ).upcase[0] == "E"
-  end  # -x --math
-
-  opts.separator ""
-  opts.on( "-r", "--variable[=VARNAME]", String,
-           "Variable (symbol) name for expression result;",
-           "  default variable name is #{DEFAULT_VARNAME}, which",
-           "  is always suffixed with the index-number for",
-           "  that argument position, e.g., #{DEFAULT_VARNAME}1,",
-           "  #{DEFAULT_VARNAME}2,... -rr becomes R1, R2, R3,..." ) do |val|
-    options[:varname] = ( val || DEFAULT_VARNAME ).upcase
+  # --- Program-Specific options ---
+  opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
+           "Message digest to use:",
+           "  MD5 (d), SHA[256,384,512], SHA1 or R[IPEMD]160" ) do |val|
+  options[:digest] = val || "MD5"
+  end  # -s --digest
+  opts.on( "-c", "--check",
+           "Red msg-digest(s) from file(s) and cross-check them;",
+          "  file1 [file2]... must be message-digest output files" ) do |val|
+    options[:check] = true
   end  # -r --variable
 
   opts.separator "\n#{VMSONLY_BORDER}"
-  opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
-           "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
-    options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
-                           DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
-  end  # -x --scope
+  # opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
+  #          "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
+  #   options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
+  #                          DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
+  # end  # -x --scope
   opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
 
   opts.on( "-n", "--noop", "--dryrun", "--test",
@@ -90,11 +94,9 @@ optparse = OptionParser.new { |opts|
     options[:about] = about_program( PROGID, AUTHOR, true )
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] \"EXPRESSION1\" [ \"EXPRESSION2\" ]..." +
-                "\n\n    where each \"EXPRESSION\" is a numeric expression to evaluate and display" +
-                "\n    in the selected format.  Enclose each expression in double-quotes, e.g." +
-                "\n    \"2**64\" to ensure that special characters such as asterisk/splats are" +
-                "\n    not misinterpreted.\n\n"
+  opts.banner = "\n#{USAGE_MSG}" +
+                "\n\n    where file1 ..." +
+                "\n    xxx.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -114,13 +116,49 @@ options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
 
-#####################################################
-# If included, math results are "exact":            #
-#   36/16 => 9/4                                    #
-# Not included generates "normal" math results:     #
-#   36/16 => 2                                      #
-require 'mathn' if options[:math] # Unified numbers #
-#####################################################
+mdpat = Regexp.new( /.*(SHA1|SHA256|SHA384|SHA512|MD5|RIPEMD160|RMD160).*/i )
 
+failed_count = 0
+
+if ARGV.length > 0
+  if options[:check]  # check existing *.mdigest file against actual source file(s) --
+    ARGV.each do | cname |
+      lines = IO.readlines( cname )
+      lines.each do | line |
+        cdigest, fname = line.split
+        if ( ! options[:digest] )
+          fext = File.extname( cname )
+          if m = mdpat.match( fext )  # assignment, not equality-test!
+            options[:digest] = m[0][1..m.length+1].upcase
+            STDERR.puts "%#{PROGNAME}-i-matched, auto-matched message digest #{m[0]}" if options[:verbose]
+          else
+            STDERR.puts "%#{PROGNAME}-e-nomatch, failed to auto-match any message digest"
+            exit false
+          end
+        end  # if
+        mdigest = fname.msgdigest( options[:digest] )
+        if mdigest == cdigest
+          STDOUT.puts "#{fname}: OK"
+        else
+          STDOUT.puts "#{fname}: FAILED"
+          failed_count += 1
+        end
+      end  # lines.each
+    end  # ARGV.each
+    if failed_count > 0
+      msg = "#{PROGNAME}: WARNING: #{failed_count} computed checksum" +
+            "#{failed_count > 1 ? 's' : ''} did NOT match"
+      STDOUT.puts msg
+    end  # if failed_count > 0
+  else  # generate "msgdigest  filename" output(s), which can be redirected --
+    ARGV.each do | fname |
+      fname = File.expand_path( fname ) if File.dirname( fname ) != '.'
+      mdigest = fname.msgdigest( options[:digest] )
+      STDOUT.puts "#{mdigest}  #{fname}"
+    end  # ARGV.each
+  end
+else
+  STDOUT.puts USAGE_MSG
+end
 
 exit true
