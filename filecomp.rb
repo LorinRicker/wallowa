@@ -55,7 +55,7 @@ require_relative 'lib/TermChar'
 
 options = { :tool    => 'meld',
             :dirdiff => nil,
-            :digest  => "SHA1",
+            :digest  => "MD5",
             :width   => nil,
             :verbose => false,
             :debug   => DBGLVL0,
@@ -64,9 +64,9 @@ options = { :tool    => 'meld',
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
-  opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5/i,
-           "Message digest (SHA1 (d), SHA[256,384,512] or MD5)" ) do |val|
-  options[:digest] = val || "SHA1"
+  opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
+           "Message digest (MD5 (d), SHA[256,384,512], SHA1 or R[IPEMD]160)" ) do |val|
+  options[:digest] = val || "MD5"
   end  # -s --digest
   opts.on( "-m", "--dependency", "Dependency (files' mtimes) mode" ) do |val|
     options[:dependency] = true

@@ -4,7 +4,7 @@
 # filemagic.rb
 #
 # Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.2, 02/10/2015
+# Version 2.0, 06/26/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -45,6 +45,9 @@ module FileMagic
     when /MD5/i
       require 'digest/md5'
       Digest::MD5.hexdigest( File.binread( fname ) )
+    when /R.*160/i  # RIPEMD-160
+      require 'digest/rmd160'
+      Digest::RMD160.hexdigest( File.binread( fname ) )
     when /SHA256/i
       require 'digest/sha2'
       Digest::SHA256.hexdigest( File.binread( fname ) )
@@ -54,9 +57,12 @@ module FileMagic
     when /SHA512/i
       require 'digest/sha2'
       Digest::SHA512.hexdigest( File.binread( fname ) )
-    else  # default /SHA1/i
+    when /SHA1/i
       require 'digest/sha1'
       Digest::SHA1.hexdigest( File.binread( fname ) )
+    else
+      STDERR.puts "%filemagic-e-bad_msgdigest, no such message digest #{dig}"
+      exit false
     end  # case
   end  # msgdigest
 
