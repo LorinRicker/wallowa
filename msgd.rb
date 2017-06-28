@@ -270,7 +270,6 @@ optparse = OptionParser.new { |opts|
            "Variable (symbol) name for expression result;",
            "  default variable name is #{DEFAULT_VARNAME},",
            "  which is always a local (scope) DCL symbol." ) do |val|
-    STDERR.puts "val>> \"#{val}\""
     options[:varname] = ( val || DEFAULT_VARNAME ).upcase
   end  # -r --variable
   opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
