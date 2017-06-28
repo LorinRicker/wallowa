@@ -18,7 +18,7 @@
 # advanced message digest algorithms with Ruby for VMS?
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (06/27/2017)"
+  PROGID = "#{PROGNAME} v1.2 (06/27/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -29,8 +29,12 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 
 USAGE_MSG = "  Usage: #{PROGNAME} [options] file1 [ file2 ]..."
 
+DEFAULT_MDIGEST   = "SHA256"
+DEFAULT_VARNAME   = "CHECKSUM\$#{PROGNAME.upcase}"
 VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
 VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
+DCLSCOPE_LOCAL    = 1
+DCLSCOPE_GLOBAL   = 2
 
 require 'optparse'
 require 'pp'
@@ -46,11 +50,11 @@ def check_files( args, options )
   args.each do | cname |
     lines = IO.readlines( cname )
     lines.each do | line |
-      cdigest, fname = line.split
+      cdigest, fname = line.chomp.split
       if ( ! options[:digest] )
         fext = File.extname( cname )
         if m = mdpat.match( fext )  # assignment, not equality-test!
-          options[:digest] = m[0][1..m.length+1].upcase
+          options[:digest] = m[1].upcase
           STDERR.puts "%#{PROGNAME}-i-matched, auto-matched message digest #{m[0]}" if options[:verbose]
         else
           STDERR.puts "%#{PROGNAME}-e-nomatch, failed to auto-match any message digest"
@@ -59,9 +63,9 @@ def check_files( args, options )
       end  # if
       mdigest = fname.msgdigest( options[:digest] )
       if mdigest == cdigest
-        STDOUT.puts "#{fname}: OK"
+        $stdout.puts "#{fname}: OK"
       else
-        STDOUT.puts "#{fname}: FAILED"
+        $stdout.puts "#{fname}: FAILED"
         failed_count += 1
       end
     end  # lines.each
@@ -69,43 +73,48 @@ def check_files( args, options )
   if failed_count > 0
     msg = "#{PROGNAME}: WARNING: #{failed_count} computed checksum" +
           "#{failed_count > 1 ? 's' : ''} did NOT match"
-    STDOUT.puts msg
+    $stdout.puts msg
   end  # if failed_count > 0
 end  # check_files
 
 def digest_files( args, options )
-  args.each do | fname |
-    fname = File.expand_path( fname ) if File.dirname( fname ) != '.'
+  mdigest = fname = ""
+  args.each do | arg |
+    fname = (File.dirname( arg ) != '.') ? File.expand_path( arg ) : arg
     mdigest = fname.msgdigest( options[:digest] )
-    STDOUT.puts "#{mdigest}  #{fname}"
   end  # args.each
+  [ mdigest, fname ]  # return value
 end # digest_files
 
 def display_instructions
-  STDOUT.puts <<~EOInstructions
-  #{PROGID} -- #{AUTHOR}
+  $stdout.puts <<~EOInstructions
+
+  Use:
+    $ #{PROGNAME} [options] file1 [ file2 ]...
 
   Examples:
-    $ #{PROGNAME} foo.txt               # Create MD5 (default) digest of foo.txt
-    $ #{PROGNAME} foo1 foo2 foo3        # Compute MD5 digests of three files
-    $ #{PROGNAME} --digest=sha512 foo4  # Create SHA512 digest of foo4
-    $ #{PROGNAME} foo2 > foo2.md5       # Output MD5 digest to file foo2.md5
-    $ #{PROGNAME} --check foo2.md5      # Check (recompute) actual digest of
-                                 #   file in foo2.md5 using MD5 algorithm,
+    $ #{PROGNAME} foo.txt               # Create #{DEFAULT_MDIGEST} (default) digest of foo.txt
+    $ #{PROGNAME} foo1 foo2 foo3        # Compute #{DEFAULT_MDIGEST} digests of three files
+    $ #{PROGNAME} --digest=md5 foo4     # Create MD5 digest of foo4
+    $ #{PROGNAME} foo2 > foo2.sha512    # Output #{DEFAULT_MDIGEST} digest to file foo2.sha512
+    $ #{PROGNAME} --check foo2.sha512   # Check (recompute) actual digest of
+                                 #   file in foo2.sha512 using #{DEFAULT_MDIGEST} algorithm,
                                  #   and file named in this signature file
-    $ #{PROGNAME} -c -msha512 foo2.md5  # Check actual digest of file in foo.md5, but
+    $ #{PROGNAME} -c -mrmd160 foo2.md5  # Check actual digest of file in foo.md5, but
                                  #   is ".md5" file extension a lie (wrong)?
 
+  This program is intended as a drop-in replacement for *nix utility commands
+  like md5sum and sha(256,384,512)sum, and produces output which is formatted
+  identically to these programs (note: two spaces between values):
+
+      "hash-digest-value  path-filename"
+
   Conventions:
-    * Default message (hash) digest algorithm is MD5.
+    * Default message (hash) digest algorithm is #{DEFAULT_MDIGEST}.
     * Available algorithms are MD5, SHA1, SHA256, SHA384, SHA512 and RIPEMD160;
         see https://en.wikipedia.org/wiki/Cryptographic_hash_function and/or
         https://en.wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions
         for (much) more information.
-    * This program is intended as a drop-in replacement for *nix utility commands
-        like md5sum and sha(256,384,512)sum, and attempts to produce output which
-        is formatted identically to these programs:
-        "hash-digest-value  path-filename"  -- Note: two spaces between values.
     * If command-line's file argument(s) is entered as a simple file name (and
         found in the current directory), then "path-filename" is simply the
         "file.ext" -- If the file argument includes any portion of a path, then
@@ -120,19 +129,29 @@ def display_instructions
         (output) digest files, not as files to calculate a digest for.
     * If --check (-c) is used with --digest=DIGEST (-mDIGEST), then "DIGEST" is
         the hash algorithm which is used.
-    * If --check (-c) is used without --digest (-m), then the hash digest algorithm
-        is determined by (a regexp pattern match is attempted) from the file's type;
-        please name output digest files accordingly.  File extensions like these will
-        work: foo.txt.md5, foo.txtmd5, FOO.TXT_MD5 or FOO.MD5 (VMS), or foo.md5
+    * If --check (-c) is used without --digest (-m), then the digest algorithm
+        is determined by (a regexp pattern match is attempted) from the file's
+         type; name output digest files accordingly.  File extensions like these
+         will work: foo.txt.md5, foo.txtmd5, foo.md5, FOO.TXT_MD5 or FOO.MD5 (VMS).
     * Regexp pattern matching for hash algorithms is case insensitive.
+
+    On VMS:
     * This utility program brings modern message digest functionality to the VMS
         (OpenVMS) environment, supplementing its native CHECKSUM command.
+    * Default behavior is to output the hash digest to SYS\$OUTPUT, just like the
+        CHECKSUM command (program) does.  #{PROGNAME} also, as a side-effect, creates a
+        local-scope symbol called #{DEFAULT_VARNAME} by default (again, similar to the
+        CHECKSUM command's local symbol CHECKSUM\$CHECKSUM).
+
+    #{PROGID} -- #{AUTHOR}
   EOInstructions
 end # display_instructions
 
 # === Main ===
-options = { :digest       => nil,
+options = { :digest       => DEFAULT_MDIGEST,
             :check        => false,
+            :output       => nil,
+            :varname      => nil,
             :instructions => nil,
             :noop         => false,
             :verbose      => false,
@@ -145,14 +164,15 @@ optparse = OptionParser.new { |opts|
   opts.on( "-m", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
            "Message digest to use:",
            "  MD5 (d), SHA[256,384,512], SHA1 or R[IPEMD]160" ) do |val|
-  options[:digest] = val || "MD5"
+  options[:digest] = ( val || DEFAULT_MDIGEST )
   end  # -m --digest
   opts.on( "-c", "--check",
-           "Cross-check message-digest(s) from file(s); files",
-          "  file1 [file2]... must be message-digest output files" ) do |val|
+           "Cross-check message-digest(s) from file(s); for",
+          "  this option, file1 [file2]... must be message-",
+          "  digest output files" ) do |val|
     options[:check] = true
   end  # -c --check
-  opts.on( "--instructions",
+  opts.on( "--instructions", "--man",
            "Display extended instructions for #{PROGNAME}" ) do |val|
     options[:instructions] = true
     display_instructions
@@ -160,11 +180,18 @@ optparse = OptionParser.new { |opts|
   end  # --instructions
 
   opts.separator "\n#{VMSONLY_BORDER}"
-  # opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
-  #          "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
-  #   options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
-  #                          DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
-  # end  # -x --scope
+  opts.on( "-o", "--output[=OUTFILE]", String,
+           "File name for redirected program output; required",
+           "  for VMS, as DCL doesn't recognize '>' for output",
+           "  redirection." ) do |val|
+    options[:output] = val
+  end  # -o --output
+  opts.on( "-r", "--variable[=VARNAME]", String,
+           "Variable (symbol) name for expression result;",
+           "  default variable name is #{DEFAULT_VARNAME},",
+           "  which is always a local (scope) DCL symbol." ) do |val|
+    options[:varname] = ( val || DEFAULT_VARNAME ).upcase
+  end  # -r --variable
   opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
 
   opts.on( "-n", "--noop", "--dryrun", "--test",
@@ -214,14 +241,29 @@ options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
 
+$stdout = File.open( options[:output], 'w' ) if options[:output]
+
 if ARGV.length > 0
   if options[:check]  # check existing *.mdigest file against actual source file(s) --
     check_files( ARGV, options )
   else  # generate "msgdigest  filename" output(s), which can be redirected --
-    digest_files( ARGV, options )
+    mdigest, fname = digest_files( ARGV, options )
+    case options[:os]
+    when :linux, :unix, :windows
+      $stdout.puts "#{mdigest}  #{fname}"
+    when :vms
+      if options[:varname]
+        # Tuck result into a local DCL Variable/Symbol --
+        require 'RTL'
+        RTL::set_symbol( options[:varname], mdigest, DCLSCOPE_LOCAL )
+        $stdout.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{DEFAULT_VARNAME}, value '#{mdigest}'" if options[:verbose]
+      else
+        $stdout.puts "#{mdigest}  #{fname}"
+      end  # if options[:varname]
+    end  # case options[:os]
   end
 else
-  STDOUT.puts USAGE_MSG
+  $stdout.puts USAGE_MSG
 end
 
 exit true

@@ -4,7 +4,7 @@
 # filemagic.rb
 #
 # Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 06/26/2017
+# Version 2.1, 06/27/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -61,7 +61,7 @@ module FileMagic
       require 'digest/sha1'
       Digest::SHA1.hexdigest( File.binread( fname ) )
     else
-      STDERR.puts "%filemagic-e-bad_msgdigest, no such message digest #{dig}"
+      STDERR.puts "%filemagic-e-bad_msgdigest, no such message digest \"#{dig}\""
       exit false
     end  # case
   end  # msgdigest
