@@ -18,7 +18,7 @@
 # advanced message digest algorithms with Ruby for VMS?
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (06/28/2017)"
+  PROGID = "#{PROGNAME} v1.5 (06/28/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -30,7 +30,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 USAGE_MSG = "  Usage: #{PROGNAME} [options] file1 [ file2 ]... [ > outfile ]"
 
 DEFAULT_MDIGEST   = "SHA256"
-DEFAULT_VARNAME   = "CHECKSUM\$#{PROGNAME.upcase}"
+DEFAULT_VARNAME   = "CHECKSUM\$DIGEST"
 VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
 VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
 DCLSCOPE_LOCAL    = 1
@@ -124,7 +124,8 @@ def digest_files( args, options )
           # Tuck result into a local DCL Variable/Symbol --
           require 'RTL'
           RTL::set_symbol( options[:varname], mdigest, DCLSCOPE_LOCAL )
-          $stdout.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{DEFAULT_VARNAME}, value '#{mdigest}'" if options[:verbose]
+          $stdout.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol" +
+                       " #{options[:varname]}, value '#{mdigest}'" if options[:verbose]
         else
           $stdout.puts "#{mdigest}  #{fname}"
         end  # if options[:varname]
@@ -269,6 +270,7 @@ optparse = OptionParser.new { |opts|
            "Variable (symbol) name for expression result;",
            "  default variable name is #{DEFAULT_VARNAME},",
            "  which is always a local (scope) DCL symbol." ) do |val|
+    STDERR.puts "val>> \"#{val}\""
     options[:varname] = ( val || DEFAULT_VARNAME ).upcase
   end  # -r --variable
   opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
