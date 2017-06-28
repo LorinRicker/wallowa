@@ -18,7 +18,7 @@
 # advanced message digest algorithms with Ruby for VMS?
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (06/27/2017)"
+  PROGID = "#{PROGNAME} v1.4 (06/28/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -27,7 +27,7 @@ DBGLVL2 = 2  ######################################################
 DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 
-USAGE_MSG = "  Usage: #{PROGNAME} [options] file1 [ file2 ]..."
+USAGE_MSG = "  Usage: #{PROGNAME} [options] file1 [ file2 ]... [ > outfile ]"
 
 DEFAULT_MDIGEST   = "SHA256"
 DEFAULT_VARNAME   = "CHECKSUM\$#{PROGNAME.upcase}"
@@ -35,6 +35,11 @@ VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
 VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
 DCLSCOPE_LOCAL    = 1
 DCLSCOPE_GLOBAL   = 2
+
+MSGDIG_PAT = Regexp.new( /.*(SHA256|SHA384|SHA512|SHA1|MD5|RIPEMD160|RMD160).*/i )
+PRSMDG_PAT = Regexp.new(    /SHA256|SHA384|SHA512|SHA1|MD5|R[IPEMD]*160/i        )
+
+DOT = '.'
 
 require 'optparse'
 require 'pp'
@@ -44,30 +49,58 @@ require_relative 'lib/filemagic'
 
 # ==========
 
+def ext_to_digest( filespec, options )
+  fext = File.extname( filespec )
+  if m = MSGDIG_PAT.match( fext )  # assignment, not equality-test!
+    STDERR.puts "%#{PROGNAME}-i-matched, auto-matched message digest #{m[1]}" if options[:verbose]
+    m[1]  # Return the matched digest name
+  else
+    STDERR.puts "%#{PROGNAME}-f-nomatch, failed to auto-match any message digest"
+    exit false  # ...No Return!... abort
+  end
+end # ext_to_digest
+
+def output_ext_from_digest( options )
+  filespec = options[:output]
+  fext = File.extname( filespec )
+  if m = MSGDIG_PAT.match( fext )  # assignment, not equality-test!
+    filespec   # file name's extension matches desired/selected digest
+  else
+    fname = File.basename( filespec, fext )
+    # Is filespec a VMS-fully-uppercase filename?
+    #   If so, use uppercase digest name, else lowercase:
+    fext  = ( fname != fname.upcase) ? options[:digest].downcase : options[:digest]
+    fname = fname + DOT + fext
+    fpath = File.dirname( filespec )
+    if ( fpath != DOT )  # no path given?
+      File.join( fpath, fname )
+    else
+      fname
+    end
+  end
+end # output_ext_from_digest
+
 def check_files( args, options )
-  mdpat = Regexp.new( /.*(SHA1|SHA256|SHA384|SHA512|MD5|RIPEMD160|RMD160).*/i )
   failed_count = 0
-  args.each do | cname |
-    lines = IO.readlines( cname )
+  args.each do | mdfname |
+    lines = IO.readlines( mdfname )
     lines.each do | line |
-      cdigest, fname = line.chomp.split
-      if ( ! options[:digest] )
-        fext = File.extname( cname )
-        if m = mdpat.match( fext )  # assignment, not equality-test!
-          options[:digest] = m[1].upcase
-          STDERR.puts "%#{PROGNAME}-i-matched, auto-matched message digest #{m[0]}" if options[:verbose]
+      cdigest, cname = line.chomp.split  # the digest and file to check
+      if File.exists?( cname )
+        # Always use the message digest file's extension
+        #  to attempt to parse out the digest to use:
+        options[:digest] = ext_to_digest( mdfname, options )
+        # Recalculate the file-to-check's digest and compare
+        thisdigest = cname.msgdigest( options[:digest] )
+        if thisdigest == cdigest
+          $stdout.puts "#{cname}: OK"
         else
-          STDERR.puts "%#{PROGNAME}-e-nomatch, failed to auto-match any message digest"
-          exit false
+          $stdout.puts "#{cname}: FAILED"
+          failed_count += 1
         end
-      end  # if
-      mdigest = fname.msgdigest( options[:digest] )
-      if mdigest == cdigest
-        $stdout.puts "#{fname}: OK"
       else
-        $stdout.puts "#{fname}: FAILED"
-        failed_count += 1
-      end
+        STDERR.puts "%#{PROGNAME}-e-fnf, file not found: \"#{cname}\""
+      end  # if File.exists?( cname )
     end  # lines.each
   end  # args.each
   if failed_count > 0
@@ -80,27 +113,52 @@ end  # check_files
 def digest_files( args, options )
   mdigest = fname = ""
   args.each do | arg |
-    fname = (File.dirname( arg ) != '.') ? File.expand_path( arg ) : arg
-    mdigest = fname.msgdigest( options[:digest] )
+    if File.exists?( arg )
+      fname = (File.dirname( arg ) != '.') ? File.expand_path( arg ) : arg
+      mdigest = fname.msgdigest( options[:digest] )
+      case options[:os]
+      when :linux, :unix, :windows
+        $stdout.puts "#{mdigest}  #{fname}"
+      when :vms
+        if options[:varname]
+          # Tuck result into a local DCL Variable/Symbol --
+          require 'RTL'
+          RTL::set_symbol( options[:varname], mdigest, DCLSCOPE_LOCAL )
+          $stdout.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{DEFAULT_VARNAME}, value '#{mdigest}'" if options[:verbose]
+        else
+          $stdout.puts "#{mdigest}  #{fname}"
+        end  # if options[:varname]
+      end  # case options[:os]
+    else
+      STDERR.puts "%#{PROGNAME}-e-fnf, file not found: \"#{arg}\""
+    end  # if File.exists?( arg )
   end  # args.each
-  [ mdigest, fname ]  # return value
 end # digest_files
 
 def display_instructions
-  $stdout.puts <<~EOInstructions
+  # (VMS) Ruby v2.2.2 bug (or restriction):
+  #   Does not correctly parse tilde-form "<<~EOFLABEL".
+  #   Fall-back to strict "<<EOFLABLE" form.
+  $stdout.puts <<EOInstructions
 
-  Use:
-    $ #{PROGNAME} [options] file1 [ file2 ]...
+  Usage:
+    $ #{USAGE_MSG}
 
-  Examples:
+  Examples --
+  Calcluating message digests:
     $ #{PROGNAME} foo.txt               # Create #{DEFAULT_MDIGEST} (default) digest of foo.txt
     $ #{PROGNAME} foo1 foo2 foo3        # Compute #{DEFAULT_MDIGEST} digests of three files
     $ #{PROGNAME} --digest=md5 foo4     # Create MD5 digest of foo4
-    $ #{PROGNAME} foo2 > foo2.sha512    # Output #{DEFAULT_MDIGEST} digest to file foo2.sha512
-    $ #{PROGNAME} --check foo2.sha512   # Check (recompute) actual digest of
-                                 #   file in foo2.sha512 using #{DEFAULT_MDIGEST} algorithm,
-                                 #   and file named in this signature file
-    $ #{PROGNAME} -c -mrmd160 foo2.md5  # Check actual digest of file in foo.md5, but
+
+  Message digest output files:
+    $ #{PROGNAME} foo2 -ofoo2           # Output #{DEFAULT_MDIGEST} digest to file foo2.sha256
+
+  Checking a message digest using an output file:
+    $ #{PROGNAME} --check foo2.sha256   # Check (recompute) actual digest of the file
+                                 #   in foo2.sha256 using #{DEFAULT_MDIGEST} algorithm,
+                                 #   and compare it to the message digest in
+                                 #   this message digest file
+    $ #{PROGNAME} -c -msha384 foo2.md5  # Check actual digest of file in foo.md5, but
                                  #   is ".md5" file extension a lie (wrong)?
 
   This program is intended as a drop-in replacement for *nix utility commands
@@ -109,12 +167,12 @@ def display_instructions
 
       "hash-digest-value  path-filename"
 
-  Conventions:
+  Notes:
     * Default message (hash) digest algorithm is #{DEFAULT_MDIGEST}.
-    * Available algorithms are MD5, SHA1, SHA256, SHA384, SHA512 and RIPEMD160;
+    * Available algorithms are SHA256, SHA384, SHA512, RIPEMD160, MD5 and SHA1;
         see https://en.wikipedia.org/wiki/Cryptographic_hash_function and/or
         https://en.wikipedia.org/wiki/Comparison_of_cryptographic_hash_functions
-        for (much) more information.
+        for (much) more information.  SHA1 and MD5 are deprecated as insecure.
     * If command-line's file argument(s) is entered as a simple file name (and
         found in the current directory), then "path-filename" is simply the
         "file.ext" -- If the file argument includes any portion of a path, then
@@ -123,8 +181,13 @@ def display_instructions
     * Simple file names (in output digest files) are "portable" in the sense that
         no reliance on file path conventions are required; the file to process is
         assumed to be found in "the current directory."
+    * Create message digest output files with --output=FILE (-oFILE) rather than
+        with the >-redirection operator, as the option engages program logic to
+        ensure that the file's extention (type) matches the message digest name.
     * Name output digest files (>) with a file extension which is the same as
-        the message digest algorith -- ".md5" for MD5, ".sha384" for SHA384, etc.
+        the message digest algorith: ".sha384" for SHA384, etc.
+    * But it's simpler to just specify the output's file name only (not the file
+        extension) and let #{PROGNAME} fill in the correct extension.
     * If --check (-c) is used, then the file argument(s) is (are) processed as
         (output) digest files, not as files to calculate a digest for.
     * If --check (-c) is used with --digest=DIGEST (-mDIGEST), then "DIGEST" is
@@ -133,7 +196,7 @@ def display_instructions
         is determined by (a regexp pattern match is attempted) from the file's
          type; name output digest files accordingly.  File extensions like these
          will work: foo.txt.md5, foo.txtmd5, foo.md5, FOO.TXT_MD5 or FOO.MD5 (VMS).
-    * Regexp pattern matching for hash algorithms is case insensitive.
+         In this case, the regexp pattern matching is case insensitive.
 
     On VMS:
     * This utility program brings modern message digest functionality to the VMS
@@ -142,9 +205,13 @@ def display_instructions
         CHECKSUM command (program) does.  #{PROGNAME} also, as a side-effect, creates a
         local-scope symbol called #{DEFAULT_VARNAME} by default (again, similar to the
         CHECKSUM command's local symbol CHECKSUM\$CHECKSUM).
+    * Create message digest output files with --output=FILE (-oFILE), as the
+        >-redirection operator is not available on the DCL command line; this
+        option engages program logic to ensure that the file's extention (type)
+        matches the message digest name.
 
     #{PROGID} -- #{AUTHOR}
-  EOInstructions
+EOInstructions
 end # display_instructions
 
 # === Main ===
@@ -161,15 +228,33 @@ options = { :digest       => DEFAULT_MDIGEST,
 
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
-  opts.on( "-m", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
+  opts.on( "-m", "--digest[=DIGEST]", PRSMDG_PAT,
            "Message digest to use:",
-           "  MD5 (d), SHA[256,384,512], SHA1 or R[IPEMD]160" ) do |val|
-  options[:digest] = ( val || DEFAULT_MDIGEST )
+           "  SHA256 (d), SHA384, SHA512, R[IPEMD]160",
+           "  SHA1 or MD5 (note that SHA1 and MD5 are",
+           "  deprecated for anything other than casual,",
+           "  non-secure use)." ) do |val|
+    options[:digest] = ( val || DEFAULT_MDIGEST ).upcase
+    options[:digest] = 'RIPEMD160' if ( options[:digest][0] == 'R' and
+                                        options[:digest][-3..-1] == '160')
   end  # -m --digest
+  opts.on( "-o", "--output[=OUTFILE]", String,
+           "File name for redirected program output:",
+           "  Recommended for Linux/Unix and Windows",
+           "  (instead of than >-redirection).",
+           "  Required for VMS, as DCL doesn't recognize",
+           "  '>' as output redirection." ) do |val|
+    if val
+      options[:output] = val
+    else
+      STDERR.puts "%#{PROGNAME}-e-nooutput, specify a message digest output file"
+      exit false
+    end
+  end  # -o --output
   opts.on( "-c", "--check",
-           "Cross-check message-digest(s) from file(s); for",
-          "  this option, file1 [file2]... must be message-",
-          "  digest output files" ) do |val|
+           "Cross-check message-digest(s) from file(s);",
+          "   for this option, file1 [file2]... must",
+          "   be message-digest output files" ) do |val|
     options[:check] = true
   end  # -c --check
   opts.on( "--instructions", "--man",
@@ -180,12 +265,6 @@ optparse = OptionParser.new { |opts|
   end  # --instructions
 
   opts.separator "\n#{VMSONLY_BORDER}"
-  opts.on( "-o", "--output[=OUTFILE]", String,
-           "File name for redirected program output; required",
-           "  for VMS, as DCL doesn't recognize '>' for output",
-           "  redirection." ) do |val|
-    options[:output] = val
-  end  # -o --output
   opts.on( "-r", "--variable[=VARNAME]", String,
            "Variable (symbol) name for expression result;",
            "  default variable name is #{DEFAULT_VARNAME},",
@@ -241,26 +320,20 @@ options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
 
-$stdout = File.open( options[:output], 'w' ) if options[:output]
+if options[:output]
+  options[:output] = output_ext_from_digest( options )
+  $stdout = File.open( options[:output], 'w' )
+end  # if options[:output]
+if options[:verbose]
+ STDERR.puts "%#{PROGNAME}-i-digest, message digest is \"#{options[:digest]}\""
+ STDERR.puts "%#{PROGNAME}-i-mdfile, message digest file is \"#{options[:output]}\""
+end
 
 if ARGV.length > 0
   if options[:check]  # check existing *.mdigest file against actual source file(s) --
     check_files( ARGV, options )
   else  # generate "msgdigest  filename" output(s), which can be redirected --
-    mdigest, fname = digest_files( ARGV, options )
-    case options[:os]
-    when :linux, :unix, :windows
-      $stdout.puts "#{mdigest}  #{fname}"
-    when :vms
-      if options[:varname]
-        # Tuck result into a local DCL Variable/Symbol --
-        require 'RTL'
-        RTL::set_symbol( options[:varname], mdigest, DCLSCOPE_LOCAL )
-        $stdout.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{DEFAULT_VARNAME}, value '#{mdigest}'" if options[:verbose]
-      else
-        $stdout.puts "#{mdigest}  #{fname}"
-      end  # if options[:varname]
-    end  # case options[:os]
+    digest_files( ARGV, options )
   end
 else
   $stdout.puts USAGE_MSG
