@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v4.4 (02/17/2015)"
+  PROGID = "#{PROGNAME} v4.5 (06/29/2015)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -55,7 +55,7 @@ require_relative 'lib/TermChar'
 
 options = { :tool    => 'meld',
             :dirdiff => nil,
-            :digest  => "MD5",
+            :digest  => "SHA256",
             :width   => nil,
             :verbose => false,
             :debug   => DBGLVL0,
@@ -65,8 +65,9 @@ options = { :tool    => 'meld',
 optparse = OptionParser.new { |opts|
   # --- Program-Specific options ---
   opts.on( "-s", "--digest[=DIGEST]", /SHA1|SHA256|SHA384|SHA512|MD5|R.*MD160/i,
-           "Message digest (MD5 (d), SHA[256,384,512], SHA1 or R[IPEMD]160)" ) do |val|
-  options[:digest] = val || "MD5"
+           "Message digest (SHA256 (d), SHA384, SHA512, R[IPEMD]160,",
+           "  or MD5 or SHA1 (both deprecated as insecure)" ) do |val|
+  options[:digest] = val || "SHA256"
   end  # -s --digest
   opts.on( "-m", "--dependency", "Dependency (files' mtimes) mode" ) do |val|
     options[:dependency] = true
