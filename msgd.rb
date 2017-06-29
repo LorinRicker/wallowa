@@ -18,7 +18,7 @@
 # advanced message digest algorithms with Ruby for VMS?
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.5 (06/28/2017)"
+  PROGID = "#{PROGNAME} v1.6 (06/28/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -142,33 +142,19 @@ def display_instructions
   #   Fall-back to strict "<<EOFLABLE" form.
   $stdout.puts <<EOInstructions
 
-  Usage:
-    $ #{USAGE_MSG}
-
-  Examples --
-  Calcluating message digests:
-    $ #{PROGNAME} foo.txt               # Create #{DEFAULT_MDIGEST} (default) digest of foo.txt
-    $ #{PROGNAME} foo1 foo2 foo3        # Compute #{DEFAULT_MDIGEST} digests of three files
-    $ #{PROGNAME} --digest=md5 foo4     # Create MD5 digest of foo4
-
-  Message digest output files:
-    $ #{PROGNAME} foo2 -ofoo2           # Output #{DEFAULT_MDIGEST} digest to file foo2.sha256
-
-  Checking a message digest using an output file:
-    $ #{PROGNAME} --check foo2.sha256   # Check (recompute) actual digest of the file
-                                 #   in foo2.sha256 using #{DEFAULT_MDIGEST} algorithm,
-                                 #   and compare it to the message digest in
-                                 #   this message digest file
-    $ #{PROGNAME} -c -msha384 foo2.md5  # Check actual digest of file in foo.md5, but
-                                 #   is ".md5" file extension a lie (wrong)?
+  #{PROGNAME} - compute and check message digests, including SHA256, SHA384, SHA512,
+  RIPEMD-160, and SHA1 and MD5 (which are deprecated as insecure).
 
   This program is intended as a drop-in replacement for *nix utility commands
-  like md5sum and sha(256,384,512)sum, and produces output which is formatted
-  identically to these programs (note: two spaces between values):
+  like the sha(256,384,512)sum family and md5sum; designed for VMS, Linux and
+  Unix.  It produces output which is formatted identically to these programs
+  for both digest calculation and checks (note: two spaces between values):
 
       "hash-digest-value  path-filename"
 
-  Notes:
+#{USAGE_MSG}
+
+  Notes for Linux/Unix and VMS:
     * Default message (hash) digest algorithm is #{DEFAULT_MDIGEST}.
     * Available algorithms are SHA256, SHA384, SHA512, RIPEMD160, MD5 and SHA1;
         see https://en.wikipedia.org/wiki/Cryptographic_hash_function and/or
@@ -199,7 +185,7 @@ def display_instructions
          will work: foo.txt.md5, foo.txtmd5, foo.md5, FOO.TXT_MD5 or FOO.MD5 (VMS).
          In this case, the regexp pattern matching is case insensitive.
 
-    On VMS:
+  On VMS:
     * This utility program brings modern message digest functionality to the VMS
         (OpenVMS) environment, supplementing its native CHECKSUM command.
     * Default behavior is to output the hash digest to SYS\$OUTPUT, just like the
@@ -211,7 +197,25 @@ def display_instructions
         option engages program logic to ensure that the file's extention (type)
         matches the message digest name.
 
-    #{PROGID} -- #{AUTHOR}
+  Examples --
+    Calcluating message digests:
+      $ #{PROGNAME} foo.txt               # Create #{DEFAULT_MDIGEST} (default) digest of foo.txt
+      $ #{PROGNAME} foo1 foo2 foo3        # Compute #{DEFAULT_MDIGEST} digests of three files
+      $ #{PROGNAME} --digest=md5 foo4     # Create MD5 digest of foo4
+
+    Message digest output files:
+      $ #{PROGNAME} foo2 -ofoo2           # Output #{DEFAULT_MDIGEST} digest to file foo2.sha256
+      $ #{PROGNAME} foo3 --output=foo3    # Same for file foo3, output to foo3.sha256
+
+    Checking a message digest using an output file:
+      $ #{PROGNAME} --check foo2.sha256   # Check (recompute) actual digest of the file
+                                   #   in foo2.sha256 using #{DEFAULT_MDIGEST} algorithm,
+                                   #   and compare it to the message digest in
+                                   #   this message digest file
+      $ #{PROGNAME} -c -msha384 foo2.md5  # Check actual digest of file in foo.md5, but
+                                   #   is ".md5" file extension a lie (wrong)?
+
+  #{PROGID} -- #{AUTHOR}
 EOInstructions
 end # display_instructions
 
