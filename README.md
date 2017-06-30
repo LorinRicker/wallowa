@@ -1,6 +1,6 @@
 # wallowa
 
-Last update: 28-June-2017
+Last update: 30-June-2017
 
 ## Overview
 
@@ -37,6 +37,14 @@ There are nine subdirectories (folders) in the repo:
 The rest of this README briefly describes each of the com-line utility programs and library (lib/) support modules.
 
 Note: References to "VMS" herein are synonymous with "OpenVMS" (old-timers say that the "Open" is silent, thus: "VMS"), the venerable and powerful operating system created in the 1970s by Digital Equipment Corporation on the VAX architecture, later ported to Alpha and now to IA-64 (HP Integrity) architectures, currently marketed by Hewlett Packard Enterprise Co., with current engineering, development and maintenance support by VMS Software Inc. (VSI). "DCL" is the Digital Command Language command-line interpreter (shell) on VMS.
+
+## New Ideas and Stubs
+
+These are early ideas, may be subject to change, better ideas/names and/or dropping as no-good-after-further-consideration:
+
+** quepp.rb ** -- A VMS batch or printer queue listing pretty-printer.  The `SHOW QUEUE` command produces truly aweful output (I've coped with it for years), and it occurs that this ugly output could be harvested and reformatted in a much more useful way.  We'll see...
+
+** ls.rb ** -- Well, why not.  I wrote a VMS DCL-emulator for Linux, including a VMS-style `dir` (DIRECTORY) command; why not take a shot at producing Linux/Unix `ls`-style output for *nix-path/filenames on VMS?
 
 ## Com-Line Utility Programs and the OptionParser Gem
 
@@ -106,6 +114,8 @@ This script has evolved:  1. It was originally conceived as a means to evaluate 
 
 **fixcopyright.rb** -- Updates copyright notice lines, like "Copyright (c) year-year" and/or "Copyright © year" to a year-range ending with either the current year or a specific year as given by the `--copyrightyear=YEAR` option. Either modifies the source file directly (default), or for the faint-of-heart, makes a `*.*.backup` copy if `--backup` is specified.
 
+**fspec.rb** -- A new (VMS-only) demo script which uses newly-SWIGged `DECC::from_vms` and `DECC::to_vms` DEC/VMS CRTL (C Runtime Library) routines to translate between VMS-style file specifications like `sys$sysdevice:[lricker.com]boottime.com` and *nix-style file paths like `/sys$sysdevice/lricker/com/boottime.com`.  Useful for demo-&-learning, and for diagnosing some difficult-to-predict corner-cases.
+
 **how-big-is-smallest-bignum.rb** -- Determines (or discovers) the "boundary" between the largest Integer value and the smallest Bignum value on a given system/architecture, using a binary-search-like algorithm to detect the point at which the next Integer value becomes an actual Bignum value.  This demonstration becomes irrelevant with Ruby versions from Ruby v2.4 and later, as classes FixNum and BigNum become obsolete, internalized and merged into class Integer.
 
 **how-big-is-smallest-bignum2.rb** -- An alternative approach to the same problem (above), this one contributed by Andrew Grimm on http://stackoverflow.com/questions/535721/ruby-max-integer (6-Jan-2012).  This demonstration also becomes irrelevant with Ruby versions from Ruby v2.4 and later, as classes FixNum and BigNum become obsolete, internalized and merged into class Integer.
@@ -130,7 +140,7 @@ This script has evolved:  1. It was originally conceived as a means to evaluate 
 
 My bash profile script sets two aliases, `killmy` to do `process --kill` (and `killsys` for `sudo /home/user/bin/process --kill`) for personal or system/world processes. Because of obvious parallels between Linux and VMS, this script is designed to work for both operating systems, although it has not (yet) been tested and deployed on VMS (as of Jan'16, I have received a beta release of Ruby v2.2 for OpenVMS, and am participating in check-out testing for this port). This script was also the subject of a Ruby introductory presentation at OpenVMS Bootcamp 2014, Boston. Addendum 16-June-2017: This script now works correctly on both Linux and VMS, where it provides parallel functionality.
 
-**purgekernel.rb** --
+**purgekernel.rb** -- (work-in-progress)
 
 **regex.rb** -- Inspired by a technique (suggestion) in the regex chapter of *the Pickaxe Book* (**Programming Ruby 2.0 & 1.9**, Dave Thomas, et al), this program provides a way to experiment with regexes and target strings, displaying the relevant contents of a pattern match's MatchData object. Provides value as an immediate com-line utility, but does not compare in comprehensive functionality to online/web tools like [regex101.com](http://www.regex101.com) or [debuggex.com](http://www.debuggex.com), or to JGS's [RegexBuddy](http://www.regexbuddy.com).
 
