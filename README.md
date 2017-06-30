@@ -42,9 +42,9 @@ Note: References to "VMS" herein are synonymous with "OpenVMS" (old-timers say t
 
 These are early ideas, may be subject to change, better ideas/names and/or dropping as no-good-after-further-consideration:
 
-** quepp.rb ** -- A VMS batch or printer queue listing pretty-printer.  The `SHOW QUEUE` command produces truly aweful output (I've coped with it for years), and it occurs that this ugly output could be harvested and reformatted in a much more useful way.  We'll see...
+**quepp.rb** -- A VMS batch or printer queue listing pretty-printer.  The `SHOW QUEUE` command produces truly aweful output (I've coped with it for years), and it occurs that this ugly output could be harvested and reformatted in a much more useful way.  We'll see...
 
-** ls.rb ** -- Well, why not.  I wrote a VMS DCL-emulator for Linux, including a VMS-style `dir` (DIRECTORY) command; why not take a shot at producing Linux/Unix `ls`-style output for *nix-path/filenames on VMS?
+**ls.rb** -- Well, why not.  I wrote a VMS DCL-emulator for Linux, including a VMS-style `dir` (DIRECTORY) command; why not take a shot at producing Linux/Unix `ls`-style output for *nix-path/filenames on VMS?
 
 ## Com-Line Utility Programs and the OptionParser Gem
 
