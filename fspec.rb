@@ -91,15 +91,18 @@ case WhichOS.identify_os
 when :vms
   require 'DECC'
   ARGV.each do | fs |
+    $stdout.puts "\ngiven: #{fs}"
     case fs
-    when /^A[A-Z:\[\]-_\$]^Z/i
+    when /[:\[\]]/
       # Translate the VMS-style file-pec into *nix:
       nix_fs = DECC::from_vms( fs )
-      $stdout.puts "given: #{fs}"
       $stdout.puts " *nix: #{nix_fs}"
-    when /^A\/?(.+\/)*^Z/
+    when /\//
       # Translate the *nix-style filespec into VMS:
       vms_fs = DECC::to_vms( fs )
+      $stdout.puts "  VMS: #{vms_fs}"
+    else
+      $stdout.puts "simple or empty file specification, no distinction"
     end
   end  # ARGV.each...
 else
