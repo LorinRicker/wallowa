@@ -17,7 +17,7 @@
 #          condensed format.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (05/09/2017)"
+  PROGID = "#{PROGNAME} v0.2 (06/30/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -36,24 +36,10 @@ require_relative 'lib/WhichOS'
 
 # ==========
 
-def config_save( opt )
-  # opt is a local copy of options, so we can patch a few
-  # values without disrupting the original/global hash --
-  opt[:about]     = false
-  opt[:debug]     = DBGLVL0
-  opt[:«+»]       = «+»
-  opt[:noop]      = false
-  opt[:sudo]      = ""
-  opt[:update]    = false
-  opt[:verbose]   = false
-  AppConfig.configuration_yaml( CONFIGFILE, opt, true )  # force the save/update
-end  # config_save
-
 # === Main ===
 options = { :«+»     => «+»,
             :«+»     => «+»,
             :noop    => false,
-            :sudo    => "",
             :update  => false,
             :verbose => false,
             :debug   => DBGLVL0,
@@ -68,23 +54,11 @@ optparse = OptionParser.new { |opts|
     options[:«+»] = «+»
   end  # -«+» --«+»
   opts.separator ""
-  opts.separator "    The options below are always saved in the configuration file"
-  opts.separator "    in their 'off' or 'default' state:"
-  opts.on( "-S", "--sudo",
-           "Run this backup/restore with sudo" ) do |val|
-    options[:sudo] = "sudo"
-  end  # -S --sudo
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
     options[:verbose] = true  # Dry-run implies verbose...
   end  # -n --noop
-  opts.on( "-u", "--update", "--save",
-           "Update (save) the configuration file; a configuration",
-           "file is automatically created if it doesn't exist:",
-           "#{CONFIGFILE}" ) do |val|
-    options[:update] = true
-  end  # -u --update
   # --- Verbose option ---
   opts.on( "-v", "--verbose", "--log", "Verbose mode" ) do |val|
     options[:verbose] = true
@@ -127,14 +101,11 @@ end                           #
 
 # ...(optional) other command-line processing goes here...
 
-# Update the config-file, at user's request:
-config_save( options ) if options[:update]
-
 case WhichOS.identify_os
 when :vms
-  sqrawreport = %x{ SHOW QUEUE /ALL /FULL }
+  showque_rawreport = %x{ SHOW QUEUE /ALL /FULL }
 when :linux, :windows, :mac
-  sqrawreport = '../TestData/VMSCLUSTER_SHOW_QUEUE.LIS_SAMPLE'
+  showque_rawreport = '../TestData/VMSCLUSTER_SHOW_QUEUE.LIS_SAMPLE'
 end
 
 # now process/reformate that raw-report into something palatable:
