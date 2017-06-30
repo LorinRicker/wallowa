@@ -27,13 +27,11 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require_relative 'lib/WhichOS'
 
-require 'DECC'
-
 # ==========
 
 # === Main ===
-options = { :«+»     => «+»,
-            :«+»     => «+»,
+options = { #:«+»     => «+»,
+            #:«+»     => «+»,
             :noop    => false,
             :update  => false,
             :verbose => false,
@@ -41,13 +39,11 @@ options = { :«+»     => «+»,
             :about   => false
           }
 
-options.merge!( AppConfig.configuration_yaml( CONFIGFILE, options ) )
-
 optparse = OptionParser.new { |opts|
-  opts.on( "-«+»", "--«+»",  # "=«+»", String,
-           "«+»" ) do |val|
-    options[:«+»] = «+»
-  end  # -«+» --«+»
+  # opts.on( "-«+»", "--«+»",  # "=«+»", String,
+  #          "«+»" ) do |val|
+  #   options[:«+»] = «+»
+  # end  # -«+» --«+»
   opts.separator ""
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
@@ -91,18 +87,23 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
-f1 = ARGV[0] || ""  # a completely empty args will be nil here, ensure "" instead
-# f2 = ARGV[1] || ""
-
-# ...(optional) other command-line processing goes here...
-
-case f1
-when /^A[A-Z:\[\]-_\$]^Z/i
-  # Translate the VMS-style file-pec into *nix:
-  xx = DECC::from_vms( f1 )
-when /^A\/?(.+\/)*^Z/
-  # Translate the *nix-style filespec into VMS:
-  xx = DECC::to_vms( f1 )
-end
+case WhichOS.identify_os
+when :vms
+  require 'DECC'
+  ARGV.each do | fs |
+    case fs
+    when /^A[A-Z:\[\]-_\$]^Z/i
+      # Translate the VMS-style file-pec into *nix:
+      nix_fs = DECC::from_vms( fs )
+      $stdout.puts "given: #{fs}"
+      $stdout.puts " *nix: #{nix_fs}"
+    when /^A\/?(.+\/)*^Z/
+      # Translate the *nix-style filespec into VMS:
+      vms_fs = DECC::to_vms( fs )
+    end
+  end  # ARGV.each...
+else
+  STDERR.puts "%#{PROGNAME}-e-wrong_os, this program is designed for VMS (OpenVMS) only"
+end  # case WhichOS...
 
 exit true
