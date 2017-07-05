@@ -90,22 +90,25 @@ end                           #
 case WhichOS.identify_os
 when :vms
   require 'DECC'
-  vmspat = Regexp.new( /         # All fields optional, negated char-classes
-         \A                      #   generally exclude '.:;,/\':
-         ([^:;.,\/\\]*:)?        # DEVICE: (any-chars up to ':')
-         (\[[^:;.,\]\/\\]*\])?   # [DIRECTORY.SUB1...] (any-chars between '[]')
-         ([^:;.,\/\\]*)?         # FILENAME (any-chars up to '.')
-         \.([^:;.,\/\\]*)?       # '.', then FILETYPE (any-chars up to ';')
-         (;\d*)?                 # ;VERSION (0 or more digits following ';')
-         \z/ix )
-  nixpat = Regexp.new( /
-         \A
-         (\/|\\)?                # Optional leading '/' (or '\')
-         ([^\/\\\[\]:;]*         # Most anything that doesn't look VMS-ish
-          (\/|\\)?
-         )+
-         (\/|\\)?                # Optional trailing '/' (or '\')
-         \z/ix )
+  vmspat = Regexp.new( /[:;\[\]]+/ )
+        # /\A([^:;.,\/\\]*:)?(\[[^:;.,\]\/\\]*\])?([^:;.,\/\\]*)?\.([^:;.,\/\\]*)?(;\d*)?\z/i )
+                                   # All fields optional, negated char-classes
+         # \A                      #   generally exclude .:;,/\ --
+         # ([^:;.,\/\\]*:)?        # DEVICE: (any-chars up to :)
+         # (\[[^:;.,\]\/\\]*\])?   # [DIRECTORY.SUB1...] (any-chars between [])
+         # ([^:;.,\/\\]*)?         # FILENAME (any-chars up to .)
+         # \.([^:;.,\/\\]*)?       # . then FILETYPE (any-chars up to ;)
+         # (;\d*)?                 # ;VERSION (0 or more digits following ;)
+         # \z/xi )
+  nixpat = Regexp.new( /\/+/ )
+        #  /\A(\/|\\)?([^\/\\\[\]:;]*(\/|\\)?)+(\/|\\)?\z/xi )
+        #  \A
+        #  (\/|\\)?                # Optional leading / (or \)
+        #  ([^\/\\\[\]:;]*         # Most anything that does not look VMS-ish
+        #   (\/|\\)?
+        #  )+
+        #  (\/|\\)?                # Optional trailing / (or \)
+        #  \z', Regexp::EXTENDED | Regexp::IGNORECASE )
   ARGV.each do | fs |
     $stdout.puts "\ngiven: #{fs}"
     case fs
