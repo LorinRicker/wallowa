@@ -14,7 +14,7 @@
 # fspecs-- Derives a VMS and *nix file specification, given the other one.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.1 (06/30/2017)"
+  PROGID = "#{PROGNAME} v0.2 (07/05/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -30,9 +30,7 @@ require_relative 'lib/WhichOS'
 # ==========
 
 # === Main ===
-options = { #:«+»     => «+»,
-            #:«+»     => «+»,
-            :noop    => false,
+options = { :noop    => false,
             :update  => false,
             :verbose => false,
             :debug   => DBGLVL0,
@@ -44,7 +42,7 @@ optparse = OptionParser.new { |opts|
   #          "«+»" ) do |val|
   #   options[:«+»] = «+»
   # end  # -«+» --«+»
-  opts.separator ""
+  # opts.separator ""
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
     options[:noop]  = true
@@ -70,8 +68,10 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] «+»ARG«+»" +
-                "\n\n   where «+»\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] file [ file ]..." +
+                "\n\n  where each file argument is either a VMS (OpenVMS) or a *nix (Linux or Unix)" +
+                "\n  file specification or file path-spec to convert into 'the other' style of" +
+                "\n  filespec.  This permits comparison of how VMS handles both syntaxes.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -90,19 +90,35 @@ end                           #
 case WhichOS.identify_os
 when :vms
   require 'DECC'
+  vmspat = Regexp.new( /         # All fields optional, negated char-classes
+         \A                      #   generally exclude '.:;,/\':
+         ([^:;.,\/\\]*:)?        # DEVICE: (any-chars up to ':')
+         (\[[^:;.,\]\/\\]*\])?   # [DIRECTORY.SUB1...] (any-chars between '[]')
+         ([^:;.,\/\\]*)?         # FILENAME (any-chars up to '.')
+         \.([^:;.,\/\\]*)?       # '.', then FILETYPE (any-chars up to ';')
+         (;\d*)?                 # ;VERSION (0 or more digits following ';')
+         \z/ix )
+  nixpat = Regexp.new( /
+         \A
+         (\/|\\)?                # Optional leading '/' (or '\')
+         ([^\/\\\[\]:;]*         # Most anything that doesn't look VMS-ish
+          (\/|\\)?
+         )+
+         (\/|\\)?                # Optional trailing '/' (or '\')
+         \z/ix )
   ARGV.each do | fs |
     $stdout.puts "\ngiven: #{fs}"
     case fs
-    when /[:\[\]]/
+    when vmspat
       # Translate the VMS-style file-pec into *nix:
       nix_fs = DECC::from_vms( fs )
       $stdout.puts " *nix: #{nix_fs}"
-    when /\//
+    when nixpat
       # Translate the *nix-style filespec into VMS:
       vms_fs = DECC::to_vms( fs )
       $stdout.puts "  VMS: #{vms_fs}"
     else
-      $stdout.puts "simple or empty file specification, no distinction"
+      $stdout.puts "Simple or empty file specification, no VMS-*nix distinction"
     end
   end  # ARGV.each...
 else
