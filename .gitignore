@@ -1,6 +1,7 @@
 # .gitignore -- ~/projects/ruby/...
 
 .project
+/buggy
 /.bundle
 /test*
 /Test*
