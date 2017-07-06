@@ -14,7 +14,7 @@
 # fspecs-- Derives a VMS and *nix file specification, given the other one.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.2 (07/05/2017)"
+  PROGID = "#{PROGNAME} v0.3 (07/06/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -90,25 +90,26 @@ end                           #
 case WhichOS.identify_os
 when :vms
   require 'DECC'
-  vmspat = Regexp.new( /[:;\[\]]+/ )
-        # /\A([^:;.,\/\\]*:)?(\[[^:;.,\]\/\\]*\])?([^:;.,\/\\]*)?\.([^:;.,\/\\]*)?(;\d*)?\z/i )
-                                   # All fields optional, negated char-classes
-         # \A                      #   generally exclude .:;,/\ --
-         # ([^:;.,\/\\]*:)?        # DEVICE: (any-chars up to :)
-         # (\[[^:;.,\]\/\\]*\])?   # [DIRECTORY.SUB1...] (any-chars between [])
-         # ([^:;.,\/\\]*)?         # FILENAME (any-chars up to .)
-         # \.([^:;.,\/\\]*)?       # . then FILETYPE (any-chars up to ;)
-         # (;\d*)?                 # ;VERSION (0 or more digits following ;)
-         # \z/xi )
-  nixpat = Regexp.new( /\/+/ )
-        #  /\A(\/|\\)?([^\/\\\[\]:;]*(\/|\\)?)+(\/|\\)?\z/xi )
-        #  \A
-        #  (\/|\\)?                # Optional leading / (or \)
-        #  ([^\/\\\[\]:;]*         # Most anything that does not look VMS-ish
-        #   (\/|\\)?
-        #  )+
-        #  (\/|\\)?                # Optional trailing / (or \)
-        #  \z', Regexp::EXTENDED | Regexp::IGNORECASE )
+  vmspat = Regexp.new(
+         /
+          \A
+          ([^:;,\/]*:)?         # DEVICE:
+          (\[[^:;,\]\/]*\])?    # [DIRECTORY.SUB1...]
+          ([^:;,\/]*)?          # FILENAME
+          \.([^:;,\/]*)?        # . then FILETYPE
+          (;\d*)?               # ;VERSION
+          \z
+         /x )  # ', Regexp::EXTENDED )
+  nixpat = Regexp.new(
+         /
+          \A
+          \/?                   # Optional leading slash
+          ([^\/\[\]:;]*         # Most anything that does not look VMS-ish
+           \/?)*
+          \/?                   # Optional trailing slash
+          \z
+         /x )   # ', Regexp::EXTENDED )
+
   ARGV.each do | fs |
     $stdout.puts "\ngiven: #{fs}"
     case fs
