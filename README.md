@@ -1,6 +1,6 @@
 # wallowa
 
-Last update: 30-June-2017
+Last update: 07-July-2017
 
 ## Overview
 
@@ -108,11 +108,7 @@ This script marks the very first use a VMS System Service (runtime library routi
 
 **ezekiel.rb** -- This program is a *toy* which plays with the (bogus) numerology/gematria espoused by the 2007 novel "The Ezekiel Code" by Gary Val Tenuta (Outskirts Press).  Tenuta's numerology (algorithm, referred to as "cross-adding") is spelled out in Chapter ~2~ of the novel.  The plot of this story hinges upon the "great significances" of various phrases and words as cross-added by this numerology -- See the companion text file `Ezekiel Numerology Test Phrases.cross_sums` for a (nearly) complete list of cross-added phrases/words (and noting a few errors in the novel-author's own sums).  The author of this program in no way endorses, or even believes in, the numerological and/or religious notions and ideas put forth ion that novel; however, it is amusing to play with (and cross-check) the various sums and cross-sums from that work of fiction -- if only to demonstrate that one can "make great significance" out of damn near any/every cross-sum you can compute!
 
-**factorial.rb** and **fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
-
 **filecomp.rb** -- An upscale wrapper for the basic two-file `diff` utility, performs a fast check for file equality or non-equality using an intelligent combination of fast comparisons based on message digests (SHA-1 (default) or SHA-[256,384,512]), files times (mtime, atime, ctime), file sizes (byte-counts), and/or file-type "magic numbers" (internal first-bytes signature). Files that are "the same" are simply reported as "file1 == file2"; files that are "different" are reported as "file1 <> file2" and, for these, offers to invoke one of several GUI or character-based "file differences" utilities (`meld` is the GUI default tool). These tools are available based on which file-diff tools are actually installed on your system -- the `--help` option displays those diff-tools that are available. Can compare an explicitly named pair of files, or a file-group compared with that same group in another directory.
-
-**fileenhance.rb** -- A test/demo driver for the `File.parse` class method in **lib/FileEnhancements.rb**, also uses `quts` and `pquts` methods in **lib/pquts.rb**.
 
 **fixcopyright.rb** -- Updates copyright notice lines, like "Copyright (c) year-year" and/or "Copyright © year" to a year-range ending with either the current year or a specific year as given by the `--copyrightyear=YEAR` option. Either modifies the source file directly (default), or for the faint-of-heart, makes a `*.*.backup` copy if `--backup` is specified.
 
@@ -195,6 +191,10 @@ A 12-tone row input might look like "45130289D67E" (the row used in Webern's Pia
 **Demos/EnvironmentVariables.rb** --
 
 **Demos/factr.rb** --
+
+**Demos/factorial.rb** and **Demos/fibonacci.rb** -- You never know when you'll need 512!, or the 1,076th Fibonacci number.  Thanks to Ruby Bignums, you can now calculate these large or giant numbers: `$ factorial 512` or `$ fibonacci 1076`.  You can also calculate a series for either:  `$ factorial 10..20` or `$ fibonacci 1..32`.  Both scripts include both "classical" recursive and "memoized" recursive versions of the respective factorial or Fibonacci series calculations, and **factorial.rb** includes two extra methods for `permutation` (ordered arrangements of `n` things taken `k` at a time) and `combination` (unordered selections of `n` things taken `k` at a time) calculations.  See also **fibonacci_bb.rb** below for a benchmarked version.
+
+**Demos/fileenhance.rb** -- A test/demo driver for the `File.parse` class method in **lib/FileEnhancements.rb**, also uses `quts` and `pquts` methods in **lib/pquts.rb**.
 
 **Demos/HappyBirthday.rb** --
 
