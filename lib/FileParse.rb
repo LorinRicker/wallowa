@@ -4,7 +4,7 @@
 # FileParse.rb
 #
 # Copyright © 2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 06/03/2017
+# Version 1.1, 07/09/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -31,34 +31,34 @@ class File
   # # available (like VMS/DCL f$parse, but in Linux filepath syntax);
   # # return a hash containing the parts and the fully-expanded filespec
   # # with substitutions.
-  # def self.parse( f, fdef = "." )
-  #   # Break down original and default filespecs into components:
-  #   wd      = Dir.getwd
-  #   fdir    = dirname(f).chomp(wd).chomp('.')  # "" if == current working dir
-  #   fext    = extname f
-  #   fnam    = basename(f).chomp(fext)  # trim any ".ext"
-  #   fd      = File.join( File.expand_path( fdef ), "*" )
-  #   fdefdir = dirname fd
-  #   fdefext = extname fd
-  #   fdefnam = basename(fd).chomp('*'+fdefext).chomp(fdefext)  # trim...
-  #   # Then glue it back together, replacing any missing original
-  #   # component(s) with corresponding component(s) from default:
-  #   g = ( fnam == "" ? fdefnam : fnam ) +
-  #       ( fext == "" ? fdefext : fext )
-  #   g = File.join( fdir == "" ? fdefdir : fdir, g )
-  #   fullf = File.expand_path g
-  #   # ...and build the return hash:
-  #   fh = Hash.new( "" )
-  #   fh[:full] = fullf
-  #   dir       = dirname fullf
-  #   fh[:dir]  = dir + ( dir[-1] != File::SEPARATOR ? File::SEPARATOR : "" )
-  #   fh[:base] = basename fullf
-  #   fh[:ext]  = extname fullf
-  #   # chop leading '.'
-  #   fh[:type] = fh[:ext] != "" ? fh[:ext][1..fh[:ext].size-1] : ""
-  #   fh[:name] = basename(fullf).chomp(fh[:ext])
-  #   return fh
-  # end  # parse
+  def self.parse( f, fdef = "." )
+    # Break down original and default filespecs into components:
+    wd      = Dir.getwd
+    fdir    = dirname(f).chomp(wd).chomp('.')  # "" if == current working dir
+    fext    = extname f
+    fnam    = basename(f).chomp(fext)  # trim any ".ext"
+    fd      = File.join( File.expand_path( fdef ), "*" )
+    fdefdir = dirname fd
+    fdefext = extname fd
+    fdefnam = basename(fd).chomp('*'+fdefext).chomp(fdefext)  # trim...
+    # Then glue it back together, replacing any missing original
+    # component(s) with corresponding component(s) from default:
+    g = ( fnam == "" ? fdefnam : fnam ) +
+        ( fext == "" ? fdefext : fext )
+    g = File.join( fdir == "" ? fdefdir : fdir, g )
+    fullf = File.expand_path g
+    # ...and build the return hash:
+    fh = Hash.new( "" )
+    fh[:full] = fullf
+    dir       = dirname fullf
+    fh[:dir]  = dir + ( dir[-1] != File::SEPARATOR ? File::SEPARATOR : "" )
+    fh[:base] = basename fullf
+    fh[:ext]  = extname fullf
+    # chop leading '.'
+    fh[:type] = fh[:ext] != "" ? fh[:ext][1..fh[:ext].size-1] : ""
+    fh[:name] = basename(fullf).chomp(fh[:ext])
+    return fh
+  end  # parse
 
   # Given a filespec f1 on the command line (either absolute or relative),
   # check the next filespec f2: if it is merely a directory-spec, then
