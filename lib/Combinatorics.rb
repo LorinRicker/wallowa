@@ -4,27 +4,32 @@
 # Combinatorics.rb
 #
 # Copyright © 2014-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.0, 09/18/2014
+# Version 2.0, 07/09/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 
-require 'pp'
-
 module Combinatorics
 
 ### Intended to be used as a MIX-IN (via Ruby include) --
-### now how to initialize class variables like @factorial_series?
-###
-###   @factorial_series = [ 1 ]  # this first term represents 0!
-###
 
-  # Calculates n! (n-factorial), using a memoized (@factorial_series) algorithm.
-  # Combinatorics are often defined in terms of factorials, thus this function
-  # is included here.
+  # Initialize the series as $global variables:
+  $Factorial_Series = [ 1 ]     # This first term represents 0!
+  $Fibonacci_Series = [ 0, 1 ]  # The canonical first two terms of Fibonacci
+
+  # Calculates the first "n" Fibonacci terms, using a memoized ($Fibonacci_Series)
+  # algorithm.
+  def fibonacci( n )
+    $Fibonacci_Series[n] ||= fibonacci( n-2 ) + fibonacci( n-1 )
+  end  # fibonacci
+  alias :fib :fibonacci
+
+  # Calculates n! (n-factorial), using a memoized ($Factorial_Series) algorithm.
+  # Combinatorics are often defined in terms of factorials, so this function is
+  # included here.
   def factorial( n )
-    @factorial_series[n] ||= n * factorial( n-1 )
+    $Factorial_Series[n] ||= n * factorial( n-1 )
   end  # factorial
   # +n!+ is an alias for this class's +factorial+ method.
   alias :n! :factorial
