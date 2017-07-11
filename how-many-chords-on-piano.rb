@@ -4,7 +4,7 @@
 # how-many-chords-on-piano.rb
 #
 # Copyright © 2012-2017 Lorin Ricker <lorin@rickernet.us>
-# Version: 1.1, 01/25/2015
+# Version: 1.2, 07/11/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -19,7 +19,9 @@
 # other words, we're not worrying about the order of notes (i.e.,
 # melodies), only the unordered combinations of them (vertical
 # structures), and thus counting those combinations.
-# See en.wikipedia.org/wiki/Combination and .../wiki/Permutation.
+#
+# See en.wikipedia.org/wiki/Combination
+# and              .../wiki/Permutation.
 #
 # The total number of all possible chords is equal to the sum of
 # the number of single-note "chords" (trivially, 88), plus
@@ -60,23 +62,23 @@
 # playable by human hands?", all require multiple calculations of
 # factorials, especially 88!, we will use a version of "factorial"
 # which is memoized: factorial_fast(), aliased as n!().
-# See 'factorial.rb'.
+#
+# See 'lib/Combinatorics.rb'.
 #
 
 require 'pp'
-require_relative 'factorial'
+require_relative 'lib/Combinatorics'
 require_relative 'lib/ppstrnum'
 
   PIANO_KEYS  = 88
-  FACTORIAL88 = n!(PIANO_KEYS)  # value used many times, also doing this
-                                # calculation initializes the memoized
-                                # array-variable @factorial_series,
-                                # which now holds [0!,1!,2!,3!,...88!].
-                                # All subsequent "calculations" of any
-                                # n! are now simply array-lookups.
+  FACTORIAL88 = Combinatorics.n!(PIANO_KEYS)
+    # This value used many times; also doing this calculation initializes
+    # the memoized global array-variable $Factorial_Series, which now holds
+    # [0!,1!,2!,3!,...88!]. All subsequent "calculations" of any n! are now
+    # simply array-lookups.
 
   def chordCombos( nk )
-    FACTORIAL88 / ( n!(nk) * n!(PIANO_KEYS - nk) )
+    FACTORIAL88 / ( Combinatorics.n!(nk) * Combinatorics.n!(PIANO_KEYS - nk) )
   end  # chordCombos
 
   def numKeyChords( cbk, nk )
@@ -129,3 +131,5 @@ how_many( "Number of possible chords playable by one hand (five fingers):",
 
 how_many( "Number of possible chords playable by four hands (twenty fingers):",
           twentyKeyChords )
+
+exit true
