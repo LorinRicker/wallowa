@@ -41,7 +41,7 @@
 #      where Д: 10 and ξ: 11
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.8 (02/16/2015)"
+  PROGID = "#{PROGNAME} v2.0 (07/11/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -54,6 +54,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
 require 'optparse'
 require 'pp'
 require_relative 'lib/ANSIseq'
+require_relative 'lib/WhichOS'
 
 # ==========
 
@@ -65,12 +66,20 @@ end
 class ToneRow < Array
 
   TONES = 12  # standard twelve-note octave
-  # Use UTF-8 characters to represent pitch-classes 10 and 11
-  # in row outputs; command-line will use [DdEe] as convenient
-  # input-entry substitutes:
-  DEC = 'Д'
-  ELF = 'ξ'
-  # ...other contenders: δ ε ξ Д Є
+  case WhichOS.identify_os
+  when :vms
+    # Limited to ASCII (or DEC-MCS)
+    DEC = 'D'
+    ELF = 'E'
+  when :linux, :unix, :windows
+    # Use UTF-8 characters to represent pitch-classes 10 and 11
+    # in row outputs; command-line will use [DdEe] as convenient
+    # input-entry substitutes:
+    DEC = 'Д'
+    ELF = 'ξ'
+    # ...other contenders: δ ε ξ Д Є
+  end  # case WhichOS...
+
   INDENT = 4
   SPC    = ' '
 
