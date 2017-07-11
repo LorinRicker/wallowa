@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.0 (06/24/2017)"
+  PROGID = "#{PROGNAME} v3.2 (07/11/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -44,6 +44,7 @@ require_relative 'lib/WhichOS'
 # Expose methods which may be used by User on command-line:
 require_relative 'lib/ppstrnum'
 require_relative 'lib/StringEnhancements'
+require_relative 'lib/Combinatorics'
 
 # ==========
 
@@ -195,7 +196,7 @@ pp options if options[:debug] >= DBGLVL2
 require 'mathn' if options[:math] # Unified numbers #
 #####################################################
 
-# Ruby's Math module defines 26 basic trig and transcendental funtions:
+# Ruby's Math module defines 26 trig and transcendental functions:
 mathpat1 = Regexp.new(
           / \b(                    # word-boundary, then Capture Group 1
                 a?(cos|sin|tan)h?  # cos, sin, tan, acos, asin, atan,
@@ -210,30 +211,40 @@ mathpat1 = Regexp.new(
               ) \s*\(              #   => "sin(..." or "sin (..." or "sin    (..."
           /x )
 mathpat2 = Regexp.new( /(\bE\b | \bPI\b )/x )    # "e" or "pi"
+# Custom Combinatorics class defines 5 combination, permutation, factorial
+# and Fibonacci functions:
+mathpat3 = Regexp.new(             # for Combinatorics class
+          / \b(                    # word-boundary, then Capture Group 1
+                (fib|fibonacci)    # Fibonacci series
+              | (factorial|n!)     # Factorial series, n!
+              | (k_)?permutations  # permutations
+              | combinations       # combinations
+              ) \s*\(              #   => "fib(..." or "fib (..." or "fib    (..."
+          /x )
 
 ARGV.each_with_index do | arg, idx |
 
-  # If an expression contains one or more Math module trig/transc functions,
-  # prefix these with module name 'Math.' --
-  arg = arg.gsub( mathpat1, 'Math.\1(' )  # use single-quotes around 'Math.\1(' !!
+  # If an expression contains one or more patterned-functions,
+  # prefix these appropriately --
+  arg = arg.gsub( mathpat1, 'Math.\1(' )  # use single-quotes around 'Math.\1(', etc!!
   arg = arg.gsub( mathpat2, 'Math::\1'  )
+  arg = arg.gsub( mathpat3, 'Combinatorics.\1('  )
 
   evatmp = 0
   cmd = "evatmp = #{arg}"
-
-  # This is, of course, a Bad Thing... to accept arbitrary input from
-  # the command line and then execute (eval) it directly.  Hence, the
-  # regex-pattern match above, to limit/filter the arg to just things
-  # that "look like arithmetic expressions" --
-  #############
-  eval( cmd ) #  <-- Don't try this at home...
-  #############
-  options[:format] = "nonNumeric" if ! evatmp.kind_of?( Numeric )
 
   if options[:debug] >= DBGLVL1 or options[:verbose]
     STDOUT.puts "\n  eval( '#{cmd}' )"
     STDOUT.puts "  raw: #{evatmp.inspect}\n\n"
   end
+
+  # There is, of course, a "Limited Liability" with eval'ing
+  # any input provided by the user... but actually not a lot
+  # more than if the user had written this script him/herself --
+  #############
+  eval( cmd ) #  <- creates object/variable 'evatmp'
+  #############
+  options[:format] = "nonNumeric" if ! evatmp.kind_of?( Numeric )
 
   case options[:format].to_sym
   when :sep
