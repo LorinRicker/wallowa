@@ -15,8 +15,8 @@
 #   (Pragmatic Bookshelf, 2015, ISBN 13-978-1-68050-070-7)
 
 $stdin.each_line do | line |
-  urls = line.scan( %r{https?://\S+} )
+  urls = line.scan( %r{\bhttps?://\S+\b} )
   urls.each { | url | puts url }
 end
 
-exit tru
+exit true
