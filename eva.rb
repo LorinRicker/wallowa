@@ -58,22 +58,22 @@ def display_methods( v, verbo )
   STDOUT.puts ">>> cmd: \"#{cmd}\"" if verbo
   eval( cmd )
   # Find the max-length method name
-  flen = 0
-  instmethods.each { | el | sz = el.to_s.size; flen = sz > flen ? sz : flen }
+  maxlen = 0
+  instmethods.each { | el | sz = el.to_s.size; maxlen = sz > maxlen ? sz : maxlen }
+  # maxlen now is max method-name length...
   line = ""
-  firstletter = ''
   instmethods.each do | imethod |
     imstr = imethod.to_s
-    if ( line != "" ) and ( imstr[0] == firstletter )
-      line << + "#{imstr}#{' '*(flen+1-imstr.size)}"
+    flen = maxlen + 1 - imstr.size
+    impadded = "#{imstr}#{' '*flen}"
+    if ( line != "" )
+      line << + impadded
     else
-      line = "#{imstr}#{' '*(flen+1-imstr.size)}"
-      firstletter = imstr[0]
+      line = impadded
     end
-    if ( line.length >= scrwidth - flen )
+    if ( line.length >= scrwidth - maxlen )
       STDOUT.puts line
       line = ""
-      firstletter = imstr[0]
     end
   end  # instmethods.each
 end  # display_methods
