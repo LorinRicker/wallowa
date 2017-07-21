@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.2 (07/11/2017)"
+  PROGID = "#{PROGNAME} v3.3 (07/21/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -49,27 +49,33 @@ require_relative 'lib/Combinatorics'
 # ==========
 
 def display_methods( v, verbo )
-  pubmethods = Array.new
-  cmd = "pubmethods = #{v}.methods.sort"
+  # Set-up for terminal dimensions, especially varying width:
+  require_relative 'lib/TermChar'
+  scrwidth = TermChar.terminal_width
+
+  instmethods = Array.new
+  cmd = "instmethods = #{v}.instance_methods.sort"
   STDOUT.puts ">>> cmd: \"#{cmd}\"" if verbo
   eval( cmd )
-  scrwidth = 40
+  # Find the max-length method name
+  flen = 0
+  instmethods.each { | el | sz = el.to_s.size; flen = sz > flen ? sz : flen }
   line = ""
   firstletter = ''
-  pubmethods.each do | pmethod |
-    pm = pmethod.to_s
-    if ( line != "" ) and ( pm[0] == firstletter )
-      line = line + "\t" + pm
+  instmethods.each do | imethod |
+    imstr = imethod.to_s
+    if ( line != "" ) and ( imstr[0] == firstletter )
+      line << + "#{imstr}#{' '*(flen+1-imstr.size)}"
     else
-      line = line + pm
-      firstletter = pm[0]
+      line = "#{imstr}#{' '*(flen+1-imstr.size)}"
+      firstletter = imstr[0]
     end
-    if ( line.length >= scrwidth )
+    if ( line.length >= scrwidth - flen )
       STDOUT.puts line
       line = ""
-      firstletter = pm[0]
+      firstletter = imstr[0]
     end
-  end  # pubmethods.each
+  end  # instmethods.each
 end  # display_methods
 
 # === Main ===
@@ -118,7 +124,7 @@ optparse = OptionParser.new { |opts|
            "Display methods for a Ruby Class" ) do |val|
     options[:methods] = val.capitalize!
     if val
-      display_methods( val, true )
+      display_methods( val, false )
       exit 1
     end
   end  # -m --methods
