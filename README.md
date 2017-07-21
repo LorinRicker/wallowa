@@ -1,6 +1,6 @@
 # wallowa
 
-Last update: 07-July-2017
+Last update: 21-July-2017
 
 ## Overview
 
@@ -163,6 +163,8 @@ A 12-tone row input might look like "45130289D67E" (the row used in Webern's Pia
 **what.rb** -- Attribution:  This "code fragment" comes directly and unaltered  (well, almost) by cut-&-paste (well, almost) from Avdi Grimm's [RubyTapas education series](https://rubytapas.com) (https://rubytapas.com), Episode 471 entitled ['Which'](https://www.rubytapas.com/2017/03/20/episode-471-which/) (https://www.rubytapas.com/2017/03/20/episode-471-which/). This code snippet is just too good, deserves to be used in a real-live tool! You, dear reader, are strongly encouraged to read Avdi's lucid code design walkthru in the RubyTapas episode above...
 
 **wordfrequencies.rb** -- Tallies up the frequencies of words in a document, dropping "little/noise" words (like a, the, but, to, too, etc.), and sorting the resulting list and displaying the "top-N" as requested by the user.
+
+**xemails.rb** and **xurls.rb** -- A couple of pipe-friendly (stdin/stdout) filters which extract email addresses and URLs, respectively.  The **xurls.rb** script is taken almost verbatim from Rob Miller's excellent "Text Processing with Ruby" ( ISBN: 978-168050-070-7 , [Pragmatic Bookshelf](http://www.pragprog.com/book/rmtpruby/text-processing-with-ruby), 2015), p. 24; the **xemails.rb** is a natural extension of this approach.  Others may follow...
 
 **xchart.rb** -- This script displays help-information about the Ruby **Exception** class hierarchy, together with rescue examples and with color embellishments.
 
