@@ -4,7 +4,7 @@
 # FileComparison.rb
 #
 # Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.5, 11/02/2015
+# Version 4.7, 07/30/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
