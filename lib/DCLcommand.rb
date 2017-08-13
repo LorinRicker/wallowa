@@ -4,7 +4,7 @@
 # DCLcommand.rb
 #
 # Copyright © 2015-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 5.12, 06/03/2017
+# Version 5.13, 08/13/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -171,31 +171,28 @@ end  # fileCommands
       when :collapse
         dst = DCLcommand.squeecollapse( dst, ' ' )
       end  # case options[:whitespace]
+      dstdirn, dstname, dsttype = File.fileparse( dst )
       if options[:fnprefix]   # glue a prefix string to basename
                               # 'foo.txt' -> 'PREFIXfoo.txt'
-        dstdirn, dstname, dsttype = File.fileparse( dst )
         dst = File.join( dstdir, options[:fnprefix] + dstname + dsttype )
-        puts "dst: \"#{dst}\""
+        puts "src: \"#{src}\"\ndst: \"#{dst}\"" if options[:debug] >= DBGLVL2
       end  # if
       # Use any combination of prefix and suffix operations as needed:
       if options[:fnsuffix]   # glue a suffix string to basename
                               # 'foo.txt' -> 'fooSUFFIX.txt'
-        dstdirn, dstname, dsttype = File.fileparse( dst )
         dst = File.join( dstdirn, dstname + options[:fnsuffix] + dsttype )
-        puts "dst: \"#{dst}\""
+        puts "src: \"#{src}\"\ndst: \"#{dst}\"" if options[:debug] >= DBGLVL2
       end  # if
       if options[:xtprefix]   # glue a prefix string to extension
                               # 'foo.txt' -> 'foo.PREFIXtxt'
-        dstdirn, dstname, dsttype = File.fileparse( dst )
         dsttype = '.' + options[:xtprefix] + dsttype[1..dsttype.size]
         dst = File.join( dstdirn, dstname + dsttype )
-        puts "dst: \"#{dst}\""
+        puts "src: \"#{src}\"\ndst: \"#{dst}\"" if options[:debug] >= DBGLVL2
       end  # if
       if options[:xtsuffix]   # glue a suffix string to extension
                               # 'foo.txt' -> 'foo.txtSUFFIX'
-        dstdirn, dstname, dsttype = File.fileparse( dst )
         dst = File.join( dstdirn, dstname + dsttype + options[:xtsuffix] )
-        puts "dst: \"#{dst}\""
+        puts "src: \"#{src}\"\ndst: \"#{dst}\"" if options[:debug] >= DBGLVL2
       end  # if
       confirmed, doall = askordo( options[:confirm], doall,
                                   "Rename #{src} to #{dst}" )
@@ -448,6 +445,7 @@ private
     idx = 1  # file counter
     operands.each do | elem |
       expandwild( elem ).each do | f |
+        filenotfound( f ) if ! File.exists?( f )
         srcdirnn, srcname, srctype, src = File.fileparse( f )
         dstname  = namewild ? srcname : patname
         dstname += typewild ? srctype : pattype
@@ -475,6 +473,12 @@ private
     ErrorMsg.putmsg( "%#{PROGNAME}-e-rescued, #{e}", e.to_s )
     exit false
   end  # fu_rescue
+
+  def self.filenotfound( fspec )
+    ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-fnf",
+                     msgtext     = "file not found: #{ File.expand_path(fspec) }" )
+    exit false
+  end  # nyi
 
   def self.nyi( cmd )
     ErrorMsg.putmsg( msgpreamble = "%#{PROGNAME}-w-nyi",
