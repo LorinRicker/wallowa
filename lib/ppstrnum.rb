@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.4, 05/05/2016
+# Version 1.5, 08/26/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -183,7 +183,7 @@ module Ppstrnum
                    [ 300, 'novem'      ],
                    [ 297, 'octo'       ],
                    [ 294, 'septen'     ],
-                   [ 291, 'sex'        ],
+                   [ 291, 'se'         ],
                    [ 288, 'quin'       ],
                    [ 285, 'quattuor'   ],
                    [ 282, 'tre'        ],
@@ -193,7 +193,7 @@ module Ppstrnum
                    [ 270, 'novem'      ],
                    [ 267, 'octo'       ],
                    [ 264, 'septen'     ],
-                   [ 261, 'sex'        ],
+                   [ 261, 'ses'        ],
                    [ 258, 'quin'       ],
                    [ 255, 'quattuor'   ],
                    [ 252, 'tre'        ],
@@ -203,7 +203,7 @@ module Ppstrnum
                    [ 240, 'novem'      ],
                    [ 237, 'octo'       ],
                    [ 234, 'septen'     ],
-                   [ 231, 'sex'        ],
+                   [ 231, 'se'         ],
                    [ 228, 'quin'       ],
                    [ 225, 'quattuor'   ],
                    [ 222, 'tre'        ],
@@ -213,7 +213,7 @@ module Ppstrnum
                    [ 210, 'novem'      ],
                    [ 207, 'octo'       ],
                    [ 204, 'septen'     ],
-                   [ 201, 'sex'        ],
+                   [ 201, 'se'         ],
                    [ 198, 'quin'       ],
                    [ 195, 'quattuor'   ],
                    [ 192, 'tre'        ],
@@ -223,7 +223,7 @@ module Ppstrnum
                    [ 180, 'novem'      ],
                    [ 177, 'octo'       ],
                    [ 174, 'septen'     ],
-                   [ 171, 'sex'        ],
+                   [ 171, 'ses'        ],
                    [ 168, 'quin'       ],
                    [ 165, 'quattuor'   ],
                    [ 162, 'tre'        ],
@@ -233,7 +233,7 @@ module Ppstrnum
                    [ 150, 'novem'      ],
                    [ 147, 'octo'       ],
                    [ 144, 'septen'     ],
-                   [ 141, 'sex'        ],
+                   [ 141, 'ses'        ],
                    [ 138, 'quin'       ],
                    [ 135, 'quattuor'   ],
                    [ 132, 'tre'        ],
@@ -243,7 +243,7 @@ module Ppstrnum
                    [ 120, 'novem'      ],
                    [ 117, 'octo'       ],
                    [ 114, 'septen'     ],
-                   [ 111, 'sex'        ],
+                   [ 111, 'ses'        ],
                    [ 108, 'quin'       ],
                    [ 105, 'quattuor'   ],
                    [ 102, 'tre'        ],
@@ -254,7 +254,7 @@ module Ppstrnum
                    [  90, 'novem'      ],
                    [  87, 'octo'       ],
                    [  84, 'septen'     ],
-                   [  81, 'sex'        ],
+                   [  81, 'ses'        ],
                    [  78, 'quin'       ],
                    [  75, 'quatturo'   ],
                    [  72, 'tre'        ],
@@ -264,7 +264,7 @@ module Ppstrnum
                    [  60, 'novem'      ],
                    [  57, 'octo'       ],
                    [  54, 'septen'     ],
-                   [  51, 'sex'        ],
+                   [  51, 'se'         ],
                    [  48, 'quin'       ],
                    [  45, 'quattuor'   ],
                    [  42, 'tre'        ],
@@ -282,7 +282,7 @@ module Ppstrnum
                    [   6, 'm'          ],  # -illion
                    [   3, 'thousand'   ],
                    [   2, 'hundred'    ]
-                 ]
+                 ].freeze
     maxExponent = $illions[0][0]
     # Convert any \-chars:
     sep = stanzasep
