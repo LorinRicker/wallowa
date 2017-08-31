@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.5, 08/26/2017
+# Version 1.6, 08/31/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -291,8 +291,8 @@ module Ppstrnum
     nstr   = self.split('.')[0].gsub(',','').gsub('_','')
     number = nstr.to_i
     # Sanity-range check:
-    if number > 10 ** maxExponent
-      $stderr.puts "%ppstrnum-e-NYI, unknown name for number #{self}"
+    if number > ( 10 ** maxExponent * 10 ** 3 )  # can do up to 999 centillion+
+      $stderr.puts "%ppstrnum-e-NYI, unknown name for number #{self.thousands}"
       return "(unknown name for number)"
     end
     result = ''
