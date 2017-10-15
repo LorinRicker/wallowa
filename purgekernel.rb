@@ -18,7 +18,7 @@
 # -----
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.5 (03/20/2017)"
+  PROGID = "#{PROGNAME} v0.6 (10/15/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 # -----
@@ -189,14 +189,14 @@ end
 # and substituting LOLIMIT and/or HILIMIT if either or both of these
 # options are not specified; thus, the defaulted range LOLIMIT...HILIMIT
 # means "all versions" --
-hivers = options[:lessthan]    || HILIMIT
-lovers = options[:greaterthan] || LOLIMIT
+highversion = options[:lessthan]    || HILIMIT
+lowversion  = options[:greaterthan] || LOLIMIT
 # Strip punctuation ".-" from version-strings, convert to simple integers...
 # then to a range which must *exclude* >both< of the end-points!
-hivers = hivers.gsub( /[.-]/, '' ).to_i
-lovers = lovers.gsub( /[.-]/, '' ).to_i
-lovers += 1 if lovers > LOLIMIT.gsub( /[.-]/, '' ).to_i
-versrange = Range.new( lovers, hivers, true )  # exclusive: ...
+highversion = highversion.gsub( /[.-]/, '' ).to_i
+lowversion  =  lowversion.gsub( /[.-]/, '' ).to_i
+lowversion += 1 if lowversion > LOLIMIT.gsub( /[.-]/, '' ).to_i
+versrange = Range.new( lowversion, highversion, true )  # exclusive: ...
 
 kernelpackages.each do | package, versions |
   versions.each do | vrs |
@@ -207,7 +207,7 @@ end
 $stdout.puts "kernelversions -- #{kernelversions}" if options[:debug] >= DBGLVL2
 
 # Now that the range of versions is limited to just those
-# in the lovers...hivers range, run an interactive check if
+# in the lowversion...highversion range, run an interactive check if
 # the user asked for it with --confirm (etc) --
 
 kernelversions.each do | package, versions |
