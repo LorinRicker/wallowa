@@ -59,7 +59,7 @@ def create_Env_variable( result, options, idx )
   # the (sub)process which is running this Ruby script, thus the parent process
   # (which com-line-ran the script) never sees the env-variable!
   # So, the following is just a "demo" --
-  envvar = options[:varname] + "#{idx+1}"
+  envvar = options[:varname] + "#{idx}"
   ENV[envvar] = result
   STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
 end # create_Env_variable
@@ -67,7 +67,7 @@ end # create_Env_variable
 def create_DCL_symbol( result, options, idx )
   # Tuck result into a DCL Variable/Symbol --
   require 'RTL'
-  dclsym = options[:varname].upcase + "#{idx+1}"
+  dclsym = options[:varname].upcase + "#{idx}"
   RTL::set_symbol( dclsym, result, options[:dclscope] )
   STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
 end # create_DCL_symbol
