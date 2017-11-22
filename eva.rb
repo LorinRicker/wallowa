@@ -19,8 +19,11 @@
 # 3. Ephiphany: The core Ruby eval method works generically for String
 #    methods, and possibly other things.
 
+# TODO --
+# 1. Make bi-modal:  command-line and REPL (similar to addtimes.rb)
+
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.3 (07/21/2017)"
+  PROGID = "#{PROGNAME} v3.4 (11/22/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -29,7 +32,7 @@ DBGLVL2 = 2  ######################################################
 DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 
-DEFAULT_VARNAME   = "EVA_RESULT"
+DEFAULT_VARNAME   = "EVA"
 VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
 VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
 DCLSCOPE_LOCAL    = 1
@@ -131,11 +134,13 @@ optparse = OptionParser.new { |opts|
 
   opts.separator ""
   opts.on( "-r", "--variable[=VARNAME]", String,
-           "Variable (symbol) name for expression result;",
+           "Variable (DCL symbol) name for expression result;",
            "  default variable name is #{DEFAULT_VARNAME}, which",
            "  is always suffixed with the index-number for",
-           "  that argument position, e.g., #{DEFAULT_VARNAME}1,",
-           "  #{DEFAULT_VARNAME}2,... -rr becomes R1, R2, R3,..." ) do |val|
+           "  that argument position, e.g., #{DEFAULT_VARNAME}1, #{DEFAULT_VARNAME}2,...",
+           "  -rr and --variable=r become R1, R2, R3,...",
+           "  A separate variable is created for each",
+           "  expression on the command line." ) do |val|
     options[:varname] = ( val || DEFAULT_VARNAME ).upcase
   end  # -r --variable
 
@@ -174,7 +179,7 @@ optparse = OptionParser.new { |opts|
                 "\n\n    where each \"EXPRESSION\" is a numeric expression to evaluate and display" +
                 "\n    in the selected format.  Enclose each expression in double-quotes, e.g." +
                 "\n    \"2**64\" to ensure that special characters such as asterisk/splats are" +
-                "\n    not misinterpreted.\n\n"
+                "\n    not intercepted and misinterpreted by the command-line interpreter itself.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -267,30 +272,27 @@ ARGV.each_with_index do | arg, idx |
   #    result = evatmp.desc_numstack
   end
 
-  case options[:os]
-  when :linux, :unix, :windows
-    if options[:varname]
+  if options[:varname]
+    case options[:os]
+    when :linux, :unix, :windows
       # Tuck result into a shell environment variable -- Note that, for non-VMS,
       # this is *useless* (mostly), as the environment variable is created in
       # the (sub)process which is running this Ruby script, thus the parent process
       # (which com-line-ran the script) never sees the env-variable!
+      # So, the following is just a "demo" --
       envvar = options[:varname] + "#{idx+1}"
       ENV[envvar] = result
       STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
-    else
-      STDOUT.puts result
-    end  # if
-  when :vms
-    if options[:varname]
+    when :vms
       # Tuck result into a DCL Variable/Symbol --
       require 'RTL'
       dclsym = options[:varname] + "#{idx+1}"
       RTL::set_symbol( dclsym, result, options[:dclscope] )
       STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
-    else
-      STDOUT.puts result
-    end  # if
-  end  # case
+    end  # case
+  else
+    STDOUT.puts result
+  end  # if
 
 end  # ARGV.each_with_index
 
