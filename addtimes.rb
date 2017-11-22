@@ -38,6 +38,40 @@ require_relative 'lib/ANSIseq'
 
 # ==========
 
+def output( result, options, idx )
+  if options[:varname]
+    case options[:os]
+    when :linux, :unix, :windows
+      create_Env_variable( result, options, idx )
+    when :vms
+      create_DCL_symbol( result.strip.sub( ' ', '-' ),  # make VMS delta-datetime format "D-hh:mm:ss"
+      options, idx )
+    end  # case
+  else
+    result = $stdout.tty? ? result.trim.bold.underline : result
+    puts "\nAccumulated interval/duration: #{ result }\n"
+  end  # if
+end # output
+
+def create_Env_variable( result, options, idx )
+  # Tuck result into a shell environment variable -- Note that, for non-VMS,
+  # this is *useless* (mostly), as the environment variable is created in
+  # the (sub)process which is running this Ruby script, thus the parent process
+  # (which com-line-ran the script) never sees the env-variable!
+  # So, the following is just a "demo" --
+  envvar = options[:varname] + "#{idx+1}"
+  ENV[envvar] = result
+  STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
+end # create_Env_variable
+
+def create_DCL_symbol( result, options, idx )
+  # Tuck result into a DCL Variable/Symbol --
+  require 'RTL'
+  dclsym = options[:varname].upcase + "#{idx+1}"
+  RTL::set_symbol( dclsym, result, options[:dclscope] )
+  STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
+end # create_DCL_symbol
+
 # === Main ===
 options = { :operator => :add,
             :start    => nil,
@@ -178,29 +212,6 @@ if options[:prompt]
   end  # while
 end
 
-if options[:varname]
-  case options[:os]
-  when :linux, :unix, :windows
-    # Tuck result into a shell environment variable -- Note that, for non-VMS,
-    # this is *useless* (mostly), as the environment variable is created in
-    # the (sub)process which is running this Ruby script, thus the parent process
-    # (which com-line-ran the script) never sees the env-variable!
-    # So, the following is just a "demo" --
-    result = accint.to_s
-    envvar = options[:varname] + "#{idx}"
-    ENV[envvar] = result
-    STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
-  when :vms
-    # Tuck result into a DCL Variable/Symbol --
-    require 'RTL'
-    result = accint.to_s.strip.sub( ' ', '-' )  # make VMS delta-datetime format "D-hh:mm:ss"
-    dclsym = options[:varname] + "#{idx}"
-    RTL::set_symbol( dclsym, result, options[:dclscope] )
-    STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
-  end  # case
-else
-  result = $stdout.tty? ? accint.to_s.trim.bold.underline : accint.to_s
-  puts "\nAccumulated interval/duration: #{ result }\n"
-end  # if
+output( accint.to_s, options, idx )
 
 exit true

@@ -81,7 +81,7 @@ def display_methods( v, verbo )
   end  # instmethods.each
 end  # display_methods
 
-# === === ===
+# =========
 
 def math_patterns
   # Ruby's Math module defines 26 trig and transcendental functions:
@@ -156,6 +156,19 @@ def format( tmp, fmt )
   return result
 end # format
 
+def output( result, options, idx )
+  if options[:varname]
+    case options[:os]
+    when :linux, :unix, :windows
+      create_Env_variable( result, options, idx )
+    when :vms
+      create_DCL_symbol( result, options, idx )
+    end  # case
+  else
+    STDOUT.puts result
+  end  # if
+end # output
+
 def create_Env_variable( result, options, idx )
   # Tuck result into a shell environment variable -- Note that, for non-VMS,
   # this is *useless* (mostly), as the environment variable is created in
@@ -174,19 +187,6 @@ def create_DCL_symbol( result, options, idx )
   RTL::set_symbol( dclsym, result, options[:dclscope] )
   STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
 end # create_DCL_symbol
-
-def output( result, options, idx )
-  if options[:varname]
-    case options[:os]
-    when :linux, :unix, :windows
-      create_Env_variable( result, options, idx )
-    when :vms
-      create_DCL_symbol( result, options, idx )
-    end  # case
-  else
-    STDOUT.puts result
-  end  # if
-end # output
 
 # === Main ===
 options = { :math      => nil,
@@ -317,14 +317,12 @@ require 'mathn' if options[:math] # Unified numbers #
 MPs = math_patterns  # regexs to test for special forms...
 
 ARGV.each_with_index do | arg, idx |
-
   # arg = sub_patterns( arg )
   # evatmp = evaluate( arg, options[:verbose] )
   # result = format( evatmp, options[:format] )
   # ...or, functionally:
   result = format( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
   output( result, options, idx )
-
 end  # ARGV.each_with_index
 
 exit true
