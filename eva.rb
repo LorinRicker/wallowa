@@ -81,6 +81,113 @@ def display_methods( v, verbo )
   end  # instmethods.each
 end  # display_methods
 
+# === === ===
+
+def math_patterns
+  # Ruby's Math module defines 26 trig and transcendental functions:
+  pat1 = Regexp.new(
+         / \b(                    # word-boundary, then Capture Group 1
+               a?(cos|sin|tan)h?  # cos, sin, tan, acos, asin, atan,
+                                  # cosh, sinh, tanh, acosh, asinh, atanh
+             | atan2              # atan2
+             | (cb|sq)rt          # cbrt (cube-root), sqrt (square-root)
+             | erfc?              # erf, erfc (error-function and its complement)
+             | (fr|ld)?exp        # exp, frexp, ldexp
+             | l?gamma            # gamman, lgamma
+             | hypot              # hypot (hypotenuse of a right-triangle with sides a,b)
+             | log(2|10)?         # log (natural), log2, log10
+             ) \s*\(              #   => "sin(..." or "sin (..." or "sin    (..."
+         /x )
+  pat2 = Regexp.new( /(\bE\b | \bPI\b )/x )    # "e" or "pi"
+  # Custom Combinatorics class defines 5 combination, permutation, factorial
+  # and Fibonacci functions:
+  pat3 = Regexp.new(             # for Combinatorics class
+         / \b(                    # word-boundary, then Capture Group 1
+               (fib|fibonacci)    # Fibonacci series
+             | (factorial|n!)     # Factorial series, n!
+             | (k_)?permutations  # permutations
+             | combinations       # combinations
+             ) \s*\(              #   => "fib(..." or "fib (..." or "fib    (..."
+         /x )
+  return [ pat1, pat2, pat3 ]
+end  # math_patterns
+
+def sub_patterns( arg )
+  # If an expression contains one or more patterned-functions,
+  # prefix these appropriately --
+  arg = arg.gsub( MPs[0], 'Math.\1(' )  # use single-quotes around 'Math.\1(', etc!!
+  arg = arg.gsub( MPs[1], 'Math::\1'  )
+  arg = arg.gsub( MPs[2], 'Combinatorics.\1('  )
+  return arg
+end # sub_patterns
+
+def evaluate( arg, debug )
+  tmp = 0
+  cmd = "tmp = #{arg}"
+  # There is, of course, a "Limited Liability" with eval'ing
+  # any input provided by the user... but actually not a lot
+  # more than if the user had written this script him/herself --
+  #############
+  eval( cmd ) #  <- creates object/variable 'tmp'
+  #############
+  if debug
+    STDOUT.puts "\n  eval( '#{cmd}' )"
+    STDOUT.puts "  raw: #{tmp.inspect}\n\n"
+  end
+  return tmp
+end # evaluate
+
+def format( tmp, fmt )
+  fmt = "nonNumeric" if ! tmp.kind_of?( Numeric )
+  case fmt.to_sym
+  when :sep
+      result = tmp.thousands
+  when :bare
+      result = tmp.to_s
+  when :word
+      result = tmp.numbernames
+  when :asc, :desc
+      result = tmp.pp_numstack( options )
+  when :nonNumeric
+    result = tmp.inspect  # pp-type format
+  #when :desc
+  #    result = tmp.desc_numstack
+  end
+  return result
+end # format
+
+def create_Env_variable( result, options, idx )
+  # Tuck result into a shell environment variable -- Note that, for non-VMS,
+  # this is *useless* (mostly), as the environment variable is created in
+  # the (sub)process which is running this Ruby script, thus the parent process
+  # (which com-line-ran the script) never sees the env-variable!
+  # So, the following is just a "demo" --
+  envvar = options[:varname] + "#{idx+1}"
+  ENV[envvar] = result
+  STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
+end # create_Env_variable
+
+def create_DCL_symbol( result, options, idx )
+  # Tuck result into a DCL Variable/Symbol --
+  require 'RTL'
+  dclsym = options[:varname].upcase + "#{idx+1}"
+  RTL::set_symbol( dclsym, result, options[:dclscope] )
+  STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
+end # create_DCL_symbol
+
+def output( result, options, idx )
+  if options[:varname]
+    case options[:os]
+    when :linux, :unix, :windows
+      create_Env_variable( result, options, idx )
+    when :vms
+      create_DCL_symbol( result, options, idx )
+    end  # case
+  else
+    STDOUT.puts result
+  end  # if
+end # output
+
 # === Main ===
 options = { :math      => nil,
             :format    => 'sep',
@@ -207,92 +314,16 @@ pp options if options[:debug] >= DBGLVL2
 require 'mathn' if options[:math] # Unified numbers #
 #####################################################
 
-# Ruby's Math module defines 26 trig and transcendental functions:
-mathpat1 = Regexp.new(
-          / \b(                    # word-boundary, then Capture Group 1
-                a?(cos|sin|tan)h?  # cos, sin, tan, acos, asin, atan,
-                                   # cosh, sinh, tanh, acosh, asinh, atanh
-              | atan2              # atan2
-              | (cb|sq)rt          # cbrt (cube-root), sqrt (square-root)
-              | erfc?              # erf, erfc (error-function and its complement)
-              | (fr|ld)?exp        # exp, frexp, ldexp
-              | l?gamma            # gamman, lgamma
-              | hypot              # hypot (hypotenuse of a right-triangle with sides a,b)
-              | log(2|10)?         # log (natural), log2, log10
-              ) \s*\(              #   => "sin(..." or "sin (..." or "sin    (..."
-          /x )
-mathpat2 = Regexp.new( /(\bE\b | \bPI\b )/x )    # "e" or "pi"
-# Custom Combinatorics class defines 5 combination, permutation, factorial
-# and Fibonacci functions:
-mathpat3 = Regexp.new(             # for Combinatorics class
-          / \b(                    # word-boundary, then Capture Group 1
-                (fib|fibonacci)    # Fibonacci series
-              | (factorial|n!)     # Factorial series, n!
-              | (k_)?permutations  # permutations
-              | combinations       # combinations
-              ) \s*\(              #   => "fib(..." or "fib (..." or "fib    (..."
-          /x )
+MPs = math_patterns  # regexs to test for special forms...
 
 ARGV.each_with_index do | arg, idx |
 
-  # If an expression contains one or more patterned-functions,
-  # prefix these appropriately --
-  arg = arg.gsub( mathpat1, 'Math.\1(' )  # use single-quotes around 'Math.\1(', etc!!
-  arg = arg.gsub( mathpat2, 'Math::\1'  )
-  arg = arg.gsub( mathpat3, 'Combinatorics.\1('  )
-
-  evatmp = 0
-  cmd = "evatmp = #{arg}"
-
-  if options[:debug] >= DBGLVL1 or options[:verbose]
-    STDOUT.puts "\n  eval( '#{cmd}' )"
-    STDOUT.puts "  raw: #{evatmp.inspect}\n\n"
-  end
-
-  # There is, of course, a "Limited Liability" with eval'ing
-  # any input provided by the user... but actually not a lot
-  # more than if the user had written this script him/herself --
-  #############
-  eval( cmd ) #  <- creates object/variable 'evatmp'
-  #############
-  options[:format] = "nonNumeric" if ! evatmp.kind_of?( Numeric )
-
-  case options[:format].to_sym
-  when :sep
-      result = evatmp.thousands
-  when :bare
-      result = evatmp.to_s
-  when :word
-      result = evatmp.numbernames
-  when :asc, :desc
-      result = evatmp.pp_numstack( options )
-  when :nonNumeric
-    result = evatmp.inspect  # pp-type format
-  #when :desc
-  #    result = evatmp.desc_numstack
-  end
-
-  if options[:varname]
-    case options[:os]
-    when :linux, :unix, :windows
-      # Tuck result into a shell environment variable -- Note that, for non-VMS,
-      # this is *useless* (mostly), as the environment variable is created in
-      # the (sub)process which is running this Ruby script, thus the parent process
-      # (which com-line-ran the script) never sees the env-variable!
-      # So, the following is just a "demo" --
-      envvar = options[:varname] + "#{idx+1}"
-      ENV[envvar] = result
-      STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
-    when :vms
-      # Tuck result into a DCL Variable/Symbol --
-      require 'RTL'
-      dclsym = options[:varname] + "#{idx+1}"
-      RTL::set_symbol( dclsym, result, options[:dclscope] )
-      STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
-    end  # case
-  else
-    STDOUT.puts result
-  end  # if
+  # arg = sub_patterns( arg )
+  # evatmp = evaluate( arg, options[:verbose] )
+  # result = format( evatmp, options[:format] )
+  # ...or, functionally:
+  result = format( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
+  output( result, options, idx )
 
 end  # ARGV.each_with_index
 
