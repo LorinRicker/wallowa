@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.3 (01/29/2017)"
+  PROGID = "#{PROGNAME} v1.4 (11/22/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -22,8 +22,16 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
+DEFAULT_VARNAME   = "ADDTIMES"
+VMSONLY_BORDER    = ' ' * 4 + "=== VMS only " + '=' * 70
+VMSONLY_BORDEREND = ' ' * 4 + '=' * ( VMSONLY_BORDER.length - 4 )
+DCLSCOPE_LOCAL    = 1
+DCLSCOPE_GLOBAL   = 2
+# -----
+
 require 'optparse'
 require 'pp'
+require_relative 'lib/WhichOS'
 require_relative 'lib/TimeInterval'
 require_relative 'lib/GetPrompted'
 require_relative 'lib/ANSIseq'
@@ -34,6 +42,9 @@ require_relative 'lib/ANSIseq'
 options = { :operator => :add,
             :start    => nil,
             :prompt   => false,
+            :os        => :linux,
+            :varname   => nil,
+            :dclscope  => DCLSCOPE_LOCAL,
             :noop     => false,
             :verbose  => false,
             :debug    => DBGLVL0,
@@ -56,7 +67,23 @@ optparse = OptionParser.new { |opts|
                  "is required for --operator=minus|subtract" ) do |val|
     options[:start] = val
   end  # -s --start
+
   opts.separator ""
+  opts.on( "-r", "--variable[=VARNAME]", String,
+           "Variable (DCL symbol) name for addtimes result;",
+           "  default variable name is #{DEFAULT_VARNAME}1; example:",
+           "  -rr and --variable=r both become variable R1" ) do |val|
+    options[:varname] = ( val || DEFAULT_VARNAME ).upcase
+  end  # -r --variable
+
+  opts.separator "\n#{VMSONLY_BORDER}"
+  opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
+           "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
+    options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
+                           DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
+  end  # -x --scope
+  opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
+
   # -n --dryrun not implemented, not needed for this program:
   # opts.on( "-n", "--noop", "--dryrun", "--test",
   #          "Dry-run (test & display, no-op) mode" ) do |val|
@@ -116,6 +143,10 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
+options[:os] = WhichOS.identify_os
+
+pp options if options[:debug] >= DBGLVL2
+
 if ( options[:operator] == :subtract ) && ( ! options[:start] )
   puts "%#{PROGNAME}-e-required, --start=TIMEINT required for subtract operations"
   exit false
@@ -125,6 +156,8 @@ end
 accint = TimeInterval.new( opts = options )
 
 pstr = options[:start] ? accint.accumulate( options[:start] ) : "  0 00:00:00"
+
+idx = 1  # only emit last/ultimate value as DCL symbol "#{DEFAULT_VARNAME}1"
 
 if ARGV[0]
   # Add all given args on command-line, even if prompt-mode is requested...
@@ -145,7 +178,29 @@ if options[:prompt]
   end  # while
 end
 
-pstr = $stdout.tty? ? accint.to_s.trim.bold.underline : accint.to_s
-puts "\nAccumulated interval/duration: #{ pstr }\n"
+if options[:varname]
+  case options[:os]
+  when :linux, :unix, :windows
+    # Tuck result into a shell environment variable -- Note that, for non-VMS,
+    # this is *useless* (mostly), as the environment variable is created in
+    # the (sub)process which is running this Ruby script, thus the parent process
+    # (which com-line-ran the script) never sees the env-variable!
+    # So, the following is just a "demo" --
+    result = accint.to_s
+    envvar = options[:varname] + "#{idx}"
+    ENV[envvar] = result
+    STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
+  when :vms
+    # Tuck result into a DCL Variable/Symbol --
+    require 'RTL'
+    result = accint.to_s.strip.sub( ' ', '-' )  # make VMS delta-datetime format "D-hh:mm:ss"
+    dclsym = options[:varname] + "#{idx}"
+    RTL::set_symbol( dclsym, result, options[:dclscope] )
+    STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
+  end  # case
+else
+  result = $stdout.tty? ? accint.to_s.trim.bold.underline : accint.to_s
+  puts "\nAccumulated interval/duration: #{ result }\n"
+end  # if
 
 exit true
