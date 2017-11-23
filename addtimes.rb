@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.4 (11/22/2017)"
+  PROGID = "#{PROGNAME} v1.5 (11/23/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -61,7 +61,7 @@ def create_Env_variable( result, options, idx )
   # So, the following is just a "demo" --
   envvar = options[:varname] + "#{idx}"
   ENV[envvar] = result
-  STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
+  STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}='#{result}'" if options[:verbose]
 end # create_Env_variable
 
 def create_DCL_symbol( result, options, idx )
@@ -69,7 +69,8 @@ def create_DCL_symbol( result, options, idx )
   require 'RTL'
   dclsym = options[:varname].upcase + "#{idx}"
   RTL::set_symbol( dclsym, result, options[:dclscope] )
-  STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
+  aop = ( options[:dclscope] == DCLSCOPE_LOCAL ) ? '=' : '=='
+  STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym} #{aop} '#{result}'" if options[:verbose]
 end # create_DCL_symbol
 
 # === Main ===
