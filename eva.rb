@@ -19,11 +19,8 @@
 # 3. Ephiphany: The core Ruby eval method works generically for String
 #    methods, and possibly other things.
 
-# TODO --
-# 1. Make bi-modal:  command-line and REPL (similar to addtimes.rb)
-
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.4 (11/22/2017)"
+  PROGID = "#{PROGNAME} v3.5 (11/23/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -42,6 +39,7 @@ DCLSCOPE_GLOBAL   = 2
 require 'optparse'
 require 'pp'
 require_relative 'lib/WhichOS'
+require_relative 'lib/GetPrompted'
 ## require_relative 'lib/TermChar'
 
 # Expose methods which may be used by User on command-line:
@@ -177,7 +175,7 @@ def create_Env_variable( result, options, idx )
   # So, the following is just a "demo" --
   envvar = options[:varname] + "#{idx+1}"
   ENV[envvar] = result
-  STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}, value '#{result}'" if options[:verbose]
+  STDOUT.puts "%#{PROGNAME}-i-createenv, created shell environment variable #{envvar}='#{result}'" if options[:verbose]
 end # create_Env_variable
 
 def create_DCL_symbol( result, options, idx )
@@ -185,7 +183,8 @@ def create_DCL_symbol( result, options, idx )
   require 'RTL'
   dclsym = options[:varname].upcase + "#{idx+1}"
   RTL::set_symbol( dclsym, result, options[:dclscope] )
-  STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym}, value '#{result}'" if options[:verbose]
+  aop = ( options[:dclscope] == DCLSCOPE_LOCAL ) ? '=' : '=='
+  STDOUT.puts "%#{PROGNAME}-i-createsym, created DCL variable/symbol #{dclsym} #{aop} '#{result}'" if options[:verbose]
 end # create_DCL_symbol
 
 # === Main ===
@@ -195,6 +194,7 @@ options = { :math      => nil,
             :separator => ',',
             :methods   => nil,
             :indent    => 2,
+            :prompt   => false,
             :os        => :linux,
             :varname   => nil,
             :dclscope  => DCLSCOPE_LOCAL,
@@ -205,6 +205,10 @@ options = { :math      => nil,
           }
 
 optparse = OptionParser.new { |opts|
+  opts.on( "-p", "--prompt", "Prompt mode; can be used/combined with the",
+                             "arguments (timeints) on the command-line" ) do |val|
+    options[:prompt] = true
+  end  # -p --prompt
   opts.on( "-x", "--math[=EXACT]", String, /EXACT|NORMAL|INEXACT/i,
            "Display exact or normal (default) math results" ) do |val|
     options[:math] = true if ( val || "exact" ).upcase[0] == "E"
@@ -316,13 +320,28 @@ require 'mathn' if options[:math] # Unified numbers #
 
 MPs = math_patterns  # regexs to test for special forms...
 
-ARGV.each_with_index do | arg, idx |
-  # arg = sub_patterns( arg )
-  # evatmp = evaluate( arg, options[:verbose] )
-  # result = format( evatmp, options[:format] )
-  # ...or, functionally:
-  result = format( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
-  output( result, options, idx )
-end  # ARGV.each_with_index
+if ARGV[0]
+  # Evaluate all given args on command-line, even if prompt-mode is requested...
+  ARGV.each_with_index do | arg, idx |
+    # arg = sub_patterns( arg )
+    # evatmp = evaluate( arg, options[:verbose] )
+    # result = format( evatmp, options[:format] )
+    # ...or, functionally:
+    result = format( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
+    output( result, options, idx )
+  end  # ARGV.each_with_index
+end  # if ARGV[0]
+if options[:prompt]
+  pstr = PROGNAME.lowercase
+  idx = 0
+  # ...Prompt user for values, show running-tape of accumulated/calc'd time
+  # display current interval as prompt> -- get user's input, no default answer:
+  while iarg = getprompted( pstr, "", false )
+    break if iarg == ""
+    result = format( evaluate( sub_patterns( iarg ), options[:verbose] ), options[:format] )
+    output( result, options, idx )
+    idx += 1
+  end  # while
+end  # if options[:prompt]
 
 exit true
