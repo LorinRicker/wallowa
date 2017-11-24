@@ -323,13 +323,14 @@ MPs = math_patterns  # regexs to test for special forms...
 idx = 0
 if ARGV[0]
   # Evaluate all given args on command-line, even if prompt-mode is requested...
-  ARGV.each_with_index do | arg, idx |
+  ARGV.each do | arg |
     # arg = sub_patterns( arg )
     # evatmp = evaluate( arg, options[:verbose] )
     # result = format( evatmp, options[:format] )
     # ...or, functionally:
     result = format( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
     output( result, options, idx )
+    idx += 1
   end  # ARGV.each_with_index
 end  # if ARGV[0]
 if options[:prompt]
