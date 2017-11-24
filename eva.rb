@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.5 (11/23/2017)"
+  PROGID = "#{PROGNAME} v3.6 (11/24/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -320,6 +320,7 @@ require 'mathn' if options[:math] # Unified numbers #
 
 MPs = math_patterns  # regexs to test for special forms...
 
+idx = 0
 if ARGV[0]
   # Evaluate all given args on command-line, even if prompt-mode is requested...
   ARGV.each_with_index do | arg, idx |
@@ -333,7 +334,6 @@ if ARGV[0]
 end  # if ARGV[0]
 if options[:prompt]
   pstr = PROGNAME.lowercase
-  idx = 0
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
   # display current interval as prompt> -- get user's input, no default answer:
   while iarg = getprompted( pstr, "", false )
