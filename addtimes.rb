@@ -47,10 +47,9 @@ def output( result, options, idx )
       create_DCL_symbol( result.strip.sub( ' ', '-' ),  # make VMS delta-datetime format "D-hh:mm:ss"
       options, idx )
     end  # case
-  else
-    result = $stdout.tty? ? result.trim.bold.underline : result
-    puts "\nAccumulated interval/duration: #{ result }\n"
   end  # if
+  result = $stdout.tty? ? result.trim.bold.underline : result
+  puts "\nAccumulated interval/duration: #{ result }\n"
 end # output
 
 def create_Env_variable( result, options, idx )

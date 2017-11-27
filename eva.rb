@@ -19,8 +19,8 @@
 # 3. Ephiphany: The core Ruby eval method works generically for String
 #    methods, and possibly other things.
 
-PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v3.6 (11/24/2017)"
+PROGNAME = File.basename( $0, '.rb' )
+  PROGID = "#{PROGNAME} v3.7 (11/27/2017)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -135,7 +135,7 @@ def evaluate( arg, debug )
   return tmp
 end # evaluate
 
-def format( tmp, fmt )
+def format_result( tmp, fmt )
   fmt = "nonNumeric" if ! tmp.kind_of?( Numeric )
   case fmt.to_sym
   when :sep
@@ -152,7 +152,7 @@ def format( tmp, fmt )
   #    result = tmp.desc_numstack
   end
   return result
-end # format
+end # format_result
 
 def output( result, options, idx )
   if options[:varname]
@@ -162,9 +162,8 @@ def output( result, options, idx )
     when :vms
       create_DCL_symbol( result, options, idx )
     end  # case
-  else
-    STDOUT.puts result
   end  # if
+  STDOUT.puts result
 end # output
 
 def create_Env_variable( result, options, idx )
@@ -328,7 +327,7 @@ if ARGV[0]
     # evatmp = evaluate( arg, options[:verbose] )
     # result = format( evatmp, options[:format] )
     # ...or, functionally:
-    result = format( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
+    result = format_result( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
     output( result, options, idx )
     idx += 1
   end  # ARGV.each_with_index
@@ -339,7 +338,7 @@ if options[:prompt]
   # display current interval as prompt> -- get user's input, no default answer:
   while iarg = getprompted( pstr, "", false )
     break if iarg == ""
-    result = format( evaluate( sub_patterns( iarg ), options[:verbose] ), options[:format] )
+    result = format_result( evaluate( sub_patterns( iarg ), options[:verbose] ), options[:format] )
     output( result, options, idx )
     idx += 1
   end  # while
