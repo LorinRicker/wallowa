@@ -4,7 +4,7 @@
 # GetPrompted.rb
 #
 # Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 11/13/2015
+# Version 3.0, 11/27/2017
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.

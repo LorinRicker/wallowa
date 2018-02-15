@@ -3,7 +3,7 @@
 
 # eva.rb
 #
-# Copyright © 2016-2017 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2016-2018 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.7 (11/27/2017)"
+  PROGID = "#{PROGNAME} v3.8 (02/15/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -233,9 +233,9 @@ optparse = OptionParser.new { |opts|
            "Group separator (default is ',' comma)" ) do |val|
     options[:separator] = val.to_i.abs
   end  # -s --separator
-  opts.on( "-m", "--methods[=RubyClassName]", String,
-           "Display methods for a Ruby Class" ) do |val|
-    options[:methods] = val.capitalize!
+  opts.on( "-m", "--methods=RubyClassName", /Numeric|Integer|Fixnum|Bignum|Float/i,
+           "Display methods for a Ruby Numeric class" ) do |val|
+    options[:methods] = val.to_s.capitalize!
     if val
       display_methods( val, false )
       exit 1

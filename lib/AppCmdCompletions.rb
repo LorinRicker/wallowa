@@ -30,6 +30,7 @@ module AppCmdCompletions
     vocab  = commands.kind_of?( String) ? commands.split : commands
     vocab += %w{ exit quit } if exitquit
     vocab += %w{ yes no }    if yesno
+    puts "vocab: #{vocab}"
     raise EmptyVocabulary, "Command vocabulary for readline completion is empty" if vocab == []
     cmd    = vocab.abbrev
     # Load these into Readline; now any invocation of the +readline+ method
