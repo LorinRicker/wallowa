@@ -1,8 +1,10 @@
 # .gitignore -- ~/projects/ruby/...
 
+.ruby-version
 .project
 /buggy
 /.bundle
+/experimental
 /test*
 /Test*
 /tmp
