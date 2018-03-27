@@ -26,7 +26,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.1 (03/27/2018)"
+  PROGID = "#{PROGNAME} v1.2 (03/27/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -105,7 +105,7 @@ if ARGV.count > 0
     check_password( arg )
   end
 else
-  while arg = getprompted( "\npwd", "" )
+  while arg = getprompted_noecho( "\npwd", "" )
     break if arg == ""
     check_password( arg )
   end  # while

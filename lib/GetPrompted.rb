@@ -3,8 +3,8 @@
 
 # GetPrompted.rb
 #
-# Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 11/27/2017
+# Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
+# Version 4.0, 03/27/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -32,3 +32,20 @@ rescue StandardError
   # otherwise:
   exit true  # this exit always provides cmd-line status:0
 end #getprompted
+
+def getprompted_noecho( prompt, default, returnexit = false )
+  require_relative 'WhichOS'
+  os  = WhichOS.identify_os
+  case os
+  when :linux
+    echooff = "stty -echo"
+    echoon  = "stty echo"
+  when :vms
+    echooff = "SET TERMINAL /NOECHO"
+    echoon  = "SET TERMINAL /ECHO"
+  end  # case os
+  `#{echooff}`
+  response = getprompted( prompt, default, returnexit )
+  `#{echoon}`
+  return response
+end # getprompted_noecho
