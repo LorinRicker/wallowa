@@ -126,7 +126,7 @@ This script marks the very first use a VMS System Service (runtime library routi
 
 **microscope.rb** -- Based on ideas from Pat Shaughnessy's excellent book ["Ruby Under A Microscope"](http://patshaughnessy.net/ruby-under-a-microscope) (ISBN 978-1-59327-527-3, [No Starch Press](http://www.nostarch.com/rum), 2014), and on the **Ripper** Ruby Gem, applies lexical (token) analysis, parser (sexp/AST) analysis, and/or compiler (YARV) analysis to a Ruby source file, or to a limited range of lines in a Ruby source file.
 
-**mklnsToMyDesktop.rb** --
+**mklns.rb** --
 
 **mkssfpath.rb** and **mkssf.sh** --
 
