@@ -3,7 +3,7 @@
 
 # «·».rb
 #
-# Copyright © 2016 Lorin Ricker <lorin@rickernet.us>
+# Copyright © 2018 Lorin Ricker <lorin@rickernet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -12,7 +12,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v0.«·» («·»/«·»/2016)"
+  PROGID = "#{PROGNAME} v0.«·» («·»/«·»/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
    CONFIGDIR = File.join( ENV['HOME'], ".config", PROGNAME )
@@ -25,7 +25,7 @@ DBGLVL3 = 3  # <-- reserved for binding.pry &/or pry-{byebug|nav} #
              ######################################################
 # -----
 
-require 'optparse'
+require 'optparse'    # standard library
 require_relative 'lib/FileEnhancements'  # includes AppConfig class
 
 # ==========
