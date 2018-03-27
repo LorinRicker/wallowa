@@ -14,12 +14,19 @@
 # Based on this article and corresponding Gem
 # https://www.twilio.com/blog/2018/03/better-passwords-in-ruby-applications-pwned-passwords-api.html
 #
+# In 2017 NIST (National Institute of Standards and Technology) as part of their
+# revised digital identity guidelines recommended that user passwords are checked
+# against existing public breaches of data.
+#
+# The idea is that if a password has appeared in a data breach before then it
+# is deemed compromised and should not be used.
+#
 # This little program submits the password(s) on the command line (ARGV) to
 # pwned-check to see if the pwd(s) has/have been compromised.
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.0 (03/27/2018)"
+  PROGID = "#{PROGNAME} v1.1 (03/27/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -34,6 +41,20 @@ require 'pwned'     # gem install pwned
 
 require 'optparse'  # standard library
 require_relative 'lib/ppstrnum'
+require_relative 'lib/GetPrompted'
+
+def check_password( arg )
+  pwd = Pwned::Password.new( arg )
+  if pwd.pwned?
+    pwdpwnedcount = pwd.pwned_count.thousands
+    plural = pwdpwnedcount != 1 ? "s" : ""
+    puts "\nPassword '#{arg}' has been stolen and compromised #{pwdpwnedcount} time#{plural}" +
+         " -- do not use it!"
+  else
+    hidepwd = arg[0..1] + ( '·' * (arg.length-2) )
+    puts "\nPassword '#{hidepwd}' has not been pwned"
+  end
+end # check_password
 
 # === Main ===
 options = { :verbose => false,
@@ -79,16 +100,15 @@ if options[:debug] >= DBGLVL3 #
 end                           #
 ###############################
 
-ARGV.each do | arg |
-  pwd = Pwned::Password.new( arg )
-  if pwd.pwned?
-    pwdpwnedcount = pwd.pwned_count.thousands
-    plural = pwdpwnedcount != 1 ? "s" : ""
-    puts "\nPassword '#{arg}' has been pwned #{pwdpwnedcount} time#{plural}"
-  else
-    hidepwd = arg[0..1] + ( '·' * (arg.length-2) )
-    puts "\nPassword '#{hidepwd}' has not been pwned"
+if ARGV.count > 0
+  ARGV.each do | arg |
+    check_password( arg )
   end
+else
+  while arg = getprompted( "\npwd", "" )
+    break if arg == ""
+    check_password( arg )
+  end  # while
 end
 
 exit true
