@@ -1,6 +1,6 @@
 # wallowa
 
-Last update: 21-July-2017
+Last update: 27-March-2018
 
 ## Overview
 
@@ -126,6 +126,8 @@ This script marks the very first use a VMS System Service (runtime library routi
 
 **microscope.rb** -- Based on ideas from Pat Shaughnessy's excellent book ["Ruby Under A Microscope"](http://patshaughnessy.net/ruby-under-a-microscope) (ISBN 978-1-59327-527-3, [No Starch Press](http://www.nostarch.com/rum), 2014), and on the **Ripper** Ruby Gem, applies lexical (token) analysis, parser (sexp/AST) analysis, and/or compiler (YARV) analysis to a Ruby source file, or to a limited range of lines in a Ruby source file.
 
+**mklnsToMyDesktop.rb** --
+
 **mkssfpath.rb** and **mkssf.sh** --
 
 **msgd.rb** -- This script was inspired by a desire to bring modern message digests, including SHA256, SHA384, SHA512, RIPEMD-160, as well as MD5 and SHA1 (both deprecated as insecure), to VMS (OpenVMS), currently limited (as of 1970s thru 2017 at least) to a `CHECKSUM` command which provides only XOR, CRC and MD5 digest algorithms.  `msgd` blends functionality from both Linux (Unix) `sha(256,384,512)sum` (and `md5sum`) commands with VMS's `CHECKSUM`, reproducing the *nix output format standard for each of the supported message digests, and the ability to redirect that output to a text file for subsequent use in checking/comparing other instances of the same file (e.g., ones that have been FTP-transferred from one system to another).  On VMS, it can optionally create a DCL local symbol (variable) which contains the digest string (similar to `CHECKSUM`'s `CHECKSUM$CHECKSUM` symbol).  Includes extensive man-page-like help (see `--instructions` or `--man`).
@@ -141,6 +143,8 @@ This script marks the second use a VMS System Service (runtime library routines)
 My bash profile script sets two aliases, `killmy` to do `process --kill` (and `killsys` for `sudo /home/user/bin/process --kill`) for personal or system/world processes. Because of obvious parallels between Linux and VMS, this script is designed to work for both operating systems, although it has not (yet) been tested and deployed on VMS (as of Jan'16, I have received a beta release of Ruby v2.2 for OpenVMS, and am participating in check-out testing for this port). This script was also the subject of a Ruby introductory presentation at OpenVMS Bootcamp 2014, Boston. Addendum 16-June-2017: This script now works correctly on both Linux and VMS, where it provides parallel functionality.
 
 **purgekernel.rb** -- (work-in-progress)
+
+**pwnedpwd.rb** -- A March 2018 Twilio blog article ["Better passwords in Ruby applications with the Pwned Passwords API"](https://www.twilio.com/blog/2018/03/better-passwords-in-ruby-applications-pwned-passwords-api.html) highlighted the Ruby gem `Pwned`, and this command-line tool was a natural response. It takes from one to several arguments (passwords -- note that here these are in clear text) from the command line, and checks each password against Troy Hunt's Pwned API and compromised-password database.  If no passwords are given on the command line, the script prompts for `pwd:` and accepts passwords (one at a time, in no-echo mode) and does the same check, exiting at the first empty response line (or Ctrl/D). A neat example of using an Internet resource (gem) which has a nice, tight calling interface and focused purpose.
 
 **regex.rb** -- Inspired by a technique (suggestion) in the regex chapter of *the Pickaxe Book* (**Programming Ruby 2.0 & 1.9**, Dave Thomas, et al), this program provides a way to experiment with regexes and target strings, displaying the relevant contents of a pattern match's MatchData object. Provides value as an immediate com-line utility, but does not compare in comprehensive functionality to online/web tools like [regex101.com](http://www.regex101.com) or [debuggex.com](http://www.debuggex.com), or to JGS's [RegexBuddy](http://www.regexbuddy.com).
 
