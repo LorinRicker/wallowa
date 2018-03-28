@@ -26,7 +26,7 @@
 #
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v1.2 (03/27/2018)"
+  PROGID = "#{PROGNAME} v1.3 (03/27/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -52,7 +52,7 @@ def check_password( arg )
          " -- do not use it!"
   else
     hidepwd = arg[0..1] + ( '·' * (arg.length-2) )
-    puts "\nPassword '#{hidepwd}' has not been pwned"
+    puts "\nPassword '#{hidepwd}' does not appear in the Pwned (stolen, compromised) database."
   end
 end # check_password
 
@@ -83,8 +83,17 @@ optparse = OptionParser.new { |opts|
     exit true
   end  # -a --about
   # --- Set the banner & Help option ---
-  opts.banner = "\n  Usage: #{PROGNAME} [options] password1 [password2]..." +
-                "\n\n   where the passwords are candidates to check against the Pwned database\n\n"
+  opts.banner = "\n  Usage: #{PROGNAME} [options] [password1] [password2]..." +
+                "\n\n  where the passwords are checked against a Pwned passwords database." +
+                "\n\n  If one or more passwords are given on the command line, they will appear" +
+                "\n    in cleartext on the line -- use this mode if you don't care that these" +
+                "\n    passwords can be observed and recalled." +
+                "\n\n  If no password appears on the command line, you will be prompted for each" +
+                "\n    password, and your entry will not be echoed (invisible) -- use this mode" +
+                "\n    to test passwords that you may want to use and preserve in privacy and" +
+                "\n    secrecy.  You can enter more than one password at a time, space-separated." +
+                "\n\n  Compromised passwords will appear in cleartext in a 'do not use' message." +
+                "\n\n  Uncompromised passwords will be secreted in a 'does not appear' message.\n\n"
   opts.on_tail( "-?", "-h", "--help", "Display this help text" ) do |val|
     $stdout.puts opts
     # $stdout.puts "«+»Additional Text«+»"
@@ -105,9 +114,9 @@ if ARGV.count > 0
     check_password( arg )
   end
 else
-  while arg = getprompted_noecho( "\npwd", "" )
-    break if arg == ""
-    check_password( arg )
+  while words = getprompted_noecho( "\npwd", "" )
+    break if words == ""
+    words.split.each { | arg | check_password( arg ) }
   end  # while
 end
 
