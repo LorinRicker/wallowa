@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.8 (02/15/2018)"
+  PROGID = "#{PROGNAME} v3.9 (04/03/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -83,7 +83,7 @@ end  # display_methods
 
 def math_patterns
   # Ruby's Math module defines 26 trig and transcendental functions:
-  pat1 = Regexp.new(
+  pat0 = Regexp.new(
          / \b(                    # word-boundary, then Capture Group 1
                a?(cos|sin|tan)h?  # cos, sin, tan, acos, asin, atan,
                                   # cosh, sinh, tanh, acosh, asinh, atanh
@@ -96,10 +96,10 @@ def math_patterns
              | log(2|10)?         # log (natural), log2, log10
              ) \s*\(              #   => "sin(..." or "sin (..." or "sin    (..."
          /x )
-  pat2 = Regexp.new( /(\bE\b | \bPI\b )/x )    # "e" or "pi"
+  pat1 = Regexp.new( /(\bE\b | \bPI\b )/x )    # "e" or "pi"
   # Custom Combinatorics class defines 5 combination, permutation, factorial
   # and Fibonacci functions:
-  pat3 = Regexp.new(             # for Combinatorics class
+  pat2 = Regexp.new(             # for Combinatorics class
          / \b(                    # word-boundary, then Capture Group 1
                (fib|fibonacci)    # Fibonacci series
              | (factorial|n!)     # Factorial series, n!
@@ -107,7 +107,7 @@ def math_patterns
              | combinations       # combinations
              ) \s*\(              #   => "fib(..." or "fib (..." or "fib    (..."
          /x )
-  return [ pat1, pat2, pat3 ]
+  return [ pat0, pat1, pat2 ]
 end  # math_patterns
 
 def sub_patterns( arg )
