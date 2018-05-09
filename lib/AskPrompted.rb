@@ -4,7 +4,7 @@
 # AskPrompted.rb
 #
 # Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.0, 03/27/2018
+# Version 2.1, 05/09/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -33,10 +33,15 @@ def askprompted( prompt, default = "Y" )
   dstr ||= default
   pstr = prompt + ( dstr == "" ? " (y/n)? " : " (y/n) [#{dstr}]? " )
   answer = readline( pstr, true ).strip
-  exit true if answer.downcase == "exit" || answer.downcase == "quit"
+  if %w{ exit quit }.find_index( answer.downcase )
+    # Always restore terminal echo:
+    `stty echo`
+    exit true  # this exit always provides cmd-line status:0
+  end
   answer = dstr if answer == ""
   return ( answer[0].downcase == "y" ? true : false )
 rescue StandardError
+  `stty echo`
   exit true  # this exit always provides cmd-line status:0
 end #askprompted
 

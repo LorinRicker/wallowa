@@ -4,7 +4,7 @@
 # GetPrompted.rb
 #
 # Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
-# Version 4.1, 05/09/2018
+# Version 4.2, 05/09/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -25,7 +25,7 @@ def getprompted( prompt, default, returnexit = false )
   dstr ||= default
   pstr = prompt + ( dstr == "" ? ": " : " [#{dstr}]: " )
   response = readline( pstr, true ).strip
-  if response.downcase == "exit" || response.downcase == "quit"
+  if %w{ exit quit }.find_index( response.downcase )
     # Always restore terminal echo:
     `stty echo`
     exit true  # this exit always provides cmd-line status:0
