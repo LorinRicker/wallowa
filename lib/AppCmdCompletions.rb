@@ -3,8 +3,8 @@
 
 # AppCmdCompletions.rb
 #
-# Copyright © 2014-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.2, 02/13/2015
+# Copyright © 2014-2018 Lorin Ricker <Lorin@RickerNet.us>
+# Version 1.3, 05/10/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -12,6 +12,7 @@
 #
 
 # Ruby Version Dependency: uses Ruby v2.x keyword arguments syntax
+
 
 # Define the readline command-completion vocabulary for this application.
 module AppCmdCompletions
@@ -21,6 +22,8 @@ module AppCmdCompletions
   require 'abbrev'          # See "Pickaxe v1.9 & 2.0", p. 731
   require 'readline'        # See "Pickaxe v1.9 & 2.0", p. 795
   include Readline          #
+
+  require_relative "StringIsIn"
 
   # Parameter command can be a string of words, or an array of words:
   #   "ant bear cat dog" or %w{ ant bear cat dog }

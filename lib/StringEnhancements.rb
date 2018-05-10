@@ -3,13 +3,15 @@
 
 # StringEnhancements.rb
 #
-# Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.4, 10/14/2015
+# Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
+# Version 2.5, 05/10/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
 # See the file 'gpl' distributed within this project directory tree.
 #
+
+require_relative "StringIsIn"
 
 class String
 

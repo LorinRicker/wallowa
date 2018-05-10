@@ -33,7 +33,7 @@ def askprompted( prompt, default = "Y" )
   dstr ||= default
   pstr = prompt + ( dstr == "" ? " (y/n)? " : " (y/n) [#{dstr}]? " )
   answer = readline( pstr, true ).strip
-  if %w{ exit quit }.find_index( answer.downcase )
+  if response.isIn?( %w{ exit quit } )
     # Always restore terminal echo:
     `stty echo`
     exit true  # this exit always provides cmd-line status:0
