@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.10 (05/15/2018)"
+  PROGID = "#{PROGNAME} v3.11 (05/15/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -44,7 +44,6 @@ require_relative 'lib/GetPrompted'
 
 # Expose methods which may be used by User on command-line:
 require_relative 'lib/ppstrnum'
-require_relative 'lib/StringEnhancements'
 require_relative 'lib/Combinatorics'
 
 # ==========
