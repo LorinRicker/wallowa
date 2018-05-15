@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.9 (04/03/2018)"
+  PROGID = "#{PROGNAME} v3.10 (05/15/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -135,8 +135,8 @@ def evaluate( arg, debug )
   return tmp
 end # evaluate
 
-def format_result( tmp, fmt )
-  fmt = "nonNumeric" if ! tmp.kind_of?( Numeric )
+def format_result( tmp, options )
+  fmt = ! tmp.kind_of?( Numeric ) ? "nonNumeric" : options[:format]
   case fmt.to_sym
   when :sep
       result = tmp.thousands
@@ -212,14 +212,16 @@ optparse = OptionParser.new { |opts|
            "Display exact or normal (default) math results" ) do |val|
     options[:math] = true if ( val || "exact" ).upcase[0] == "E"
   end  # -x --math
-  opts.on( "-f", "--format[=DISPLAY]", /SEP|WORD|BARE|ASC|DESC/i,
+  opts.on( "-f", "--format[=DISPLAY]", /SEP.*|WORDS?|BARE|ASC.*|DESC.*/i,
            "Format to display:",
-           "  SEP: comma separated groups (default),",
+           "  SEP:  comma separated groups (default),",
            "  BARE: no separator,",
            "  WORD: number-names,",
            "  ASC:  number-names in ascending groups,",
            "  DESC: number-names in descending groups" ) do |val|
-    options[:format] = ( val || "sep" ).downcase
+    format = { :S => "sep", :W => "word", :B => "bare",
+               :A => "asc", :D => "desc" }.fetch( val[0].upcase.to_sym )
+    options[:format] = ( format || "sep" )
   end  # -f --format
   opts.on( "-i", "--indent[=INDENTATION]", Integer,
            "Display indentation width (default is 2 spaces)" ) do |val|
@@ -327,18 +329,18 @@ if ARGV[0]
     # evatmp = evaluate( arg, options[:verbose] )
     # result = format( evatmp, options[:format] )
     # ...or, functionally:
-    result = format_result( evaluate( sub_patterns( arg ), options[:verbose] ), options[:format] )
+    result = format_result( evaluate( sub_patterns( arg ), options[:verbose] ), options )
     output( result, options, idx )
     idx += 1
   end  # ARGV.each_with_index
 end  # if ARGV[0]
-if options[:prompt]
+if options[:prompt] || ARGV.empty?
   pstr = PROGNAME.lowercase
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
   # display current interval as prompt> -- get user's input, no default answer:
   while iarg = getprompted( pstr, "", false )
     break if iarg == ""
-    result = format_result( evaluate( sub_patterns( iarg ), options[:verbose] ), options[:format] )
+    result = format_result( evaluate( sub_patterns( iarg ), options[:verbose] ), options )
     output( result, options, idx )
     idx += 1
   end  # while
