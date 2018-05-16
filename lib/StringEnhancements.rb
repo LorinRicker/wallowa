@@ -4,7 +4,7 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.0, 05/15/2018
+# Version 3.1, 05/16/2018
 #
 # Refactored into:
 #   StringCases, StringGroupings, StringIsIn,
@@ -19,8 +19,8 @@
 # See the file 'gpl' distributed within this project directory tree.
 #
 
+require_relative "ppstrnum"
 require_relative "StringCases"
-require_relative "StringGroupings"
 require_relative "StringIsIn"
 require_relative "StringLexicals"
 require_relative "StringModes"

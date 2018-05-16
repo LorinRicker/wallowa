@@ -3,7 +3,7 @@
 
 # ppstrnum.rb
 #
-# Copyright © 2011-2017 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
 # Version 1.6, 08/31/2017
 #
 # This program is free software, under the terms and conditions of the
