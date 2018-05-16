@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.11 (05/15/2018)"
+  PROGID = "#{PROGNAME} v3.12 (05/16/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -186,8 +186,7 @@ def create_DCL_symbol( result, options, idx )
 end # create_DCL_symbol
 
 # === Main ===
-options = { :math      => nil,
-            :format    => 'sep',
+options = { :format    => 'sep',
             :just      => 'right',
             :separator => ',',
             :methods   => nil,
@@ -207,11 +206,8 @@ optparse = OptionParser.new { |opts|
                              "arguments (timeints) on the command-line" ) do |val|
     options[:prompt] = true
   end  # -p --prompt
-  opts.on( "-x", "--math[=EXACT]", String, /EXACT|NORMAL|INEXACT/i,
-           "Display exact or normal (default) math results" ) do |val|
-    options[:math] = true if ( val || "exact" ).upcase[0] == "E"
-  end  # -x --math
-  opts.on( "-f", "--format[=DISPLAY]", /SEP.*|WORDS?|BARE|ASC.*|DESC.*/i,
+  opts.on( "-f", "--format[=SEPARATED]",
+           /SEP.*|WORDS?|BARE|ASC.*|DESC.*/i, # note that patterns permit abbreviations
            "Format to display:",
            "  SEP:  comma separated groups (default),",
            "  BARE: no separator,",
@@ -230,8 +226,8 @@ optparse = OptionParser.new { |opts|
            "Format justification: right (default) or left" ) do |val|
     options[:just] = ( val || "right" ).downcase
   end  # -j --just
-  opts.on( "-g", "--separator[=SEPARATOR]", String,
-           "Group separator (default is ',' comma)" ) do |val|
+  opts.on( "-g", "--separator[=SEPCHAR]", String,
+           "Group separator character (default is ',' comma)" ) do |val|
     options[:separator] = val.to_i.abs
   end  # -s --separator
   opts.on( "-m", "--methods=RubyClassName", /Numeric|Integer|Fixnum|Bignum|Float/i,
@@ -243,7 +239,8 @@ optparse = OptionParser.new { |opts|
     end
   end  # -m --methods
 
-  opts.separator ""
+#  opts.separator ""
+  opts.separator "\n#{VMSONLY_BORDER}"
   opts.on( "-r", "--variable[=VARNAME]", String,
            "Variable (DCL symbol) name for expression result;",
            "  default variable name is #{DEFAULT_VARNAME}, which",
@@ -255,13 +252,12 @@ optparse = OptionParser.new { |opts|
     options[:varname] = ( val || DEFAULT_VARNAME ).upcase
   end  # -r --variable
 
-  opts.separator "\n#{VMSONLY_BORDER}"
   opts.on( "-s", "--scope[=DCLSCOPE]", /GLOBAL|LOCAL/i,
            "DCL variable scope (default LOCAL, or GLOBAL)" ) do |val|
     options[:dclscope] = ( val || "LOCAL" ).upcase[0] == "L" ?
                            DCLSCOPE_LOCAL : DCLSCOPE_GLOBAL
   end  # -x --scope
-  opts.separator "\n    Options here are ignored if not VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
+  opts.separator "\n    The above options are ignored if not on VMS (OpenVMS)\n#{VMSONLY_BORDEREND}\n\n"
 
   opts.on( "-n", "--noop", "--dryrun", "--test",
            "Dry-run (test & display, no-op) mode" ) do |val|
@@ -309,14 +305,6 @@ end                           #
 options[:os] = WhichOS.identify_os
 
 pp options if options[:debug] >= DBGLVL2
-
-#####################################################
-# If included, math results are "exact":            #
-#   36/16 => 9/4                                    #
-# Not included generates "normal" math results:     #
-#   36/16 => 2                                      #
-require 'mathn' if options[:math] # Unified numbers #
-#####################################################
 
 MPs = math_patterns  # regexs to test for special forms...
 
