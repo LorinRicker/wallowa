@@ -4,11 +4,13 @@
 # StringEnhancements.rb
 #
 # Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
-# Version 3.1, 05/16/2018
+# Version 3.2, 05/16/2018
 #
 # Refactored into:
-#   StringCases, StringGroupings, StringIsIn,
-#   StringLexicals, StringModes, and StringSpellings
+#   StringCases, StringIsIn, StringLexicals, StringModes, and StringSpellings
+#
+#   StringGroupings was provisional, turned out to be duplicate
+#   to code in lib/ppstrnum.rb (PrettyPrintStringNumbers)
 #
 # This file now is merely a single-point "require_relative" for
 # each/all of the above, each of which can be used separately
