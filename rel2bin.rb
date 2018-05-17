@@ -3,7 +3,7 @@
 
 # rel2bin.rb
 #
-# Copyright © 2012-2017 Lorin Ricker <Lorin@RickerNet.us>
+# Copyright © 2012-2018 Lorin Ricker <Lorin@RickerNet.us>
 # Version info: see PROGID below...
 #
 # This program is free software, under the terms and conditions of the
@@ -11,7 +11,7 @@
 # See the file 'gpl' distributed within this project directory tree.
 
 PROGNAME = File.basename $0
-  PROGID = "#{PROGNAME} v2.3 (08/07/2015)"
+  PROGID = "#{PROGNAME} v2.4 (05/17/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -26,7 +26,7 @@ require 'fileutils'
 require_relative 'lib/filemagic'
 require_relative 'lib/ANSIseq'
 require_relative 'lib/FileEnhancements'
-require_relative 'lib/StringEnhancements'
+require_relative 'lib/StringCases'
 require_relative 'lib/AskPrompted'
 
 # Main -- Script which releases other scripts (files) to a .../<tfdir>/
