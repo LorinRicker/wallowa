@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
-# Version 1.6, 08/31/2017
+# Version 2.0, 05/17/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -22,40 +22,41 @@
 
 module Ppnumnum
 
-  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
+  # These wrappers hands-off a Numeric (Integer, Bignum, etc. ) to the
   # same-named String method, handling the to_s conversion as a
   # convenience, thus avoiding calls like: 1234567890.to_s.thousands --
+
+  def groupsep( grp = 3, sep = ',', decpt = '.' )
+    self.to_s.groupsep( sep )
+  end  # groupsep
+
   def thousands( sep = ',' )
     self.to_s.thousands( sep )
   end  # thousands
 
-  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
-  # same-named String method, handling the to_s conversion as a
-  # convenience, thus avoiding calls like: 1234567890.to_s.numbernames --
   def numbernames( stanzasep = ',', setcase = :titlecase )
     self.to_s.numbernames( stanzasep, setcase )
   end  # numbernames
 
-  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
-  # same-named String method, handling the to_s conversion as a
-  # convenience, thus avoiding calls like: 1234567890.to_s.asc_numstack --
   def asc_numstack( sep = ",\n" )
     self.to_s.asc_numstack( sep )
   end  # asc_numstack
 
-  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
-  # same-named String method, handling the to_s conversion as a
-  # convenience, thus avoiding calls like: 1234567890.to_s.desc_numstack --
   def desc_numstack( sep = ",\n" )
     self.to_s.desc_numstack( sep )
   end  # desc_numstack
 
-  # This wrapper hands-off a Numeric (Integer, Bignum, etc. ) to the
-  # same-named String method, handling the to_s conversion as a
-  # convenience, thus avoiding calls like: 1234567890.to_s.pp_numstack --
   def pp_numstack( options )
     self.to_s.pp_numstack( options )
   end  # pp_numstack
+
+  def engineering_notation( precision = 3, verbose = false )
+    self.to_s.engineering_notation( precision, verbose )
+  end  # engineering_notation
+
+  def scientific_notation( precision = 3, verbose = false )
+    self.to_s.scientific_notation( precision, verbose )
+  end  # scientific_notation
 
 end  # module
 
@@ -125,6 +126,94 @@ module Ppstrnum
     end
     result.join( "#{options[:separator]}\n" )
   end  # pp_numstack
+
+  # see Wikipedia: https://en.wikipedia.org/wiki/Engineering_notation
+  def engineering_notation( precision = 3, verbose = false )
+    # Engineering notation, NNN.nnnExxx, means that the power of ten or exponent
+    # "xxx" is a multiple of three (3), and the significand "NNN" is one, two or
+    # three digits, with a decimal "nnn" part which is precision-digits long.
+    # This format transformation is best handled (mostly) as string-manipulation
+    # based on the "thousands" (comma-separated) representation of the number to
+    # format.
+    # TO-DO: handle and check/text numbers < 0 -- 0.123 and 0.000234 should
+    #        produce -xxx (negative exponent)
+    comma = ','
+    decpt = '.'
+    zero  = '0'
+    number = self.to_i
+    numstr = self.to_s
+    negative = number < 0 ? '-' : ''
+    significand = number.abs.to_s.groupsep( 3, comma, decpt ).split( comma )[0]
+    decimals = nil
+    if numstr.include?(decpt)
+      nums = numstr.split( decpt )
+      restdigits = nums[0][significand.length..-1]
+      decimals = nums[1]           # any digits after the decimal point
+    else
+      restdigits = numstr[significand.length..-1]
+    end
+    decimals = zero * precision if !decimals  # if no decimal places, add some zeros
+    exponent = restdigits.length
+    restdigits += decimals if restdigits.length < precision
+    roundingdigit = precision - significand.length - 1
+    fraction = restdigits[0,roundingdigit]
+    fraction = fraction.succ if restdigits[roundingdigit].to_i >= 5  # round up?
+    if verbose
+      puts "engineering_notation --"
+      puts "      self is: '#{self.class}'"
+      puts "  significand: '#{significand}'"
+      puts "   restdigits: '#{restdigits}'"
+      puts "  round-digit: '#{restdigits[roundingdigit]}' '#{roundingdigit}'" if roundingdigit > 0
+      puts "     exponent: '#{exponent}'"
+      puts "     fraction: '#{fraction}'"
+      puts "    precision: '#{precision}'"
+    end
+    # Stylistic choice: display as NNN.nnnExxx, with an uppercase "E" (not "e")
+    return sprintf( "%s%s.%sE%s", negative, significand, fraction, exponent )
+  end  # engineering_notation
+
+  # see Wikipedia: https://en.wikipedia.org/wiki/Scientific_notation
+  def scientific_notation( precision = 3, verbose = false )
+    # Scientific notation, N.nnnExxx, allows any power of ten or exponent
+    # "xxx", and normalizes significand "N" to one three digits, with a
+    # decimal "nnn" part which is precision-digits long.
+    # This format transformation is ...
+    # TO-DO: handle and check/text numbers < 0 -- 0.123 and 0.000234 should
+    #        produce -xxx (negative exponent)
+    comma = ','
+    decpt = '.'
+    zero  = '0'
+    number = self.to_i
+    numstr = self.to_s
+    negative = number < 0 ? '-' : ''
+    significand = numstr[0]  # first digit
+    decimals = nil
+    if numstr.include?(decpt)
+      nums = numstr.split( decpt )
+      restdigits = nums[0][1..-1]
+      decimals = nums[1]           # any digits after the decimal point
+    else
+      restdigits = numstr[1..-1]
+    end
+    decimals = zero * precision if !decimals  # if no decimal places, add some zeros
+    exponent = restdigits.length
+    restdigits += decimals if restdigits.length < precision
+    roundingdigit = precision - significand.length - 1
+    fraction = restdigits[0,roundingdigit]
+    fraction = fraction.succ if restdigits[roundingdigit].to_i >= 5  # round up?
+    if verbose
+      puts "scientific_notation --"
+      puts "      self is: '#{self.class}'"
+      puts "  significand: '#{significand}'"
+      puts "   restdigits: '#{restdigits}'"
+      puts "  round-digit: '#{restdigits[roundingdigit]}' '#{roundingdigit}'" if roundingdigit > 0
+      puts "     exponent: '#{exponent}'"
+      puts "     fraction: '#{fraction}'"
+      puts "    precision: '#{precision}'"
+    end
+    # Stylistic choice: display as N.nnnexxx, with a lowercase "e" (not "E")
+    return sprintf( "%s%s.%se%s", negative, significand, fraction, exponent )
+  end  # scientific_notation
 
 # -----
 
