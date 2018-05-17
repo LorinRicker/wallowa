@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.12 (05/16/2018)"
+  PROGID = "#{PROGNAME} v3.13 (05/17/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -43,7 +43,6 @@ require_relative 'lib/GetPrompted'
 ## require_relative 'lib/TermChar'
 
 # Expose methods which may be used by User on command-line:
-require_relative 'lib/ppstrnum'
 require_relative 'lib/Combinatorics'
 
 # ==========
@@ -119,32 +118,38 @@ def sub_patterns( arg )
 end # sub_patterns
 
 def evaluate( arg, debug )
-  tmp = 0
+  tmp = 0  # create an object outside of (global to) the eval()
   cmd = "tmp = #{arg}"
   # There is, of course, a "Limited Liability" with eval'ing
   # any input provided by the user... but actually not a lot
   # more than if the user had written this script him/herself --
   #############
-  eval( cmd ) #  <- creates object/variable 'tmp'
+  eval( cmd ) #  <- creates object/variable 'tmp', usually a Numeric
   #############
   if debug
     STDOUT.puts "\n  eval( '#{cmd}' )"
-    STDOUT.puts "  raw: #{tmp.inspect}\n\n"
+    STDOUT.puts "  raw: #{tmp.inspect}"
+    STDOUT.puts "class: #{tmp.class}\n\n"
   end
   return tmp
 end # evaluate
 
 def format_result( tmp, options )
-  fmt = ! tmp.kind_of?( Numeric ) ? "nonNumeric" : options[:format]
+  require_relative 'lib/ppstrnum'
+  fmt = tmp.kind_of?( Numeric ) ? options[:format] : "nonNumeric"
   case fmt.to_sym
-  when :sep
-      result = tmp.thousands
+  when :thou
+    result = tmp.thousands
   when :bare
-      result = tmp.to_s
+    result = tmp.to_s
   when :word
-      result = tmp.numbernames
+    result = tmp.numbernames
   when :asc, :desc
-      result = tmp.pp_numstack( options )
+    result = tmp.pp_numstack( options )
+  when :eng
+    result = tmp.engineering_notation( options[:precision], options[:verbose] )
+  when :sci
+    result = tmp.scientific_notation( options[:precision], options[:verbose] )
   when :nonNumeric
     result = tmp.inspect  # pp-type format
   #when :desc
@@ -186,9 +191,10 @@ def create_DCL_symbol( result, options, idx )
 end # create_DCL_symbol
 
 # === Main ===
-options = { :format    => 'sep',
+options = { :format    => 'thou',
             :just      => 'right',
             :separator => ',',
+            :precision => 3,
             :methods   => nil,
             :indent    => 2,
             :prompt   => false,
@@ -206,17 +212,20 @@ optparse = OptionParser.new { |opts|
                              "arguments (timeints) on the command-line" ) do |val|
     options[:prompt] = true
   end  # -p --prompt
-  opts.on( "-f", "--format[=SEPARATED]",
-           /SEP.*|WORDS?|BARE|ASC.*|DESC.*/i, # note that patterns permit abbreviations
-           "Format to display:",
-           "  SEP:  comma separated groups (default),",
-           "  BARE: no separator,",
-           "  WORD: number-names,",
-           "  ASC:  number-names in ascending groups,",
-           "  DESC: number-names in descending groups" ) do |val|
-    format = { :S => "sep", :W => "word", :B => "bare",
-               :A => "asc", :D => "desc" }.fetch( val[0].upcase.to_sym )
-    options[:format] = ( format || "sep" )
+  opts.on( "-f", "--format[=THOUSANDS]",
+           /THO.*|WORDS?|BARE|ASC.*|DESC.*|ENG.*|SCI.*/i, # note that patterns permit abbreviations
+           "Display format:",
+           "  THOUSANDS:   comma-separated thousands-groups (default),",
+           "  BARE:        no separator,",
+           "  WORDS:       number-names,",
+           "  DESCENDING:  number-names in descending groups",
+           "  ASCENDING:   number-names in ascending groups,",
+           "  ENGINEERING: in engineering-exponential notation,",
+           "  SCIENTIFIC:  in scientific-exponential notation" ) do |val|
+    format = { :T => "thou", :W => "word", :B => "bare",
+               :A => "asc", :D => "desc",
+               :E => "eng", :S => "sci" }.fetch( val[0].upcase.to_sym )
+    options[:format] = ( format || "thou" )
   end  # -f --format
   opts.on( "-i", "--indent[=INDENTATION]", Integer,
            "Display indentation width (default is 2 spaces)" ) do |val|
@@ -230,6 +239,10 @@ optparse = OptionParser.new { |opts|
            "Group separator character (default is ',' comma)" ) do |val|
     options[:separator] = val.to_i.abs
   end  # -s --separator
+  opts.on( "-c", "--precision=N", Integer, /\d{1,2}/,
+           "Precision, or number of significant display digits" ) do |val|
+    options[:precision] = val.to_i.abs
+  end  # -c --precision
   opts.on( "-m", "--methods=RubyClassName", /Numeric|Integer|Fixnum|Bignum|Float/i,
            "Display methods for a Ruby Numeric class" ) do |val|
     options[:methods] = val.to_s.capitalize!
@@ -322,7 +335,7 @@ if ARGV[0]
   end  # ARGV.each_with_index
 end  # if ARGV[0]
 if options[:prompt] || ARGV.empty?
-  pstr = PROGNAME.lowercase
+  pstr = PROGNAME.downcase
   # ...Prompt user for values, show running-tape of accumulated/calc'd time
   # display current interval as prompt> -- get user's input, no default answer:
   while iarg = getprompted( pstr, "", false )
