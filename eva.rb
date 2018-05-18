@@ -20,7 +20,7 @@
 #    methods, and possibly other things.
 
 PROGNAME = File.basename( $0, '.rb' )
-  PROGID = "#{PROGNAME} v3.13 (05/17/2018)"
+  PROGID = "#{PROGNAME} v3.14 (05/18/2018)"
   AUTHOR = "Lorin Ricker, Elbert, Colorado, USA"
 
 DBGLVL0 = 0
@@ -146,10 +146,8 @@ def format_result( tmp, options )
     result = tmp.numbernames
   when :asc, :desc
     result = tmp.pp_numstack( options )
-  when :eng
-    result = tmp.engineering_notation( options[:precision], options[:verbose] )
-  when :sci
-    result = tmp.scientific_notation( options[:precision], options[:verbose] )
+  when :eng, :sci
+    result = tmp.exponential_notation( fmt, options[:precision], options[:verbose] )
   when :nonNumeric
     result = tmp.inspect  # pp-type format
   #when :desc
