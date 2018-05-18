@@ -4,7 +4,7 @@
 # ppstrnum.rb
 #
 # Copyright © 2011-2018 Lorin Ricker <Lorin@RickerNet.us>
-# Version 2.1, 05/18/2018
+# Version 2.2, 05/18/2018
 #
 # This program is free software, under the terms and conditions of the
 # GNU General Public License published by the Free Software Foundation.
@@ -131,20 +131,28 @@ module Ppstrnum
     result.join( "#{options[:separator]}\n" )
   end  # pp_numstack
 
+  # Parameters:
+  #    fmt : either "sci" (default) or :sci or "eng" or :eng
+  #          to select either scientific or engineering Scientific_notation.
+  #    precision : a positive, non-zero integer, specifies the number of
+  #          significant digits to display (practically up to 10 or 12 digits).
+  #    verbose : false (default) or true, which dumps internal/intermediate
+  #          values for debugging and verification.
+  #
   # See Wikipedia: https://en.wikipedia.org/wiki/Engineering_notation
   # and Wikipedia: https://en.wikipedia.org/wiki/Scientific_notation
-  def exponential_notation( fmt, precision = 3, verbose = false )
-    # Engineering notation, NNN.nnnExxx, means that the power of ten or exponent
-    # "xxx" is a multiple of three (3), and the significand "NNN" is one, two or
-    # three digits, with a decimal "nnn" part which is precision-digits long.
-    # This format transformation is best handled (mostly) as string-manipulation
-    # based on the "thousands" (comma-separated) representation of the number to
-    # format.
-    # Scientific notation, N.nnnExxx, allows any power of ten or exponent "xxx",
-    # and normalizes significand "N" to one three digits, with a decimal "nnn"
-    # part which is precision-digits long.
-    # TO-DO: handle and check/text numbers < 0 -- 0.123 and 0.000234 should
-    #        produce -xxx (negative exponent)
+  # Engineering notation, NNN.nnnExxx, means that the power of ten or exponent
+  # "xxx" is a multiple of three (3), and the significand "NNN" is one, two or
+  # three digits, with a decimal "nnn" part which is precision-digits long.
+  # This format transformation is best handled (mostly) as string-manipulation
+  # based on the "thousands" (comma-separated) representation of the number to
+  # format.
+  # Scientific notation, N.nnnExxx, allows any power of ten or exponent "xxx",
+  # and normalizes significand "N" to one three digits, with a decimal "nnn"
+  # part which is precision-digits long.
+  # TO-DO: handle and check/text numbers < 0 -- 0.123 and 0.000234 should
+  #        produce -xxx (negative exponent)
+  def exponential_notation( fmt = "sci", precision = 3, verbose = false )
     comma = ','
     decpt = '.'
     zero  = '0'
@@ -161,6 +169,10 @@ module Ppstrnum
       significand = numstr[0]  # first digit
       siglen = 1
       expletter = "e"  # Display as N.nnnexxx, with a lowercase "e" (not "E")
+    else
+      STDERR.puts "%exponential_notation-e-badformat, bad format for fmt (parameter-1);"
+      STDERR.puts "                                   use either 'eng' or 'sci'"
+      return self
     end  # case fmt
     decimals = nil
     if numstr.include?(decpt)
